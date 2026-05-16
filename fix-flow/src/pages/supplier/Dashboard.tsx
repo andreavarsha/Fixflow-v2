@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { ChatPanel } from "../../components/messaging/ChatPanel";
 import {
+  ffBtnGhost,
   ffBtnPrimary,
   ffCard,
   ffInput,
@@ -21,6 +23,9 @@ const urgencyStyle = {
 export default function SupplierDashboard() {
   const unreadCount = useQuery(api.notifications.getUnreadCount);
   const quoteRequests = useQuery(api.quoteRequests.listForSupplier);
+  const [chatOpenFor, setChatOpenFor] = useState<Id<"quoteRequests"> | null>(
+    null,
+  );
 
   return (
     <div className={ffPage}>
@@ -100,6 +105,33 @@ export default function SupplierDashboard() {
                 initialNotes={request.notes}
                 initialIsFinal={request.isFinal}
               />
+
+              {request.ownerId && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setChatOpenFor((current) =>
+                        current === request._id ? null : request._id,
+                      )
+                    }
+                    className={`${ffBtnGhost} mt-3 self-start text-sm`}
+                    aria-expanded={chatOpenFor === request._id}
+                  >
+                    {chatOpenFor === request._id
+                      ? "Close chat"
+                      : "Message homeowner"}
+                  </button>
+
+                  {chatOpenFor === request._id && (
+                    <ChatPanel
+                      jobId={request.jobId}
+                      peerId={request.ownerId}
+                      peerLabel="Homeowner"
+                    />
+                  )}
+                </>
+              )}
             </li>
           ))}
         </ul>

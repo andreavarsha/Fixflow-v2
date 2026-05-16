@@ -203,6 +203,8 @@ export const listForSupplier = query({
           jobUrgency: job?.urgency,
           jobSummary: job?.aiSummary,
           jobStatus: job?.status,
+          // Exposed so the supplier UI can open a masked chat with the homeowner (Exp R4).
+          ownerId: job?.ownerId,
         };
       }),
     );

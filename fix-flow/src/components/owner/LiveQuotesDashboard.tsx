@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { OwnerStepHint } from "../layout/OwnerStepHint";
+import { ChatPanel } from "../messaging/ChatPanel";
 import {
   ffBtnGhost,
   ffBtnPrimary,
@@ -27,6 +28,7 @@ export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps)
     null,
   );
   const [acceptError, setAcceptError] = useState("");
+  const [chatOpenFor, setChatOpenFor] = useState<Id<"users"> | null>(null);
 
   const jobOpen = job?.status === "open";
 
@@ -189,6 +191,29 @@ export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps)
                     <strong>final</strong> quote.
                   </p>
                 )}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setChatOpenFor((current) =>
+                    current === q.supplierId ? null : q.supplierId,
+                  )
+                }
+                className={`${ffBtnGhost} mt-3 self-start text-sm`}
+                aria-expanded={chatOpenFor === q.supplierId}
+              >
+                {chatOpenFor === q.supplierId
+                  ? "Close chat"
+                  : "Message this tradesperson"}
+              </button>
+
+              {chatOpenFor === q.supplierId && (
+                <ChatPanel
+                  jobId={jobId}
+                  peerId={q.supplierId}
+                  peerLabel="Tradesperson"
+                />
+              )}
             </li>
           ))}
         </ul>
