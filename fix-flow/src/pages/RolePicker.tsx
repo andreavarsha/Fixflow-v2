@@ -1,16 +1,26 @@
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function RolePicker() {
+  const user = useQuery(api.users.getUser);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user === undefined) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (user.role === "owner") navigate("/owner/dashboard");
+    else if (user.role === "supplier") navigate("/supplier/dashboard");
+    else if (user.role === "admin") navigate("/admin/dashboard");
+  }, [user, navigate]);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white text-black">
-      <h1 className="text-2xl font-bold">FixFlow AI — Select Role</h1>
-      <p className="text-sm text-gray-500">Temporary — will auto-redirect once backend role is live</p>
-      <div className="flex gap-4 mt-4">
-        <button onClick={() => navigate("/owner/dashboard")} className="border px-6 py-3 font-medium hover:bg-black hover:text-white">Owner</button>
-        <button onClick={() => navigate("/supplier/dashboard")} className="border px-6 py-3 font-medium hover:bg-black hover:text-white">Supplier</button>
-        <button onClick={() => navigate("/admin/dashboard")} className="border px-6 py-3 font-medium hover:bg-black hover:text-white">Admin</button>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-white text-black">
+      <p className="text-sm text-gray-500">Redirecting...</p>
     </div>
   );
 }
