@@ -1,0 +1,10 @@
+# App lives in fix-flow/ (not repo root). Netlify reads this from the repository root.
+[build]
+  base = "fix-flow"
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
