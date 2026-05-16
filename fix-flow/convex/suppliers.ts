@@ -9,6 +9,7 @@ import {
 import { internal } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "./_generated/dataModel";
+import { resolveDiscoveryCategory } from "./jobCategories";
 import {
   distanceFromKadanaKm,
   kadanaBoundingBox,
@@ -38,6 +39,7 @@ export const getSuppliersNearKadana = query({
     const user = await ctx.db.get(userId);
     if (!user || user.role !== "owner") return [];
 
+    const tradeCategory = resolveDiscoveryCategory(category);
     const rectangle = kadanaBoundingBox();
     const matches: SupplierNearKadana[] = [];
     let cursor: string | undefined;
@@ -50,7 +52,7 @@ export const getSuppliersNearKadana = query({
           limit: 64,
           filter: (q) =>
             q
-              .eq("category", category)
+              .eq("category", tradeCategory)
               .eq("approved", true)
               .eq("available", true)
               .eq("suspended", false),
@@ -157,6 +159,7 @@ export const selectSuppliers = mutation({
 export const listNearbySupplierIds = internalQuery({
   args: { category: v.string() },
   handler: async (ctx, { category }) => {
+    const tradeCategory = resolveDiscoveryCategory(category);
     const rectangle = kadanaBoundingBox();
     const ids: Id<"users">[] = [];
     let cursor: string | undefined;
@@ -169,7 +172,7 @@ export const listNearbySupplierIds = internalQuery({
           limit: 64,
           filter: (q) =>
             q
-              .eq("category", category)
+              .eq("category", tradeCategory)
               .eq("approved", true)
               .eq("available", true)
               .eq("suspended", false),
@@ -322,7 +325,9 @@ export const setSupplierSuspended = mutation({
   },
 });
 
-/** Backfill geospatial index for all seeded suppliers (run once if data existed before Round 2). */
+const LEGACY_STRUCTURAL_CATEGORY = "Structural / Masonry";
+
+/** Backfill geospatial index + migrate legacy category name to Roofing. */
 export const indexAllSuppliers = mutation({
   args: {},
   handler: async (ctx) => {
@@ -331,10 +336,15 @@ export const indexAllSuppliers = mutation({
       .filter((q) => q.eq(q.field("role"), "supplier"))
       .collect();
 
+    let renamed = 0;
     for (const supplier of suppliers) {
+      if (supplier.category === LEGACY_STRUCTURAL_CATEGORY) {
+        await ctx.db.patch(supplier._id, { category: "Roofing" });
+        renamed++;
+      }
       await syncSupplierGeospatial(ctx, supplier._id);
     }
 
-    return { indexed: suppliers.length };
+    return { indexed: suppliers.length, renamed };
   },
 });

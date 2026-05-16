@@ -1,6 +1,8 @@
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useQuery } from "convex/react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { api } from "../../convex/_generated/api";
 import {
   ffBtnPrimary,
   ffCard,
@@ -9,9 +11,11 @@ import {
   ffPage,
   ffScreenTitle,
 } from "../lib/fixflowUi";
+import { toUserFacingError } from "../lib/userFacingError";
 
 export default function Login() {
   const { signIn } = useAuthActions();
+  const demoLogin = useQuery(api.demoAuth.getDemoSupplierLoginInfo);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,8 +32,7 @@ export default function Login() {
       navigate("/");
     } catch (err: unknown) {
       console.error("Login error:", err);
-      const message = err instanceof Error ? err.message : "Invalid credentials.";
-      setError(message);
+      setError(toUserFacingError(err, "login"));
     } finally {
       setLoading(false);
     }
@@ -99,6 +102,19 @@ export default function Login() {
           >
             Need an account? Sign up
           </Link>
+
+          {demoLogin && (
+            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 text-xs leading-relaxed text-gray-600">
+              <p className="font-medium text-gray-800">Demo supplier login</p>
+              <p className="mt-1">{demoLogin.emailHint}</p>
+              <p className="mt-1">
+                Password:{" "}
+                <span className="font-mono font-semibold text-gray-900">
+                  {demoLogin.password}
+                </span>
+              </p>
+            </div>
+          )}
         </form>
       </div>
     </div>

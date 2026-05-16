@@ -9,6 +9,7 @@ import {
   ffBtnInRow,
   ffCard,
 } from "../../lib/fixflowUi";
+import { toUserFacingError } from "../../lib/userFacingError";
 
 const MAX_SELECT = 3;
 
@@ -57,7 +58,7 @@ export function SupplierDiscovery({
       setSuccess(true);
       onQuotesSent();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(toUserFacingError(err));
     } finally {
       setSubmitting(false);
     }
@@ -125,10 +126,9 @@ export function SupplierDiscovery({
         <div className={`${ffCard} text-sm text-gray-600`}>
           <p className="font-medium text-gray-900">No one nearby right now</p>
           <p className="mt-2 leading-relaxed">
-            Try another category or ask your teammate to run indexing if data was
-            seeded recently (
-            <code className="rounded bg-gray-100 px-1 text-xs">suppliers.indexAllSuppliers</code>
-            ).
+            No approved {category} suppliers are indexed within 15 km of Kadana. Try
+            another category from the job summary, or refresh the page in a moment
+            if your team just re-seeded data.
           </p>
         </div>
       )}

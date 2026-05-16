@@ -9,6 +9,7 @@ import {
   ffPage,
   ffScreenTitle,
 } from "../lib/fixflowUi";
+import { toUserFacingError } from "../lib/userFacingError";
 
 export default function Signup() {
   const { signIn } = useAuthActions();
@@ -33,12 +34,7 @@ export default function Signup() {
       navigate("/");
     } catch (err: unknown) {
       console.error("Signup error:", err);
-      const raw = err instanceof Error ? err.message : "Signup failed.";
-      const message =
-        raw.includes("Invalid password")
-          ? "Password must be at least 8 characters."
-          : raw;
-      setError(message);
+      setError(toUserFacingError(err, "signup"));
     } finally {
       setLoading(false);
     }

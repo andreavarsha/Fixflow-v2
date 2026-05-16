@@ -202,6 +202,8 @@ export const listForSupplier = query({
           jobCategory: job?.category,
           jobUrgency: job?.urgency,
           jobSummary: job?.aiSummary,
+          jobSummary_si: job?.aiSummary_si,
+          jobSummary_ta: job?.aiSummary_ta,
           jobStatus: job?.status,
           // Exposed so the supplier UI can open a masked chat with the homeowner (Exp R4).
           ownerId: job?.ownerId,

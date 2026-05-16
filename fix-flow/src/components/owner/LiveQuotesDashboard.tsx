@@ -13,6 +13,7 @@ import {
   ffScreenSubtitle,
   ffScreenTitle,
 } from "../../lib/fixflowUi";
+import { toUserFacingError } from "../../lib/userFacingError";
 
 type LiveQuotesDashboardProps = {
   jobId: Id<"jobs">;
@@ -38,9 +39,7 @@ export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps)
     try {
       await acceptQuote({ jobId, quoteRequestId });
     } catch (err: unknown) {
-      setAcceptError(
-        err instanceof Error ? err.message : "Could not accept quote",
-      );
+      setAcceptError(toUserFacingError(err));
     } finally {
       setAcceptingId(null);
     }

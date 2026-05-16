@@ -17,6 +17,13 @@ import {
   ffScreenSubtitle,
   ffScreenTitle,
 } from "../../lib/fixflowUi";
+import { toUserFacingError } from "../../lib/userFacingError";
+import {
+  JOB_CATEGORIES,
+  JOB_URGENCIES,
+  type JobCategory,
+  type JobUrgency,
+} from "../../lib/jobCategories";
 
 export default function OwnerDashboard() {
   const [description, setDescription] = useState("");
@@ -56,8 +63,7 @@ export default function OwnerDashboard() {
       });
       setJobId(id);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to submit job";
-      setError(message);
+      setError(toUserFacingError(err));
     } finally {
       setSubmitting(false);
     }
@@ -166,7 +172,13 @@ function ClassificationResult({
 }) {
   const job = useQuery(api.jobs.getJob, { jobId });
   const updateSummary = useMutation(api.jobs.updateSummary);
+  const updateJobClassification = useMutation(api.jobs.updateJobClassification);
   const [editingSummary, setEditingSummary] = useState(false);
+  const [showCategoryEdit, setShowCategoryEdit] = useState(false);
+  const [categoryDraft, setCategoryDraft] = useState<JobCategory>("General Maintenance");
+  const [urgencyDraft, setUrgencyDraft] = useState<JobUrgency>("Medium");
+  const [categorySaveError, setCategorySaveError] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
   const [summaryDraft, setSummaryDraft] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -181,6 +193,12 @@ function ClassificationResult({
     const hasTa = Boolean(job.aiSummary_ta?.trim());
     if (summaryLang === "si" && !hasSi) setSummaryLang("en");
     if (summaryLang === "ta" && !hasTa) setSummaryLang("en");
+    if (job.category && JOB_CATEGORIES.includes(job.category as JobCategory)) {
+      setCategoryDraft(job.category as JobCategory);
+    }
+    if (job.urgency && JOB_URGENCIES.includes(job.urgency as JobUrgency)) {
+      setUrgencyDraft(job.urgency as JobUrgency);
+    }
   }, [job, summaryLang]);
 
   if (job === undefined) {
@@ -245,9 +263,26 @@ function ClassificationResult({
       await updateSummary({ jobId, aiSummary: summaryDraft });
       setEditingSummary(false);
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save");
+      setSaveError(toUserFacingError(err));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSaveCategory() {
+    setCategorySaveError("");
+    setSavingCategory(true);
+    try {
+      await updateJobClassification({
+        jobId,
+        category: categoryDraft,
+        urgency: urgencyDraft,
+      });
+      setShowCategoryEdit(false);
+    } catch (err: unknown) {
+      setCategorySaveError(toUserFacingError(err));
+    } finally {
+      setSavingCategory(false);
     }
   }
 
@@ -309,13 +344,21 @@ function ClassificationResult({
               />
             )}
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-3">
+              {job.classificationFailed && (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200">
+                  We couldn&apos;t reach the AI classifier — please check the category below
+                  or adjust it before finding suppliers.
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-2">
               {job.category && (
                 <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
                   {job.category}
                 </span>
               )}
-              {job.subcategory && (
+              {job.subcategory && job.subcategory !== "Needs review" && (
                 <span className="rounded-full bg-gray-50 px-3 py-1 text-sm text-gray-600 ring-1 ring-gray-200">
                   {job.subcategory}
                 </span>
@@ -325,6 +368,86 @@ function ClassificationResult({
               >
                 {urgency} urgency
               </span>
+              </div>
+
+              {!showCategoryEdit ? (
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryEdit(true)}
+                  className={`${ffBtnGhost} w-fit text-sm`}
+                >
+                  Adjust category & urgency
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50/80 p-4">
+                  <p className="text-sm font-medium text-gray-900">
+                    Change category <span className="font-normal text-gray-500">(optional)</span>
+                  </p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <div className="min-w-[200px] flex-1">
+                      <label htmlFor="job-category" className={ffLabel}>
+                        Trade category
+                      </label>
+                      <select
+                        id="job-category"
+                        value={categoryDraft}
+                        onChange={(e) => setCategoryDraft(e.target.value as JobCategory)}
+                        className={ffInput}
+                      >
+                        {JOB_CATEGORIES.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="min-w-[140px] sm:w-40">
+                      <label htmlFor="job-urgency" className={ffLabel}>
+                        Urgency
+                      </label>
+                      <select
+                        id="job-urgency"
+                        value={urgencyDraft}
+                        onChange={(e) => setUrgencyDraft(e.target.value as JobUrgency)}
+                        className={ffInput}
+                      >
+                        {JOB_URGENCIES.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {categorySaveError && (
+                    <p className="text-sm text-red-600">{categorySaveError}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleSaveCategory()}
+                      disabled={savingCategory}
+                      className={`${ffBtnPrimary} ${ffBtnInRow}`}
+                    >
+                      {savingCategory ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCategoryEdit(false);
+                        setCategorySaveError("");
+                        if (job.category && JOB_CATEGORIES.includes(job.category as JobCategory)) {
+                          setCategoryDraft(job.category as JobCategory);
+                        }
+                        if (job.urgency) setUrgencyDraft(job.urgency as JobUrgency);
+                      }}
+                      className={`${ffBtnSecondary} ${ffBtnInRow}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

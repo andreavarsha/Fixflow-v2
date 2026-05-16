@@ -7,23 +7,24 @@ import {
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { chatJson, type LlmImage } from "./llm";
+import {
+  JOB_CATEGORIES,
+  JOB_URGENCIES,
+  normalizeCategory,
+  type JobUrgency,
+} from "./jobCategories";
 
 const MAX_DESCRIPTION_LENGTH = 300;
-
-const CATEGORIES = [
-  "Plumbing",
-  "Electrical",
-  "Structural / Masonry",
-  "Carpentry",
-  "Painting",
-  "Garden / Landscaping",
-  "General Maintenance",
-] as const;
 
 const urgencyValidator = v.union(
   v.literal("High"),
   v.literal("Medium"),
   v.literal("Low"),
+);
+
+const categoryValidator = v.union(
+  ...JOB_CATEGORIES.map((c) => v.literal(c)),
 );
 
 export const generateUploadUrl = mutation({
@@ -73,6 +74,7 @@ export const submitJob = mutation({
     await ctx.scheduler.runAfter(0, internal.jobs.classifyIssue, {
       jobId,
       description,
+      photoId: args.photoId,
     });
 
     return jobId;
@@ -116,6 +118,33 @@ export const updateSummary = mutation({
   },
 });
 
+/** Owner can correct category / urgency before inviting suppliers (optional). */
+export const updateJobClassification = mutation({
+  args: {
+    jobId: v.id("jobs"),
+    category: categoryValidator,
+    urgency: urgencyValidator,
+    subcategory: v.optional(v.string()),
+  },
+  handler: async (ctx, { jobId, category, urgency, subcategory }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const job = await ctx.db.get(jobId);
+    if (!job || job.ownerId !== userId) throw new Error("Not authorized");
+    if (job.status !== "open") {
+      throw new Error("Can only edit classification while the job is open");
+    }
+
+    await ctx.db.patch(jobId, {
+      category,
+      urgency,
+      subcategory: subcategory?.trim().slice(0, 120) || job.subcategory,
+      classificationFailed: false,
+    });
+  },
+});
+
 export const applyClassification = internalMutation({
   args: {
     jobId: v.id("jobs"),
@@ -127,7 +156,11 @@ export const applyClassification = internalMutation({
     aiSummary_ta: v.string(),
   },
   handler: async (ctx, { jobId, ...fields }) => {
-    await ctx.db.patch(jobId, { ...fields, status: "open" });
+    await ctx.db.patch(jobId, {
+      ...fields,
+      status: "open",
+      classificationFailed: false,
+    });
   },
 });
 
@@ -138,14 +171,18 @@ export const markClassificationFailed = internalMutation({
   },
   handler: async (ctx, { jobId, description }) => {
     const fallback = description.slice(0, MAX_DESCRIPTION_LENGTH);
+    const category = normalizeCategory(
+      inferCategoryFromText(description) ?? undefined,
+    );
     await ctx.db.patch(jobId, {
       status: "open",
-      category: "General Maintenance",
-      subcategory: "General issue",
+      category,
+      subcategory: "Needs review",
       urgency: "Medium",
       aiSummary: fallback,
       aiSummary_si: fallback,
       aiSummary_ta: fallback,
+      classificationFailed: true,
     });
   },
 });
@@ -154,10 +191,12 @@ export const classifyIssue = internalAction({
   args: {
     jobId: v.id("jobs"),
     description: v.string(),
+    photoId: v.optional(v.id("_storage")),
   },
-  handler: async (ctx, { jobId, description }) => {
+  handler: async (ctx, { jobId, description, photoId }) => {
     try {
-      const classified = await classifyWithLlm(description);
+      const image = photoId ? await loadImageForLlm(ctx, photoId) : undefined;
+      const classified = await classifyWithLlm(description, image);
       const translated = await translateWithLlm(classified.summary);
 
       await ctx.runMutation(internal.jobs.applyClassification, {
@@ -182,7 +221,7 @@ export const classifyIssue = internalAction({
 type ClassifyResult = {
   category: string;
   subcategory: string;
-  urgency: "High" | "Medium" | "Low";
+  urgency: JobUrgency;
   summary: string;
 };
 
@@ -191,20 +230,81 @@ type TranslateResult = {
   tamil: string;
 };
 
-async function classifyWithLlm(description: string): Promise<ClassifyResult> {
-  const categories = CATEGORIES.join(", ");
+function bytesToBase64(bytes: Uint8Array): string {
+  const chunkSize = 0x8000;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const slice = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...slice);
+  }
+  return btoa(binary);
+}
+
+async function loadImageForLlm(
+  ctx: { storage: { get: (id: import("./_generated/dataModel").Id<"_storage">) => Promise<Blob | null> } },
+  photoId: import("./_generated/dataModel").Id<"_storage">,
+): Promise<LlmImage | undefined> {
+  const blob = await ctx.storage.get(photoId);
+  if (!blob) return undefined;
+
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const base64 = bytesToBase64(bytes);
+  const mimeType = blob.type && blob.type.startsWith("image/")
+    ? blob.type
+    : "image/jpeg";
+
+  return { mimeType, base64 };
+}
+
+function inferCategoryFromText(text: string): string | null {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("leak") ||
+    lower.includes("pipe") ||
+    lower.includes("tap") ||
+    lower.includes("water stain") ||
+    lower.includes("ceiling") && lower.includes("water")
+  ) {
+    return "Plumbing";
+  }
+  if (lower.includes("ceiling") || lower.includes("crack") || lower.includes("mould") || lower.includes("mold")) {
+    return "Roofing";
+  }
+  return null;
+}
+
+const CLASSIFY_SYSTEM = `You classify home repair issues for FixFlow AI in Gampaha, Sri Lanka.
+Return JSON only with keys: category, subcategory, urgency, summary.
+
+category must be exactly one of: ${JOB_CATEGORIES.join(", ")}.
+
+urgency rules:
+- High = safety risk, active spreading water, electrical hazard, or structural collapse risk
+- Medium = needs repair soon (e.g. visible ceiling water damage, broken fixtures)
+- Low = routine maintenance or appearance-only work with no safety risk
+
+Examples:
+- Ceiling water stain / mould from a leak → Plumbing or Roofing (not General Maintenance), usually Medium or High if active
+- Overgrown lawn → Garden / Landscaping, Low
+- Burst pipe → Plumbing, High
+
+summary: max 2 sentences in plain English for homeowners. State what work is needed. No jargon like "cosmetic issue".`;
+
+async function classifyWithLlm(
+  description: string,
+  image?: LlmImage,
+): Promise<ClassifyResult> {
+  const userText = image
+    ? `Issue description:\n${description}\n\nA photo of the problem is attached — use it together with the description.`
+    : `Issue description:\n${description}`;
+
   const content = await chatJson(
     [
-      {
-        role: "system",
-        content: `You classify home repair issues for FixFlow AI in Gampaha, Sri Lanka. Return JSON only with keys: category, subcategory, urgency, summary. category must be exactly one of: ${categories}. urgency must be High, Medium, or Low (High = safety risk or active damage spreading; Medium = needs repair soon; Low = cosmetic or non-urgent). summary is max 2 sentences in English.`,
-      },
-      {
-        role: "user",
-        content: `Issue description:\n${description}`,
-      },
+      { role: "system", content: CLASSIFY_SYSTEM },
+      { role: "user", content: userText },
     ],
     "classify",
+    image,
   );
 
   const parsed = JSON.parse(content) as {
@@ -214,13 +314,9 @@ async function classifyWithLlm(description: string): Promise<ClassifyResult> {
     summary?: string;
   };
 
-  const category = CATEGORIES.includes(
-    parsed.category as (typeof CATEGORIES)[number],
-  )
-    ? parsed.category!
-    : "General Maintenance";
+  const category = normalizeCategory(parsed.category);
 
-  const urgency =
+  const urgency: JobUrgency =
     parsed.urgency === "High" ||
     parsed.urgency === "Medium" ||
     parsed.urgency === "Low"
@@ -243,10 +339,7 @@ async function translateWithLlm(summary: string): Promise<TranslateResult> {
         content:
           "Translate the repair summary to Sinhala and Tamil for Sri Lankan homeowners. Return JSON only with keys: sinhala, tamil. Keep each translation concise (1-2 sentences).",
       },
-      {
-        role: "user",
-        content: summary,
-      },
+      { role: "user", content: summary },
     ],
     "translate",
   );
@@ -260,69 +353,4 @@ async function translateWithLlm(summary: string): Promise<TranslateResult> {
     sinhala: (parsed.sinhala ?? summary).slice(0, 500),
     tamil: (parsed.tamil ?? summary).slice(0, 500),
   };
-}
-
-async function chatJson(
-  messages: { role: string; content: string }[],
-  label: string,
-): Promise<string> {
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (openaiKey) {
-    return callOpenAiCompatible(
-      "https://api.openai.com/v1/chat/completions",
-      openaiKey,
-      "gpt-4o-mini",
-      messages,
-      label,
-    );
-  }
-
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
-  if (openRouterKey) {
-    return callOpenAiCompatible(
-      "https://openrouter.ai/api/v1/chat/completions",
-      openRouterKey,
-      "openai/gpt-4o-mini",
-      messages,
-      label,
-    );
-  }
-
-  throw new Error(
-    "Set OPENAI_API_KEY or OPENROUTER_API_KEY in Convex environment variables",
-  );
-}
-
-async function callOpenAiCompatible(
-  url: string,
-  apiKey: string,
-  model: string,
-  messages: { role: string; content: string }[],
-  label: string,
-): Promise<string> {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      response_format: { type: "json_object" },
-      temperature: 0.2,
-    }),
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`${label} LLM failed (${response.status}): ${body}`);
-  }
-
-  const data = (await response.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error(`${label} LLM returned empty content`);
-  return content;
 }
