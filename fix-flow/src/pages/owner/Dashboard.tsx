@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { SupplierDiscovery } from "../../components/owner/SupplierDiscovery";
 
 export default function OwnerDashboard() {
   const [description, setDescription] = useState("");
@@ -135,6 +136,7 @@ function ClassificationResult({
   const [summaryDraft, setSummaryDraft] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showDiscovery, setShowDiscovery] = useState(false);
 
   if (job === undefined) {
     return (
@@ -190,6 +192,28 @@ function ClassificationResult({
     } finally {
       setSaving(false);
     }
+  }
+
+  if (showDiscovery && job.category) {
+    return (
+      <div className="min-h-screen bg-white text-black p-8 max-w-xl mx-auto">
+        <h1 className="text-2xl font-bold mb-1">FixFlow AI</h1>
+        <p className="text-sm text-gray-500 mb-8">Gampaha · Kadana</p>
+        <SupplierDiscovery
+          jobId={jobId}
+          category={job.category}
+          onBack={() => setShowDiscovery(false)}
+          onQuotesSent={() => {}}
+        />
+        <button
+          type="button"
+          onClick={onNewJob}
+          className="text-sm text-gray-500 underline mt-6 block"
+        >
+          Submit another job
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -295,11 +319,11 @@ function ClassificationResult({
 
         <button
           type="button"
-          disabled
-          className="bg-gray-300 text-gray-600 py-2 font-medium cursor-not-allowed mt-2"
-          title="Supplier discovery — Core Round 2"
+          onClick={() => setShowDiscovery(true)}
+          disabled={!job.category}
+          className="bg-black text-white py-2 font-medium hover:bg-gray-800 disabled:opacity-50 mt-2"
         >
-          Find Nearby Suppliers → (Round 2)
+          Find Nearby Suppliers →
         </button>
 
         <button
