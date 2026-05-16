@@ -10,7 +10,7 @@ export default function App() {
   return (
     <Layout menu={<UserMenu>{viewer}</UserMenu>}>
       <ChatIntro />
-      <Chat viewer={viewer} />
+      <Chat />
     </Layout>
   );
 }
