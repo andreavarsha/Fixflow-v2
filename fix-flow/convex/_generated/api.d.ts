@@ -12,6 +12,8 @@ import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as jobs from "../jobs.js";
 import type * as messages from "../messages.js";
+import type * as notifications from "../notifications.js";
+import type * as quoteRequests from "../quoteRequests.js";
 import type * as seed from "../seed.js";
 import type * as supplierGeospatial from "../supplierGeospatial.js";
 import type * as suppliers from "../suppliers.js";
@@ -28,6 +30,8 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   jobs: typeof jobs;
   messages: typeof messages;
+  notifications: typeof notifications;
+  quoteRequests: typeof quoteRequests;
   seed: typeof seed;
   supplierGeospatial: typeof supplierGeospatial;
   suppliers: typeof suppliers;
