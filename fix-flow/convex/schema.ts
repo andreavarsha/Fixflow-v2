@@ -43,6 +43,8 @@ export default defineSchema({
     aiSummary_si: v.optional(v.string()),
     aiSummary_ta: v.optional(v.string()),
     acceptedSupplierId: v.optional(v.id("users")),
+    /** True when AI classification failed and defaults were applied. */
+    classificationFailed: v.optional(v.boolean()),
   }).index("by_owner", ["ownerId"]),
 
   quoteRequests: defineTable({
