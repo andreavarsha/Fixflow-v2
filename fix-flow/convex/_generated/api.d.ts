@@ -17,6 +17,7 @@ import type * as llm from "../llm.js";
 import type * as messages from "../messages.js";
 import type * as notifications from "../notifications.js";
 import type * as quoteRequests from "../quoteRequests.js";
+import type * as rateLimits from "../rateLimits.js";
 import type * as seed from "../seed.js";
 import type * as supplierGeospatial from "../supplierGeospatial.js";
 import type * as suppliers from "../suppliers.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   notifications: typeof notifications;
   quoteRequests: typeof quoteRequests;
+  rateLimits: typeof rateLimits;
   seed: typeof seed;
   supplierGeospatial: typeof supplierGeospatial;
   suppliers: typeof suppliers;
@@ -72,4 +74,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   geospatial: import("@convex-dev/geospatial/_generated/component.js").ComponentApi<"geospatial">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
 };

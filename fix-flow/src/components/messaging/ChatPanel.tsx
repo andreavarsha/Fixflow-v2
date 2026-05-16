@@ -31,6 +31,8 @@ export function ChatPanel({
   const me = useQuery(api.users.getUser);
   const allMessages = useQuery(api.messages.list, { jobId });
   const sendMessage = useMutation(api.messages.send);
+  const markThreadRead = useMutation(api.messages.markThreadRead);
+  const markNotificationsRead = useMutation(api.notifications.markReadForJob);
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -51,6 +53,12 @@ export function ChatPanel({
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [thread.length]);
+
+  useEffect(() => {
+    if (!myId) return;
+    void markThreadRead({ jobId, peerId }).catch(() => {});
+    void markNotificationsRead({ jobId }).catch(() => {});
+  }, [jobId, peerId, myId, markThreadRead, markNotificationsRead]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();

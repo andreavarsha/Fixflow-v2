@@ -46,9 +46,9 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           };
         }
 
-        const role = params.role as "owner" | "supplier" | "admin" | undefined;
-        if (!role) {
-          throw new Error("Role is required (owner, supplier, or admin)");
+        const role = params.role as "owner" | "supplier" | undefined;
+        if (role !== "owner" && role !== "supplier") {
+          throw new Error("Role is required (owner or supplier)");
         }
         const base = {
           email,
@@ -56,7 +56,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           role,
           preferredLanguage:
             (params.preferredLanguage as "en" | "si" | "ta") ?? "en",
-          approved: role !== "supplier",
+          approved: true,
           suspended: false,
         };
         if (role === "supplier") {

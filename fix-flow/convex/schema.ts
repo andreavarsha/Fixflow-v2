@@ -32,8 +32,13 @@ export default defineSchema({
       v.literal("classifying"),
       v.literal("open"),
       v.literal("in_progress"),
+      v.literal("awaiting_payment"),
       v.literal("completed"),
     ),
+    /** Set when the accepted supplier marks work complete. */
+    workCompletedAt: v.optional(v.number()),
+    /** Set when the owner confirms payment (demo — no gateway). */
+    paidAt: v.optional(v.number()),
     category: v.optional(v.string()),
     subcategory: v.optional(v.string()),
     urgency: v.optional(

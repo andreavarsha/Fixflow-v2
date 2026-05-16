@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "./_generated/dataModel";
+import { enforceRateLimit, userRateKey } from "./rateLimits";
 
 export type LiveQuote = {
   _id: Id<"quoteRequests">;
@@ -99,6 +100,8 @@ export const submitQuote = mutation({
     const dur = duration.trim();
     if (!dur) throw new Error("Duration is required");
 
+    await enforceRateLimit(ctx, "submitQuote", { key: userRateKey(supplierId) });
+
     await ctx.db.patch(qr._id, {
       priceLKR,
       duration: dur,
@@ -145,6 +148,8 @@ export const acceptQuote = mutation({
       throw new Error("You can only accept quotes marked as final by the supplier");
     }
 
+    await enforceRateLimit(ctx, "acceptQuote", { key: userRateKey(userId) });
+
     const all = await ctx.db
       .query("quoteRequests")
       .withIndex("by_job", (q) => q.eq("jobId", jobId))
@@ -173,6 +178,23 @@ export const acceptQuote = mutation({
     await ctx.db.patch(jobId, {
       acceptedSupplierId: chosen.supplierId,
       status: "in_progress",
+    });
+
+    const supplier = await ctx.db.get(chosen.supplierId);
+    await ctx.db.insert("notifications", {
+      userId: chosen.supplierId,
+      type: "quote_accepted",
+      message: `${job.description.slice(0, 60)}… — your quote was accepted. Complete the work, then mark the job done in your dashboard.`,
+      read: false,
+      jobId,
+    });
+
+    await ctx.db.insert("notifications", {
+      userId: job.ownerId,
+      type: "quote_accepted",
+      message: `You hired ${supplier?.name ?? "a tradesperson"}. They will mark the job complete when finished, then you can pay.`,
+      read: false,
+      jobId,
     });
   },
 });

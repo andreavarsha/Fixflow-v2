@@ -4,6 +4,9 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { SupplierDiscovery } from "../../components/owner/SupplierDiscovery";
 import { LiveQuotesDashboard } from "../../components/owner/LiveQuotesDashboard";
+import { OwnerHomeDashboard } from "../../components/owner/OwnerHomeDashboard";
+import { OwnerJobPaymentPanel } from "../../components/owner/OwnerJobPaymentPanel";
+import { OwnerPastJobs } from "../../components/owner/OwnerPastJobs";
 import { OwnerStepHint } from "../../components/layout/OwnerStepHint";
 import {
   ffBtnGhost,
@@ -26,139 +29,21 @@ import {
 } from "../../lib/jobCategories";
 
 export default function OwnerDashboard() {
-  const [description, setDescription] = useState("");
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const [jobId, setJobId] = useState<Id<"jobs"> | null>(null);
-
-  const generateUploadUrl = useMutation(api.jobs.generateUploadUrl);
-  const submitJob = useMutation(api.jobs.submitJob);
-
-  async function uploadPhoto(file: File): Promise<Id<"_storage">> {
-    const uploadUrl = await generateUploadUrl();
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      headers: { "Content-Type": file.type },
-      body: file,
-    });
-    if (!response.ok) {
-      throw new Error("Photo upload failed");
-    }
-    const { storageId } = (await response.json()) as { storageId: Id<"_storage"> };
-    return storageId;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!description.trim()) return;
-
-    setError("");
-    setSubmitting(true);
-    try {
-      const photoId = photo ? await uploadPhoto(photo) : undefined;
-      const id = await submitJob({
-        description: description.trim(),
-        photoId,
-      });
-      setJobId(id);
-    } catch (err: unknown) {
-      setError(toUserFacingError(err));
-    } finally {
-      setSubmitting(false);
-    }
-  }
 
   if (jobId) {
     return (
       <ClassificationResult
         jobId={jobId}
-        onNewJob={() => {
-          setJobId(null);
-          setDescription("");
-          setPhoto(null);
-          setError("");
-        }}
+        onNewJob={() => setJobId(null)}
+        onOpenJob={setJobId}
       />
     );
   }
 
   return (
     <div className={ffPage}>
-      <OwnerStepHint active={1} />
-      <header className="mb-6">
-        <h1 className={ffScreenTitle}>FixFlow AI</h1>
-        <p className={ffScreenSubtitle}>Home repairs in Gampaha (Kadana area)</p>
-      </header>
-
-      <div className={ffCard}>
-        <p className="mb-6 text-sm leading-relaxed text-gray-600 lg:text-base lg:leading-relaxed">
-          Describe what needs fixing. We&apos;ll classify it, find nearby tradespeople,
-          and help you compare quotes — all in one place.
-        </p>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6 lg:grid lg:grid-cols-12 lg:gap-x-10 lg:gap-y-6">
-          <div className="flex flex-col gap-5 lg:col-span-5">
-            <div>
-              <span className={ffLabel}>District</span>
-              <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base text-gray-600">
-                Gampaha (Kadana)
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="issue-photo" className={ffLabel}>
-                Photo <span className="font-normal text-gray-500">(optional)</span>
-              </label>
-              <input
-                id="issue-photo"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
-                className="w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-900"
-              />
-              {photo && (
-                <p className="mt-2 text-xs text-gray-500">{photo.name}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5 lg:col-span-7">
-            <div>
-              <label htmlFor="issue-desc" className={ffLabel}>
-                What&apos;s the problem?
-              </label>
-              <textarea
-                id="issue-desc"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Example: Water leaking under the kitchen sink since yesterday."
-                maxLength={300}
-                rows={6}
-                required
-                className={`${ffInput} resize-none lg:min-h-[180px]`}
-              />
-              <p className="mt-1 text-right text-xs text-gray-400">
-                {description.length}/300
-              </p>
-            </div>
-
-            {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting || !description.trim()}
-              className={`${ffBtnPrimary} lg:max-w-md xl:w-auto xl:min-w-[240px]`}
-            >
-              {submitting ? "Sending…" : "Continue — classify issue"}
-            </button>
-          </div>
-        </form>
-      </div>
+      <OwnerHomeDashboard onJobCreated={setJobId} />
     </div>
   );
 }
@@ -166,9 +51,11 @@ export default function OwnerDashboard() {
 function ClassificationResult({
   jobId,
   onNewJob,
+  onOpenJob,
 }: {
   jobId: Id<"jobs">;
   onNewJob: () => void;
+  onOpenJob: (id: Id<"jobs">) => void;
 }) {
   const job = useQuery(api.jobs.getJob, { jobId });
   const updateSummary = useMutation(api.jobs.updateSummary);
@@ -225,7 +112,7 @@ function ClassificationResult({
       <div className={ffPage}>
         <header className="mb-6">
           <h1 className={ffScreenTitle}>FixFlow AI</h1>
-          <p className={ffScreenSubtitle}>Gampaha · Kadana</p>
+          <p className={ffScreenSubtitle}>This usually takes a few seconds</p>
         </header>
         <div className={`${ffCard} text-center`}>
           <div className="mx-auto mb-3 h-10 w-10 animate-pulse rounded-full bg-gray-200" aria-hidden />
@@ -295,6 +182,11 @@ function ClassificationResult({
     );
   }
 
+  const jobLocked =
+    job.status === "in_progress" ||
+    job.status === "awaiting_payment" ||
+    job.status === "completed";
+
   if (showDiscovery && job.category) {
     return (
       <div className={ffPage}>
@@ -319,10 +211,16 @@ function ClassificationResult({
   return (
     <div className={ffPage}>
       <OwnerStepHint active={1} />
-      <header className="mb-6">
+      <header className="mb-6 pr-12 sm:pr-14">
         <h1 className={ffScreenTitle}>FixFlow AI</h1>
         <p className={ffScreenSubtitle}>Here&apos;s what we understood</p>
       </header>
+
+      <OwnerJobPaymentPanel
+        jobId={jobId}
+        status={job.status}
+        acceptedQuote={job.acceptedQuote ?? null}
+      />
 
       <div className={`${ffCard} flex flex-col gap-6 xl:gap-8`}>
         <div>
@@ -554,31 +452,46 @@ function ClassificationResult({
 
         <div className="flex flex-col gap-3 border-t border-gray-100 pt-6 lg:flex-row lg:flex-wrap lg:items-center xl:gap-4">
           <p className="w-full text-sm font-medium text-gray-900 lg:w-auto lg:flex-shrink-0">
-            Next steps
+            {jobLocked ? "Job actions" : "Next steps"}
           </p>
-          <button
-            type="button"
-            onClick={() => setShowDiscovery(true)}
-            disabled={!job.category}
-            className={`${ffBtnPrimary} ${ffBtnInRow}`}
-          >
-            Find nearby suppliers
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowLiveQuotes(true)}
-            className={`${ffBtnSecondary} ${ffBtnInRow}`}
-          >
-            Open quote inbox
-          </button>
-          <p className="w-full text-center text-xs text-gray-500 lg:flex-[1_1_100%] xl:text-sm">
-            After you pick suppliers, quotes appear here in real time — no refresh needed.
-          </p>
+          {!jobLocked && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowDiscovery(true)}
+                disabled={!job.category}
+                className={`${ffBtnPrimary} ${ffBtnInRow}`}
+              >
+                Find nearby suppliers
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowLiveQuotes(true)}
+                className={`${ffBtnSecondary} ${ffBtnInRow}`}
+              >
+                Open quote inbox
+              </button>
+              <p className="w-full text-center text-xs text-gray-500 lg:flex-[1_1_100%] xl:text-sm">
+                After you pick suppliers, quotes appear here in real time — no refresh needed.
+              </p>
+            </>
+          )}
+          {job.status === "open" && (
+            <button
+              type="button"
+              onClick={() => setShowLiveQuotes(true)}
+              className={`${ffBtnSecondary} ${ffBtnInRow}`}
+            >
+              Open quote inbox
+            </button>
+          )}
           <button type="button" onClick={onNewJob} className={`${ffBtnGhost} lg:ml-auto`}>
-            Cancel this job
+            All my requests
           </button>
         </div>
       </div>
+
+      <OwnerPastJobs onOpenJob={onOpenJob} currentJobId={jobId} />
     </div>
   );
 }

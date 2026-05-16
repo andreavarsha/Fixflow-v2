@@ -1,40 +1,35 @@
-# Welcome to your Convex + React (Vite) app
+# FixFlow AI
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+Property maintenance marketplace — homeowners report repairs, AI classifies issues, nearby suppliers quote in real time, and both sides chat and close jobs through a demo payment flow.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+**Full documentation:** see **[DOCUMENTATION.md](./DOCUMENTATION.md)** (architecture, workflows, API reference, changes since PRD v6.1).
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Vite](https://vitest.dev/) for optimized web hosting
-- [Tailwind](https://tailwindcss.com/) and [shadcn/ui](https://ui.shadcn.com/) for building great looking accessible UI fast
+## Quick start
 
-## Get started
-
-If you just cloned this codebase and didn't use `npm create convex`, run:
-
-```
+```bash
 npm install
 npm run dev
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+Set `VITE_CONVEX_URL` in `.env.local` and configure Convex env vars (`OPENAI_API_KEY`, auth secrets). See DOCUMENTATION.md §17.
 
+## Demo logins
+
+After seeding suppliers:
+
+```bash
+npx convex run seed:seedSuppliers
+npx convex run demoAuth:setupDemoSupplierPasswords
 ```
-npm create convex@latest -- -t react-vite-shadcn
-```
+
+- **Supplier:** any seeded `@fixflow.lk` email, password `FixFlowDemo1`  
+- **Owner:** sign up via `/signup` as homeowner
+
+## Stack
+
+React · Vite · TypeScript · Convex · OpenAI GPT-4o-mini · `@convex-dev/auth` · `@convex-dev/geospatial` · `@convex-dev/rate-limiter`
 
 ## Learn more
 
-To learn more about developing your project with Convex, check out:
-
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
-
-## Join the community
-
-Join thousands of developers building full-stack apps with Convex:
-
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+- [Convex docs](https://docs.convex.dev/)
+- [DOCUMENTATION.md](./DOCUMENTATION.md) — application guide for this repo

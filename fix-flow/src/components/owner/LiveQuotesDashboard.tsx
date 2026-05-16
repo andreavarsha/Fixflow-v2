@@ -110,8 +110,12 @@ export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps)
           <p>
             <span className="font-medium text-gray-900">Job status:</span>{" "}
             {job.status === "in_progress"
-              ? "You’ve accepted a quote — work can begin."
-              : job.status}
+              ? "Quote accepted — the tradesperson is working on site."
+              : job.status === "awaiting_payment"
+                ? "Work marked complete — confirm payment on the job page."
+                : job.status === "completed"
+                  ? "Paid and closed."
+                  : job.status}
           </p>
         </div>
       )}
@@ -119,104 +123,152 @@ export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps)
       {quotes !== undefined && quotes.length > 0 && (
         <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {quotes.map((q) => (
-            <li key={q._id} className={`${ffCard} flex h-full flex-col`}>
-              <div className="flex justify-between gap-3 border-b border-gray-100 pb-3">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-gray-900">
-                    {q.supplierName ?? "Supplier"}
-                  </p>
-                  {q.supplierRating !== undefined && (
-                    <p className="mt-0.5 text-sm text-gray-600">
-                      ★ {q.supplierRating.toFixed(1)} rating
-                    </p>
-                  )}
-                </div>
-                <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                  {statusLabel(q.status)}
-                </span>
-              </div>
-
-              <div className="mt-4 flex flex-1 flex-col gap-2">
-                {q.status === "quoted" || q.status === "accepted" ? (
-                  <>
-                    <p className="text-lg font-bold text-gray-900">
-                      LKR{" "}
-                      {q.priceLKR !== undefined
-                        ? q.priceLKR.toLocaleString("en-LK")
-                        : "—"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="text-gray-500">Time estimate:</span>{" "}
-                      {q.duration ?? "—"}
-                    </p>
-                    {q.notes && (
-                      <p className="text-sm leading-relaxed text-gray-700">
-                        <span className="font-medium text-gray-600">Note:</span>{" "}
-                        {q.notes}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500">
-                      Final quote (owner can accept):{" "}
-                      <span className="font-medium text-gray-800">
-                        {q.isFinal ? "Yes" : "No — ask supplier to mark final"}
-                      </span>
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm italic text-gray-500">
-                    Waiting for this supplier to send their quote…
-                  </p>
-                )}
-              </div>
-
-              {jobOpen &&
-                q.status === "quoted" &&
-                q.isFinal === true && (
-                  <button
-                    type="button"
-                    onClick={() => handleAccept(q._id)}
-                    disabled={acceptingId !== null}
-                    className={`${ffBtnPrimary} ${ffBtnInRow} mt-auto pt-5`}
-                  >
-                    {acceptingId === q._id ? "Accepting…" : "Accept this quote"}
-                  </button>
-                )}
-
-              {jobOpen &&
-                q.status === "quoted" &&
-                q.isFinal !== true && (
-                  <p className="mt-auto mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-100">
-                    You can accept only after the supplier marks this as their{" "}
-                    <strong>final</strong> quote.
-                  </p>
-                )}
-
-              <button
-                type="button"
-                onClick={() =>
-                  setChatOpenFor((current) =>
-                    current === q.supplierId ? null : q.supplierId,
-                  )
-                }
-                className={`${ffBtnGhost} mt-3 self-start text-sm`}
-                aria-expanded={chatOpenFor === q.supplierId}
-              >
-                {chatOpenFor === q.supplierId
-                  ? "Close chat"
-                  : "Message this tradesperson"}
-              </button>
-
-              {chatOpenFor === q.supplierId && (
-                <ChatPanel
-                  jobId={jobId}
-                  peerId={q.supplierId}
-                  peerLabel="Tradesperson"
-                />
-              )}
-            </li>
+            <QuoteInboxCard
+              key={q._id}
+              jobId={jobId}
+              quote={q}
+              jobOpen={jobOpen}
+              chatOpen={chatOpenFor === q.supplierId}
+              onToggleChat={() =>
+                setChatOpenFor((current) =>
+                  current === q.supplierId ? null : q.supplierId,
+                )
+              }
+              onAccept={() => handleAccept(q._id)}
+              acceptingId={acceptingId}
+              statusLabel={statusLabel(q.status)}
+            />
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function QuoteInboxCard({
+  jobId,
+  quote: q,
+  jobOpen,
+  chatOpen,
+  onToggleChat,
+  onAccept,
+  acceptingId,
+  statusLabel: statusText,
+}: {
+  jobId: Id<"jobs">;
+  quote: {
+    _id: Id<"quoteRequests">;
+    supplierId: Id<"users">;
+    status: string;
+    priceLKR?: number;
+    duration?: string;
+    notes?: string;
+    isFinal?: boolean;
+    supplierName?: string;
+    supplierRating?: number;
+  };
+  jobOpen: boolean;
+  chatOpen: boolean;
+  onToggleChat: () => void;
+  onAccept: () => void;
+  acceptingId: Id<"quoteRequests"> | null;
+  statusLabel: string;
+}) {
+  const unreadCount = useQuery(api.messages.unreadCountForThread, {
+    jobId,
+    peerId: q.supplierId,
+  });
+  const unread = unreadCount ?? 0;
+
+  return (
+    <li className={`${ffCard} flex h-full flex-col`}>
+      <div className="flex justify-between gap-3 border-b border-gray-100 pb-3">
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-gray-900">
+            {q.supplierName ?? "Supplier"}
+          </p>
+          {q.supplierRating !== undefined && (
+            <p className="mt-0.5 text-sm text-gray-600">
+              ★ {q.supplierRating.toFixed(1)} rating
+            </p>
+          )}
+        </div>
+        <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+          {statusText}
+        </span>
+      </div>
+
+      <div className="mt-4 flex flex-1 flex-col gap-2">
+        {q.status === "quoted" || q.status === "accepted" ? (
+          <>
+            <p className="text-lg font-bold text-gray-900">
+              LKR{" "}
+              {q.priceLKR !== undefined
+                ? q.priceLKR.toLocaleString("en-LK")
+                : "—"}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="text-gray-500">Time estimate:</span>{" "}
+              {q.duration ?? "—"}
+            </p>
+            {q.notes && (
+              <p className="text-sm leading-relaxed text-gray-700">
+                <span className="font-medium text-gray-600">Note:</span> {q.notes}
+              </p>
+            )}
+            <p className="text-xs text-gray-500">
+              Final quote (owner can accept):{" "}
+              <span className="font-medium text-gray-800">
+                {q.isFinal ? "Yes" : "No — ask supplier to mark final"}
+              </span>
+            </p>
+          </>
+        ) : (
+          <p className="text-sm italic text-gray-500">
+            Waiting for this supplier to send their quote…
+          </p>
+        )}
+      </div>
+
+      {jobOpen && q.status === "quoted" && q.isFinal === true && (
+        <button
+          type="button"
+          onClick={onAccept}
+          disabled={acceptingId !== null}
+          className={`${ffBtnPrimary} ${ffBtnInRow} mt-auto pt-5`}
+        >
+          {acceptingId === q._id ? "Accepting…" : "Accept this quote"}
+        </button>
+      )}
+
+      {jobOpen && q.status === "quoted" && q.isFinal !== true && (
+        <p className="mt-auto mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-100">
+          You can accept only after the supplier marks this as their{" "}
+          <strong>final</strong> quote.
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={onToggleChat}
+        className={`${ffBtnGhost} relative mt-3 self-start text-sm`}
+        aria-expanded={chatOpen}
+      >
+        {chatOpen ? "Close chat" : "Message this tradesperson"}
+        {!chatOpen && unread > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
+      </button>
+
+      {chatOpen && (
+        <ChatPanel
+          jobId={jobId}
+          peerId={q.supplierId}
+          peerLabel="Tradesperson"
+        />
+      )}
+    </li>
   );
 }

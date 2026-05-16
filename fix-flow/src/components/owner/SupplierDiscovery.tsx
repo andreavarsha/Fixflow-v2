@@ -90,7 +90,7 @@ export function SupplierDiscovery({
         <h2 className="text-base font-semibold text-gray-900">Nearby suppliers</h2>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">
           Showing <strong>{category}</strong> pros within about{" "}
-          <strong>15 km</strong> of Kadana. Tap a card to select — up to{" "}
+          <strong>15 km</strong> of you. Tap a card to select — up to{" "}
           <strong>{MAX_SELECT}</strong>.
         </p>
         <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 ring-1 ring-gray-100">
@@ -126,7 +126,7 @@ export function SupplierDiscovery({
         <div className={`${ffCard} text-sm text-gray-600`}>
           <p className="font-medium text-gray-900">No one nearby right now</p>
           <p className="mt-2 leading-relaxed">
-            No approved {category} suppliers are indexed within 15 km of Kadana. Try
+            No approved {category} suppliers are available within 15 km right now. Try
             another category from the job summary, or refresh the page in a moment
             if your team just re-seeded data.
           </p>

@@ -1,5 +1,4 @@
 import { createAccount, modifyAccountCredentials } from "@convex-dev/auth/server";
-import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import {
   internalAction,
@@ -8,9 +7,8 @@ import {
   query,
 } from "./_generated/server";
 
-/** Shared password for all seeded @fixflow.lk supplier accounts (demo / judging). */
+/** Shared password for all seeded @fixflow.lk demo accounts (demo / judging). */
 export const DEMO_SUPPLIER_PASSWORD = "FixFlowDemo1";
-
 export const getDemoSupplierLoginInfo = query({
   args: {},
   handler: async () => ({

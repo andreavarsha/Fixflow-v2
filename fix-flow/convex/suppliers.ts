@@ -17,6 +17,7 @@ import {
   supplierGeospatial,
   syncSupplierGeospatial,
 } from "./supplierGeospatial";
+import { enforceRateLimit, userRateKey } from "./rateLimits";
 
 const MAX_SELECTED_SUPPLIERS = 3;
 
@@ -117,6 +118,8 @@ export const selectSuppliers = mutation({
     if (uniqueIds.length > MAX_SELECTED_SUPPLIERS) {
       throw new Error(`You can select at most ${MAX_SELECTED_SUPPLIERS} suppliers`);
     }
+
+    await enforceRateLimit(ctx, "selectSuppliers", { key: userRateKey(userId) });
 
     const nearby = await ctx.runQuery(internal.suppliers.listNearbySupplierIds, {
       category: job.category,
@@ -241,87 +244,6 @@ export const deliverSupplierNotifications = internalMutation({
         jobId,
       });
     }
-  },
-});
-
-/** Admin approves a pending supplier — they appear in discovery reactively. */
-export const approveSupplier = mutation({
-  args: { supplierId: v.id("users") },
-  handler: async (ctx, { supplierId }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-
-    const admin = await ctx.db.get(userId);
-    if (!admin || admin.role !== "admin") {
-      throw new Error("Only admins can approve suppliers");
-    }
-
-    const supplier = await ctx.db.get(supplierId);
-    if (!supplier || supplier.role !== "supplier") {
-      throw new Error("Supplier not found");
-    }
-
-    await ctx.db.patch(supplierId, { approved: true });
-    await syncSupplierGeospatial(ctx, supplierId);
-  },
-});
-
-/**
- * Admin: list every supplier with the fields the admin dashboard needs (Exp R5).
- * Annie may rename / split into pending vs active; UI just consumes a flat list.
- */
-export const listAdminSuppliers = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    const admin = await ctx.db.get(userId);
-    if (!admin || admin.role !== "admin") return [];
-
-    const suppliers = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("role"), "supplier"))
-      .collect();
-
-    return suppliers
-      .map((s) => ({
-        _id: s._id,
-        name: s.name,
-        email: s.email,
-        category: s.category,
-        rating: s.rating,
-        approved: s.approved === true,
-        suspended: s.suspended === true,
-        available: s.available !== false,
-      }))
-      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-  },
-});
-
-/**
- * Admin: flip a supplier's suspended flag and resync the geospatial index so
- * `getSuppliersNearKadana` (filter `suspended:false`) drops them out live.
- * That re-filter is the Round 5 demo moment.
- */
-export const setSupplierSuspended = mutation({
-  args: { supplierId: v.id("users"), suspended: v.boolean() },
-  handler: async (ctx, { supplierId, suspended }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-
-    const admin = await ctx.db.get(userId);
-    if (!admin || admin.role !== "admin") {
-      throw new Error("Only admins can change supplier status");
-    }
-
-    const supplier = await ctx.db.get(supplierId);
-    if (!supplier || supplier.role !== "supplier") {
-      throw new Error("Supplier not found");
-    }
-
-    await ctx.db.patch(supplierId, { suspended });
-    await syncSupplierGeospatial(ctx, supplierId);
   },
 });
 

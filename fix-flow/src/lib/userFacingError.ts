@@ -20,7 +20,14 @@ const EXACT: Record<string, string> = {
   "Only property owners can upload job photos": "Only homeowner accounts can upload photos.",
   "Only property owners can request quotes": "Only homeowner accounts can request quotes.",
   "Only suppliers can submit quotes": "Please sign in with a supplier account to send a quote.",
-  "Only admins can approve suppliers": "This action is only available to admin accounts.",
+  "You are not part of this conversation": "You don't have access to this chat.",
+  "You can only message suppliers invited to this job":
+    "You can only message suppliers you've invited to quote on this job.",
+  "You can only message the homeowner for this job":
+    "You can only message the homeowner for this job.",
+  "Cannot message yourself": "You can't send a message to yourself.",
+  "Message cannot be empty": "Type a message before sending.",
+  "Message is too long": "Please keep your message under 500 characters.",
   "Description is required": "Please describe the problem before continuing.",
   "Summary cannot be empty": "Please enter a short summary before saving.",
   "Not authorized": "You don't have permission to change this job.",
@@ -35,16 +42,30 @@ const EXACT: Record<string, string> = {
   "Quote must be submitted before it can be accepted": "Wait until the supplier submits their quote before accepting.",
   "You can only accept quotes marked as final by the supplier":
     "You can only accept a quote after the supplier marks it as their final price.",
+  "This job is not in progress": "This job is not waiting for completion.",
+  "You are not the accepted tradesperson for this job":
+    "Only the hired tradesperson can mark this job complete.",
+  "Payment is not due for this job yet":
+    "Payment is not ready yet — wait until the tradesperson marks the job complete.",
+  "No accepted supplier on this job": "No tradesperson is assigned to this job.",
   "Job must be classified before requesting quotes":
     "Wait until we finish sorting your request, then try again.",
   "Select at least one supplier": "Choose at least one supplier to continue.",
   "One or more suppliers are not available for this job":
     "One of the suppliers you picked is no longer available. Refresh the list and try again.",
   "Supplier not found": "That supplier could not be found.",
-  "Role is required (owner, supplier, or admin)": "Please choose whether you are a homeowner or supplier.",
+  "Role is required (owner or supplier)": "Please choose whether you are a homeowner or supplier.",
 };
 
-function matchPartial(lower: string, context: ErrorContext): string | null {
+function matchPartial(
+  lower: string,
+  cleaned: string,
+  context: ErrorContext,
+): string | null {
+  if (lower.includes("too many requests")) {
+    return cleaned;
+  }
+
   if (
     lower.includes("invalidaccountid") ||
     lower.includes("invalid account") ||
@@ -103,7 +124,7 @@ export function toUserFacingError(
 
   if (EXACT[cleaned]) return EXACT[cleaned];
 
-  const partial = matchPartial(lower, context);
+  const partial = matchPartial(lower, cleaned, context);
   if (partial) return partial;
 
   if (context === "login") {

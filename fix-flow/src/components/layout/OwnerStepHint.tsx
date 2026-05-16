@@ -6,11 +6,17 @@ const labels: Record<Step, string> = {
   3: "Quotes",
 };
 
-export function OwnerStepHint({ active }: { active: Step }) {
+export function OwnerStepHint({
+  active,
+  compact,
+}: {
+  active: Step;
+  compact?: boolean;
+}) {
   const steps: Step[] = [1, 2, 3];
   return (
     <nav
-      className="mb-6 flex flex-wrap items-center gap-x-1 gap-y-2 text-xs sm:text-sm md:gap-x-2"
+      className={`flex flex-wrap items-center gap-x-1 gap-y-2 text-xs sm:text-sm md:gap-x-2 ${compact ? "" : "mb-6"}`}
       aria-label="Job progress"
     >
       {steps.map((n, i) => (

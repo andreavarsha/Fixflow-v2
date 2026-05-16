@@ -5,8 +5,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/SignUp.tsx";
 import OwnerDashboard from "./pages/owner/Dashboard.tsx";
 import SupplierDashboard from "./pages/supplier/Dashboard.tsx";
-import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import RolePicker from "./pages/RolePicker";
+import { AuthenticatedShell } from "./components/layout/AuthenticatedShell";
 import { ffPage } from "./lib/fixflowUi";
 
 /**
@@ -59,7 +59,9 @@ export default function App() {
               <AuthLoadingScreen />
             </AuthLoading>
             <Authenticated>
-              <RolePicker />
+              <AuthenticatedShell>
+                <RolePicker />
+              </AuthenticatedShell>
             </Authenticated>
             <Unauthenticated>
               <Navigate to="/login" />
@@ -72,7 +74,9 @@ export default function App() {
         path="/owner/dashboard"
         element={
           <RequireAuth>
-            <OwnerDashboard />
+            <AuthenticatedShell>
+              <OwnerDashboard />
+            </AuthenticatedShell>
           </RequireAuth>
         }
       />
@@ -80,19 +84,12 @@ export default function App() {
         path="/supplier/dashboard"
         element={
           <RequireAuth>
-            <SupplierDashboard />
+            <AuthenticatedShell>
+              <SupplierDashboard />
+            </AuthenticatedShell>
           </RequireAuth>
         }
       />
-      <Route
-        path="/admin/dashboard"
-        element={
-          <RequireAuth>
-            <AdminDashboard />
-          </RequireAuth>
-        }
-      />
-
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
