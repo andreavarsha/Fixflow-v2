@@ -1,4 +1,5 @@
 import { mutation } from "./_generated/server";
+import { syncSupplierGeospatial } from "./supplierGeospatial";
 
 // PRD v6.1 Section 7 — Kadana centre 7.0167N, 79.9833E
 const SUPPLIERS = [
@@ -46,7 +47,7 @@ export const seedSuppliers = mutation({
 
     for (let i = 0; i < SUPPLIERS.length; i++) {
       const s = SUPPLIERS[i];
-      await ctx.db.insert("users", {
+      const supplierId = await ctx.db.insert("users", {
         name: s.name,
         email: supplierEmail(s.name, i + 1),
         role: "supplier",
@@ -59,6 +60,7 @@ export const seedSuppliers = mutation({
         suspended: s.suspended,
         approved: true,
       });
+      await syncSupplierGeospatial(ctx, supplierId);
     }
     return { seeded: SUPPLIERS.length };
   },

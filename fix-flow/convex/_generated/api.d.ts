@@ -13,6 +13,8 @@ import type * as http from "../http.js";
 import type * as jobs from "../jobs.js";
 import type * as messages from "../messages.js";
 import type * as seed from "../seed.js";
+import type * as supplierGeospatial from "../supplierGeospatial.js";
+import type * as suppliers from "../suppliers.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,6 +29,8 @@ declare const fullApi: ApiFromModules<{
   jobs: typeof jobs;
   messages: typeof messages;
   seed: typeof seed;
+  supplierGeospatial: typeof supplierGeospatial;
+  suppliers: typeof suppliers;
   users: typeof users;
 }>;
 
