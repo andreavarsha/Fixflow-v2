@@ -5,12 +5,23 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     Password({
       profile(params) {
+        const flow = params.flow as string | undefined;
+        const email = params.email as string;
+
+        // profile() runs on signIn too; only signUp sends role from the form.
+        if (flow === "signIn") {
+          return {
+            email,
+            name: (params.name as string) ?? "",
+          };
+        }
+
         const role = params.role as "owner" | "supplier" | "admin" | undefined;
         if (!role) {
           throw new Error("Role is required (owner, supplier, or admin)");
         }
         const base = {
-          email: params.email as string,
+          email,
           name: (params.name as string) ?? "",
           role,
           preferredLanguage:
