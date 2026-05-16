@@ -1,5 +1,6 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { QuoteSubmitForm } from "../../components/supplier/QuoteSubmitForm";
 
 const urgencyStyle = {
   High: "text-red-700",
@@ -72,9 +73,11 @@ export default function SupplierDashboard() {
               <p className="text-sm text-gray-700">
                 {request.jobSummary ?? request.jobDescription}
               </p>
-              <p className="text-xs text-gray-400">
-                Quote submission — Core Round 3
-              </p>
+              <QuoteSubmitForm
+                jobId={request.jobId}
+                jobLabel={request.jobCategory ?? "Job"}
+                disabled={request.status !== "pending"}
+              />
             </li>
           ))}
         </ul>

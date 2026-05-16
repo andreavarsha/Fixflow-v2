@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { SupplierDiscovery } from "../../components/owner/SupplierDiscovery";
+import { LiveQuoteDashboard } from "../../components/owner/LiveQuoteDashboard";
 
 export default function OwnerDashboard() {
   const [description, setDescription] = useState("");
@@ -137,6 +138,7 @@ function ClassificationResult({
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
   const [showDiscovery, setShowDiscovery] = useState(false);
+  const [showLiveQuotes, setShowLiveQuotes] = useState(false);
 
   if (job === undefined) {
     return (
@@ -194,6 +196,26 @@ function ClassificationResult({
     }
   }
 
+  if (showLiveQuotes) {
+    return (
+      <div className="min-h-screen bg-white text-black p-8 max-w-xl mx-auto">
+        <h1 className="text-2xl font-bold mb-1">FixFlow AI</h1>
+        <p className="text-sm text-gray-500 mb-8">Gampaha · Kadana</p>
+        <LiveQuoteDashboard
+          jobId={jobId}
+          onBack={() => setShowLiveQuotes(false)}
+        />
+        <button
+          type="button"
+          onClick={onNewJob}
+          className="text-sm text-gray-500 underline mt-6 block"
+        >
+          Submit another job
+        </button>
+      </div>
+    );
+  }
+
   if (showDiscovery && job.category) {
     return (
       <div className="min-h-screen bg-white text-black p-8 max-w-xl mx-auto">
@@ -203,7 +225,10 @@ function ClassificationResult({
           jobId={jobId}
           category={job.category}
           onBack={() => setShowDiscovery(false)}
-          onQuotesSent={() => {}}
+          onQuotesSent={() => {
+            setShowDiscovery(false);
+            setShowLiveQuotes(true);
+          }}
         />
         <button
           type="button"
@@ -324,6 +349,14 @@ function ClassificationResult({
           className="bg-black text-white py-2 font-medium hover:bg-gray-800 disabled:opacity-50 mt-2"
         >
           Find Nearby Suppliers →
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowLiveQuotes(true)}
+          className="border border-gray-300 py-2 text-sm hover:bg-gray-50 mt-2"
+        >
+          View Live Quotes →
         </button>
 
         <button
