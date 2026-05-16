@@ -1,6 +1,14 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import {
+  ffBtnPrimary,
+  ffCard,
+  ffInput,
+  ffLabel,
+  ffPage,
+  ffScreenTitle,
+} from "../lib/fixflowUi";
 
 export default function Login() {
   const { signIn } = useAuthActions();
@@ -27,55 +35,72 @@ export default function Login() {
     }
   }
 
-  const inputClass = "border border-gray-300 px-3 py-2 text-sm bg-white text-black w-full focus:outline-none focus:border-black";
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-80 border border-gray-300 p-8 bg-white">
-        <h1 className="text-2xl font-bold text-black">FixFlow AI</h1>
-        <h2 className="text-lg text-black">Sign In</h2>
+    <div className={`${ffPage} flex min-h-dvh flex-col justify-center pt-8`}>
+      <div className={`${ffCard} mx-auto w-full max-w-md xl:max-w-xl 2xl:max-w-2xl`}>
+        <h1 className={ffScreenTitle}>FixFlow AI</h1>
+        <p className="mt-2 text-sm text-gray-600">Sign in to continue</p>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+              {error}
+            </p>
+          )}
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className={inputClass}
-          required
-        />
+          <div>
+            <label htmlFor="login-email" className={ffLabel}>
+              Email
+            </label>
+            <input
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={ffInput}
+              required
+            />
+          </div>
 
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className={inputClass}
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(p => !p)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-black"
-          >
-            {showPassword ? "Hide" : "Show"}
+          <div>
+            <label htmlFor="login-password" className={ffLabel}>
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="login-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`${ffInput} pr-14`}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute right-2 top-1/2 min-h-[40px] min-w-[48px] -translate-y-1/2 rounded-lg px-2 text-xs font-medium text-gray-600 hover:bg-gray-100"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} className={ffBtnPrimary}>
+            {loading ? "Signing in…" : "Sign in"}
           </button>
-        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-black text-white py-2 font-medium hover:bg-gray-800 disabled:opacity-50"
-        >
-          {loading ? "Signing in..." : "Sign In"}
-        </button>
-
-        <Link to="/signup" className="text-sm text-center underline text-black">
-          No account? Sign up
-        </Link>
-      </form>
+          <Link
+            to="/signup"
+            className="text-center text-sm font-medium text-gray-700 underline underline-offset-4 hover:text-gray-900"
+          >
+            Need an account? Sign up
+          </Link>
+        </form>
+      </div>
     </div>
   );
 }
