@@ -30,15 +30,15 @@ export function SupplierCard({
       type="button"
       onClick={onToggle}
       disabled={disabled}
-      className={`w-full text-left border p-4 transition-colors ${
+      className={`w-full rounded-2xl border-2 text-left transition-all active:scale-[0.99] ${
         unavailable
-          ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
+          ? "cursor-not-allowed border-gray-100 bg-gray-50 opacity-70"
           : selected
-            ? "border-black bg-gray-50 ring-1 ring-black"
+            ? "border-gray-900 bg-gray-50 shadow-md ring-2 ring-gray-900/10"
             : disabled
-              ? "border-gray-200 bg-white opacity-50 cursor-not-allowed"
-              : "border-gray-300 bg-white hover:border-black"
-      }`}
+              ? "cursor-not-allowed border-gray-100 opacity-50"
+              : "border-gray-200 bg-white hover:border-gray-400"
+      } min-h-[72px] p-4`}
     >
       <div className="flex justify-between items-start gap-2">
         <div>
@@ -65,8 +65,13 @@ export function SupplierCard({
         >
           {unavailable ? "Unavailable" : "Available"}
         </span>
-        {selected && !unavailable && (
-          <span className="text-xs font-medium">Selected</span>
+        {!unavailable && (selected || !selectionDisabled) && (
+          <span className="text-xs font-medium text-gray-600">
+            Tap to {selected ? "deselect" : "select"}
+          </span>
+        )}
+        {!unavailable && !selected && selectionDisabled && (
+          <span className="text-xs text-gray-400">Max 3 — deselect one to add</span>
         )}
       </div>
     </button>
