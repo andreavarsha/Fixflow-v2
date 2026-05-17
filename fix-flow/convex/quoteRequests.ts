@@ -199,6 +199,33 @@ export const acceptQuote = mutation({
   },
 });
 
+/** Issue photo URL for a job the supplier was invited to quote on. */
+export const getJobPhotoForSupplier = query({
+  args: { jobId: v.id("jobs") },
+  handler: async (ctx, { jobId }) => {
+    const supplierId = await getAuthUserId(ctx);
+    if (!supplierId) return { hasPhoto: false as const, url: undefined };
+
+    const user = await ctx.db.get(supplierId);
+    if (!user || user.role !== "supplier") {
+      return { hasPhoto: false as const, url: undefined };
+    }
+
+    const invited = await ctx.db
+      .query("quoteRequests")
+      .withIndex("by_job", (q) => q.eq("jobId", jobId))
+      .filter((q) => q.eq(q.field("supplierId"), supplierId))
+      .first();
+    if (!invited) return { hasPhoto: false as const, url: undefined };
+
+    const job = await ctx.db.get(jobId);
+    if (!job?.photoId) return { hasPhoto: false as const, url: undefined };
+
+    const url = await ctx.storage.getUrl(job.photoId);
+    return { hasPhoto: true as const, url: url ?? undefined };
+  },
+});
+
 /** Incoming quote requests for the logged-in supplier. */
 export const listForSupplier = query({
   args: {},
@@ -227,6 +254,7 @@ export const listForSupplier = query({
           jobSummary_si: job?.aiSummary_si,
           jobSummary_ta: job?.aiSummary_ta,
           jobStatus: job?.status,
+          jobHasPhoto: Boolean(job?.photoId),
           // Exposed so the supplier UI can open a masked chat with the homeowner (Exp R4).
           ownerId: job?.ownerId,
         };

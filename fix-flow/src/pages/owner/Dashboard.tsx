@@ -173,24 +173,62 @@ function ClassificationResult({
     }
   }
 
+  const loadedJob = job;
+
+  const jobLocked =
+    loadedJob.status === "in_progress" ||
+    loadedJob.status === "awaiting_payment" ||
+    loadedJob.status === "completed";
+
+  function goToOwnerStep(step: 1 | 2 | 3) {
+    if (step === 3) {
+      setShowLiveQuotes(true);
+      setShowDiscovery(false);
+      return;
+    }
+    setShowLiveQuotes(false);
+    if (step === 2) {
+      if (loadedJob.category && !jobLocked) setShowDiscovery(true);
+      else setShowDiscovery(false);
+      return;
+    }
+    setShowDiscovery(false);
+  }
+
+  function canGoToOwnerStep(step: 1 | 2 | 3) {
+    if (step === 1) return true;
+    if (step === 2) return Boolean(loadedJob.category) && !jobLocked;
+    if (step === 3) return true;
+    return false;
+  }
+
   if (showLiveQuotes) {
     return (
       <LiveQuotesDashboard
         jobId={jobId}
-        onBack={() => setShowLiveQuotes(false)}
+        onBack={() => goToOwnerStep(1)}
+        onGoToSuppliers={() => goToOwnerStep(2)}
+        onStepClick={goToOwnerStep}
+        canGoToStep={canGoToOwnerStep}
       />
     );
   }
 
-  const jobLocked =
-    job.status === "in_progress" ||
-    job.status === "awaiting_payment" ||
-    job.status === "completed";
-
   if (showDiscovery && job.category) {
     return (
       <div className={ffPage}>
-        <OwnerStepHint active={2} />
+        <OwnerStepHint
+          active={2}
+          onStepClick={goToOwnerStep}
+          canGoToStep={canGoToOwnerStep}
+        />
+        <button
+          type="button"
+          onClick={() => goToOwnerStep(3)}
+          className={`${ffBtnGhost} -mt-2 mb-4 text-left`}
+        >
+          View quote inbox →
+        </button>
         <header className="mb-6">
           <h1 className={ffScreenTitle}>FixFlow AI</h1>
           <p className={ffScreenSubtitle}>Choose nearby suppliers</p>
@@ -210,7 +248,11 @@ function ClassificationResult({
 
   return (
     <div className={ffPage}>
-      <OwnerStepHint active={1} />
+      <OwnerStepHint
+        active={1}
+        onStepClick={goToOwnerStep}
+        canGoToStep={canGoToOwnerStep}
+      />
       <header className="mb-6 pr-12 sm:pr-14">
         <h1 className={ffScreenTitle}>FixFlow AI</h1>
         <p className={ffScreenSubtitle}>Here&apos;s what we understood</p>

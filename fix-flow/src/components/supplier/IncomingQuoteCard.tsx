@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ChatPanel } from "../messaging/ChatPanel";
+import { JobIssuePhoto } from "./JobIssuePhoto";
 import {
   ffBtnPrimary,
   ffBtnSecondary,
@@ -175,6 +176,8 @@ export function IncomingQuoteCard({
             </button>
           )}
         </div>
+
+        <JobIssuePhoto jobId={request.jobId} />
 
         {request.status === "quoted" &&
           request.priceLKR !== undefined &&

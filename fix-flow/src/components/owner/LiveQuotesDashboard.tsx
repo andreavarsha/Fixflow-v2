@@ -18,9 +18,18 @@ import { toUserFacingError } from "../../lib/userFacingError";
 type LiveQuotesDashboardProps = {
   jobId: Id<"jobs">;
   onBack: () => void;
+  onGoToSuppliers: () => void;
+  onStepClick?: (step: 1 | 2 | 3) => void;
+  canGoToStep?: (step: 1 | 2 | 3) => boolean;
 };
 
-export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps) {
+export function LiveQuotesDashboard({
+  jobId,
+  onBack,
+  onGoToSuppliers,
+  onStepClick,
+  canGoToStep,
+}: LiveQuotesDashboardProps) {
   const quotes = useQuery(api.quoteRequests.getLiveQuotes, { jobId });
   const job = useQuery(api.jobs.getJob, { jobId });
   const unreadCount = useQuery(api.notifications.getUnreadCount);
@@ -55,13 +64,31 @@ export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps)
     return map[s] ?? s;
   };
 
+  const canPickMoreSuppliers =
+    jobOpen && Boolean(job?.category);
+
   return (
     <div className={ffPage}>
-      <OwnerStepHint active={3} />
+      <OwnerStepHint
+        active={3}
+        onStepClick={onStepClick}
+        canGoToStep={canGoToStep}
+      />
 
-      <button type="button" onClick={onBack} className={`${ffBtnGhost} -mt-1 mb-4 text-left`}>
-        ← Back to job details
-      </button>
+      <div className="-mt-1 mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <button type="button" onClick={onBack} className={`${ffBtnGhost} text-left`}>
+          ← Job details
+        </button>
+        {canPickMoreSuppliers && (
+          <button
+            type="button"
+            onClick={onGoToSuppliers}
+            className={`${ffBtnGhost} text-left`}
+          >
+            Choose suppliers →
+          </button>
+        )}
+      </div>
 
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:items-center">
         <div className="min-w-0 flex-1">
@@ -90,12 +117,23 @@ export function LiveQuotesDashboard({ jobId, onBack }: LiveQuotesDashboardProps)
       )}
 
       {quotes !== undefined && quotes.length === 0 && (
-        <div className={`${ffCard} text-sm text-gray-600`}>
-          <p className="font-medium text-gray-900">No requests sent yet</p>
-          <p className="mt-2 leading-relaxed">
-            Go back and choose up to three suppliers. After they submit prices,
-            you&apos;ll see them listed here — cheapest first.
-          </p>
+        <div className={`${ffCard} flex flex-col gap-4 text-sm text-gray-600`}>
+          <div>
+            <p className="font-medium text-gray-900">No requests sent yet</p>
+            <p className="mt-2 leading-relaxed">
+              Choose up to three suppliers first. After they submit prices,
+              you&apos;ll see them listed here — cheapest first.
+            </p>
+          </div>
+          {canPickMoreSuppliers && (
+            <button
+              type="button"
+              onClick={onGoToSuppliers}
+              className={`${ffBtnPrimary} self-start`}
+            >
+              Choose suppliers
+            </button>
+          )}
         </div>
       )}
 
