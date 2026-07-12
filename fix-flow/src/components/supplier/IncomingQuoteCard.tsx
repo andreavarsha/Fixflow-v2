@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -15,7 +15,6 @@ import {
   parseDurationDays,
   statusBadgeClass,
   supplierUi,
-  type SupplierLang,
 } from "../../lib/supplierDashboardUi";
 import { toUserFacingError } from "../../lib/userFacingError";
 
@@ -37,17 +36,9 @@ export type IncomingQuoteRequest = {
   jobCategory?: string;
   jobUrgency?: "High" | "Medium" | "Low";
   jobSummary?: string;
-  jobSummary_si?: string;
-  jobSummary_ta?: string;
   jobStatus?: string;
   ownerId?: Id<"users">;
 };
-
-const SUMMARY_TAB_LABELS: { id: SupplierLang; label: string }[] = [
-  { id: "en", label: "English" },
-  { id: "si", label: "සිංහල" },
-  { id: "ta", label: "தமிழ்" },
-];
 
 const t = supplierUi("en");
 
@@ -69,7 +60,6 @@ export function IncomingQuoteCard({
   chatOpen: chatOpenControlled,
   onChatOpenChange,
 }: IncomingQuoteCardProps) {
-  const [summaryLang, setSummaryLang] = useState<SupplierLang>("en");
   const [chatOpenLocal, setChatOpenLocal] = useState(false);
 
   const chatOpen = chatOpenControlled ?? chatOpenLocal;
@@ -82,34 +72,7 @@ export function IncomingQuoteCard({
       : "skip",
   );
 
-  const langTabs = useMemo(() => {
-    const tabs: { id: SupplierLang; label: string }[] = [
-      SUMMARY_TAB_LABELS[0],
-    ];
-    if (request.jobSummary_si?.trim()) {
-      tabs.push(SUMMARY_TAB_LABELS[1]);
-    }
-    if (request.jobSummary_ta?.trim()) {
-      tabs.push(SUMMARY_TAB_LABELS[2]);
-    }
-    return tabs;
-  }, [request.jobSummary_si, request.jobSummary_ta]);
-
-  useEffect(() => {
-    if (summaryLang === "si" && !request.jobSummary_si?.trim()) {
-      setSummaryLang("en");
-    }
-    if (summaryLang === "ta" && !request.jobSummary_ta?.trim()) {
-      setSummaryLang("en");
-    }
-  }, [request.jobSummary_si, request.jobSummary_ta, summaryLang]);
-
-  const summaryText =
-    summaryLang === "si"
-      ? (request.jobSummary_si ?? request.jobSummary)
-      : summaryLang === "ta"
-        ? (request.jobSummary_ta ?? request.jobSummary)
-        : request.jobSummary;
+  const summaryText = request.jobSummary ?? request.jobDescription;
 
   const statusLabel =
     request.status === "pending"
@@ -203,36 +166,8 @@ export function IncomingQuoteCard({
             </div>
           )}
 
-        {langTabs.length > 1 && (
-          <div
-            className="mt-4 flex flex-wrap gap-2"
-            role="tablist"
-            aria-label={t.summaryLanguage}
-          >
-            {langTabs.map(({ id, label }) => {
-              const selected = summaryLang === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setSummaryLang(id)}
-                  className={
-                    selected
-                      ? "rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm"
-                      : "rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-200"
-                  }
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
         <p className="mt-3 text-sm leading-relaxed text-gray-700">
-          {summaryText ?? request.jobDescription}
+          {summaryText}
         </p>
 
         {chatOpen && request.ownerId && (

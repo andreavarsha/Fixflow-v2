@@ -3,6 +3,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { SupplierDiscovery } from "../../components/owner/SupplierDiscovery";
+import { SupplierDiscoveryMap } from "../../components/owner/SupplierDiscoveryMap";
+import { JobStatusTracker } from "../../components/owner/JobStatusTracker";
 import { LiveQuotesDashboard } from "../../components/owner/LiveQuotesDashboard";
 import { OwnerHomeDashboard } from "../../components/owner/OwnerHomeDashboard";
 import { OwnerJobPaymentPanel } from "../../components/owner/OwnerJobPaymentPanel";
@@ -27,6 +29,7 @@ import {
   type JobCategory,
   type JobUrgency,
 } from "../../lib/jobCategories";
+import { zoneByIdName } from "../../lib/zones";
 
 export default function OwnerDashboard() {
   const [jobId, setJobId] = useState<Id<"jobs"> | null>(null);
@@ -58,6 +61,7 @@ function ClassificationResult({
   onOpenJob: (id: Id<"jobs">) => void;
 }) {
   const job = useQuery(api.jobs.getJob, { jobId });
+  const nearbySuppliers = useQuery(api.suppliers.getSuppliersNearJob, { jobId });
   const updateSummary = useMutation(api.jobs.updateSummary);
   const updateJobClassification = useMutation(api.jobs.updateJobClassification);
   const [editingSummary, setEditingSummary] = useState(false);
@@ -71,22 +75,17 @@ function ClassificationResult({
   const [saving, setSaving] = useState(false);
   const [showDiscovery, setShowDiscovery] = useState(false);
   const [showLiveQuotes, setShowLiveQuotes] = useState(false);
-  const [summaryLang, setSummaryLang] = useState<"en" | "si" | "ta">("en");
 
   /** Must run before any early returns — otherwise hook order changes when `job` finishes loading and React crashes (blank / black screen). */
   useEffect(() => {
     if (job === undefined || job === null || job.status === "classifying") return;
-    const hasSi = Boolean(job.aiSummary_si?.trim());
-    const hasTa = Boolean(job.aiSummary_ta?.trim());
-    if (summaryLang === "si" && !hasSi) setSummaryLang("en");
-    if (summaryLang === "ta" && !hasTa) setSummaryLang("en");
     if (job.category && JOB_CATEGORIES.includes(job.category as JobCategory)) {
       setCategoryDraft(job.category as JobCategory);
     }
     if (job.urgency && JOB_URGENCIES.includes(job.urgency as JobUrgency)) {
       setUrgencyDraft(job.urgency as JobUrgency);
     }
-  }, [job, summaryLang]);
+  }, [job]);
 
   if (job === undefined) {
     return (
@@ -118,8 +117,7 @@ function ClassificationResult({
           <div className="mx-auto mb-3 h-10 w-10 animate-pulse rounded-full bg-gray-200" aria-hidden />
           <p className="font-medium text-gray-900">Sorting out your request…</p>
           <p className="mt-2 text-sm text-gray-500">
-            Estimating urgency and preparing Sinhala & Tamil summaries. Usually under
-            a few seconds.
+            Estimating urgency and preparing a summary. Usually under a few seconds.
           </p>
         </div>
       </div>
@@ -134,14 +132,8 @@ function ClassificationResult({
   };
 
   const summary = job.aiSummary ?? "";
-  const hasSi = Boolean(job.aiSummary_si?.trim());
-  const hasTa = Boolean(job.aiSummary_ta?.trim());
-
-  const langTabs: { id: "en" | "si" | "ta"; label: string }[] = [
-    { id: "en", label: "English" },
-    ...(hasSi ? [{ id: "si" as const, label: "සිංහල" }] : []),
-    ...(hasTa ? [{ id: "ta" as const, label: "தமிழ்" }] : []),
-  ];
+  const zoneName = zoneByIdName(job.zoneId);
+  const hasJobLocation = job.lat != null && job.lng != null;
 
   async function handleSaveSummary() {
     setSaveError("");
@@ -233,12 +225,31 @@ function ClassificationResult({
           <h1 className={ffScreenTitle}>FixFlow AI</h1>
           <p className={ffScreenSubtitle}>Choose nearby suppliers</p>
         </header>
-        <SupplierDiscovery
-          jobId={jobId}
-          category={job.category}
-          onBack={() => setShowDiscovery(false)}
-          onQuotesSent={() => setShowLiveQuotes(true)}
-        />
+        {hasJobLocation ? (
+          <SupplierDiscovery
+            jobId={jobId}
+            category={job.category}
+            jobLat={job.lat ?? 7.0167}
+            jobLng={job.lng ?? 79.9833}
+            zoneId={job.zoneId}
+            onBack={() => setShowDiscovery(false)}
+            onQuotesSent={() => setShowLiveQuotes(true)}
+          />
+        ) : (
+          <div className={`${ffCard} text-sm text-gray-600`}>
+            <p className="font-medium text-gray-900">Location is missing</p>
+            <p className="mt-2 leading-relaxed">
+              This job needs a location before we can find nearby suppliers.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowDiscovery(false)}
+              className={`${ffBtnSecondary} mt-4`}
+            >
+              Back to job details
+            </button>
+          </div>
+        )}
         <button type="button" onClick={onNewJob} className={`${ffBtnGhost} mt-8`}>
           Cancel this job
         </button>
@@ -253,6 +264,7 @@ function ClassificationResult({
         onStepClick={goToOwnerStep}
         canGoToStep={canGoToOwnerStep}
       />
+      <JobStatusTracker jobId={jobId} status={job.status} />
       <header className="mb-6 pr-12 sm:pr-14">
         <h1 className={ffScreenTitle}>FixFlow AI</h1>
         <p className={ffScreenSubtitle}>Here&apos;s what we understood</p>
@@ -284,6 +296,18 @@ function ClassificationResult({
               />
             )}
 
+            {hasJobLocation && job.status === "open" && (
+              <SupplierDiscoveryMap
+                jobLat={job.lat!}
+                jobLng={job.lng!}
+                suppliers={nearbySuppliers ?? []}
+                selected={[]}
+                onToggle={() => undefined}
+                heightClassName="h-48 sm:h-56"
+                compact
+              />
+            )}
+
             <div className="flex flex-col gap-3">
               {job.classificationFailed && (
                 <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200">
@@ -308,6 +332,11 @@ function ClassificationResult({
               >
                 {urgency} urgency
               </span>
+              {zoneName && (
+                <span className="rounded-full bg-gray-50 px-3 py-1 text-sm text-gray-600 ring-1 ring-gray-200">
+                  {zoneName}
+                </span>
+              )}
               </div>
 
               {!showCategoryEdit ? (
@@ -392,102 +421,56 @@ function ClassificationResult({
           </div>
 
           <div className="flex flex-col border-t border-gray-100 pt-6 lg:col-span-7 lg:border-t-0 lg:pt-0 xl:col-span-7">
-            {langTabs.length > 1 && (
-              <div
-                className="mb-4 flex flex-wrap gap-2"
-                role="tablist"
-                aria-label="Summary language"
-              >
-                {langTabs.map(({ id, label }) => {
-                  const selected = summaryLang === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      aria-selected={selected}
-                      onClick={() => {
-                        if (id !== "en" && editingSummary) {
-                          setEditingSummary(false);
-                          setSaveError("");
-                        }
-                        setSummaryLang(id);
-                      }}
-                      className={
-                        selected
-                          ? "rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm"
-                          : "rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-200"
-                      }
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <p className={ffLabel}>English</p>
 
-            {langTabs.length === 1 && <p className={ffLabel}>English</p>}
-
-            {summaryLang === "en" && (
-              <>
-                {editingSummary ? (
-                  <div className="flex flex-col gap-3">
-                    <textarea
-                      value={summaryDraft}
-                      onChange={(e) => setSummaryDraft(e.target.value)}
-                      rows={5}
-                      className={`${ffInput} resize-none`}
-                    />
-                    {saveError && (
-                      <p className="text-sm text-red-600">{saveError}</p>
-                    )}
-                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                      <button
-                        type="button"
-                        onClick={handleSaveSummary}
-                        disabled={saving || !summaryDraft.trim()}
-                        className={`${ffBtnPrimary} ${ffBtnInRow}`}
-                      >
-                        {saving ? "Saving…" : "Save summary"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingSummary(false);
-                          setSaveError("");
-                        }}
-                        className={`${ffBtnSecondary} ${ffBtnInRow}`}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <p className="flex-1 text-base leading-relaxed text-gray-800 lg:text-lg">
-                      {summary}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSummaryDraft(summary);
-                        setEditingSummary(true);
-                      }}
-                      className={`${ffBtnGhost} shrink-0 sm:w-auto`}
-                    >
-                      Edit text
-                    </button>
-                  </div>
+            {editingSummary ? (
+              <div className="mt-2 flex flex-col gap-3">
+                <textarea
+                  value={summaryDraft}
+                  onChange={(e) => setSummaryDraft(e.target.value)}
+                  rows={5}
+                  className={`${ffInput} resize-none`}
+                />
+                {saveError && (
+                  <p className="text-sm text-red-600">{saveError}</p>
                 )}
-              </>
-            )}
-
-            {summaryLang === "si" && job.aiSummary_si && (
-              <p className="text-base leading-relaxed text-gray-800 lg:text-lg">{job.aiSummary_si}</p>
-            )}
-
-            {summaryLang === "ta" && job.aiSummary_ta && (
-              <p className="text-base leading-relaxed text-gray-800 lg:text-lg">{job.aiSummary_ta}</p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleSaveSummary}
+                    disabled={saving || !summaryDraft.trim()}
+                    className={`${ffBtnPrimary} ${ffBtnInRow}`}
+                  >
+                    {saving ? "Saving…" : "Save summary"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingSummary(false);
+                      setSaveError("");
+                    }}
+                    className={`${ffBtnSecondary} ${ffBtnInRow}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <p className="flex-1 text-base leading-relaxed text-gray-800 lg:text-lg">
+                  {summary}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSummaryDraft(summary);
+                    setEditingSummary(true);
+                  }}
+                  className={`${ffBtnGhost} shrink-0 sm:w-auto`}
+                >
+                  Edit text
+                </button>
+              </div>
             )}
           </div>
         </div>

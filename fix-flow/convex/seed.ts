@@ -1,29 +1,265 @@
 import { mutation } from "./_generated/server";
 import { syncSupplierGeospatial } from "./supplierGeospatial";
+import { DEMO_ZONES, type ZoneId } from "./zones";
+import { JOB_CATEGORIES } from "./jobCategories";
 
-// PRD v6.1 Section 7 — Kadana centre 7.0167N, 79.9833E
-const SUPPLIERS = [
-  { name: "Nimal Perera", category: "Plumbing", lat: 7.018, lng: 79.985, preferredLanguage: "si" as const, rating: 4.6, available: true, suspended: false },
-  { name: "Ranjith Fernando", category: "Plumbing", lat: 7.025, lng: 79.99, preferredLanguage: "si" as const, rating: 4.4, available: true, suspended: false },
-  { name: "Priya Subramaniam", category: "Plumbing", lat: 7.04, lng: 80.01, preferredLanguage: "ta" as const, rating: 4.5, available: true, suspended: false },
-  { name: "Kamal Silva", category: "Electrical", lat: 7.02, lng: 79.978, preferredLanguage: "si" as const, rating: 4.7, available: true, suspended: false },
-  { name: "Dinesh Wickrama", category: "Electrical", lat: 7.05, lng: 80.02, preferredLanguage: "si" as const, rating: 4.3, available: true, suspended: false },
-  { name: "Arjun Selvam", category: "Electrical", lat: 7.065, lng: 80.035, preferredLanguage: "ta" as const, rating: 4.5, available: true, suspended: false },
-  { name: "Susantha Bandara", category: "Roofing", lat: 7.03, lng: 79.97, preferredLanguage: "si" as const, rating: 4.4, available: true, suspended: false },
-  { name: "Mahesh Rathnayake", category: "Roofing", lat: 7.045, lng: 79.96, preferredLanguage: "si" as const, rating: 4.2, available: true, suspended: false },
-  { name: "Kumaran Pillai", category: "Roofing", lat: 7.075, lng: 80.05, preferredLanguage: "ta" as const, rating: 4.1, available: true, suspended: false },
-  { name: "Rohan Jayawardena", category: "Carpentry", lat: 7.022, lng: 79.992, preferredLanguage: "si" as const, rating: 4.6, available: true, suspended: false },
-  { name: "Thilak Dissanayake", category: "Carpentry", lat: 7.06, lng: 80.04, preferredLanguage: "si" as const, rating: 4.3, available: true, suspended: false },
-  { name: "Saman Kumarasinghe", category: "Painting", lat: 7.015, lng: 79.995, preferredLanguage: "si" as const, rating: 4.5, available: true, suspended: false },
-  { name: "Lalith Weerasinghe", category: "Painting", lat: 7.055, lng: 80.03, preferredLanguage: "si" as const, rating: 4.2, available: true, suspended: false },
-  { name: "Muthu Krishnan", category: "Painting", lat: 7.035, lng: 79.965, preferredLanguage: "ta" as const, rating: 4.4, available: true, suspended: false },
-  { name: "Chaminda Senanayake", category: "Garden / Landscaping", lat: 7.028, lng: 79.982, preferredLanguage: "si" as const, rating: 4.5, available: true, suspended: false },
-  { name: "Anura Gunasekara", category: "Garden / Landscaping", lat: 7.07, lng: 80.045, preferredLanguage: "si" as const, rating: 4.1, available: true, suspended: false },
-  { name: "Selvakumar Nadar", category: "General Maintenance", lat: 7.048, lng: 80.015, preferredLanguage: "ta" as const, rating: 4.6, available: true, suspended: false },
-  // 18–20: outside 15km bounding box (Round 2 demo)
-  { name: "Asanka Hettiarachchi", category: "General Maintenance", lat: 7.15, lng: 80.12, preferredLanguage: "si" as const, rating: 4.8, available: true, suspended: false },
-  { name: "Nuwan Amarasinghe", category: "Plumbing", lat: 7.18, lng: 80.15, preferredLanguage: "si" as const, rating: 4.0, available: false, suspended: false },
-  { name: "Ravi Chandran", category: "Electrical", lat: 7.21, lng: 80.18, preferredLanguage: "ta" as const, rating: 4.3, available: true, suspended: true },
+type SeedSupplier = {
+  name: string;
+  category: (typeof JOB_CATEGORIES)[number];
+  zoneId: ZoneId;
+  lat: number;
+  lng: number;
+  rating: number;
+  reviewCount: number;
+  available: boolean;
+  suspended: boolean;
+};
+
+/** Offset helpers — keep suppliers near zone centers but distinct. */
+function near(
+  zoneId: ZoneId,
+  dLat: number,
+  dLng: number,
+): { zoneId: ZoneId; lat: number; lng: number } {
+  const zone = DEMO_ZONES.find((z) => z.id === zoneId)!;
+  return {
+    zoneId,
+    lat: zone.lat + dLat,
+    lng: zone.lng + dLng,
+  };
+}
+
+const SUPPLIERS: SeedSupplier[] = [
+  // Kadana — all trades (2 each for key trades)
+  {
+    name: "Nimal Perera",
+    category: "Plumbing",
+    ...near("kadana", 0.008, 0.006),
+    rating: 4.7,
+    reviewCount: 18,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Ranjith Fernando",
+    category: "Plumbing",
+    ...near("kadana", -0.01, 0.012),
+    rating: 4.4,
+    reviewCount: 11,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Kamal Silva",
+    category: "Electrical",
+    ...near("kadana", 0.006, -0.008),
+    rating: 4.8,
+    reviewCount: 22,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Dinesh Wickrama",
+    category: "Electrical",
+    ...near("kadana", -0.012, -0.005),
+    rating: 4.3,
+    reviewCount: 9,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Susantha Bandara",
+    category: "Roofing",
+    ...near("kadana", 0.014, 0.004),
+    rating: 4.5,
+    reviewCount: 14,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Rohan Jayawardena",
+    category: "Carpentry",
+    ...near("kadana", 0.004, 0.015),
+    rating: 4.6,
+    reviewCount: 16,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Saman Kumarasinghe",
+    category: "Painting",
+    ...near("kadana", -0.006, 0.009),
+    rating: 4.5,
+    reviewCount: 13,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Chaminda Senanayake",
+    category: "Garden / Landscaping",
+    ...near("kadana", 0.01, -0.012),
+    rating: 4.6,
+    reviewCount: 20,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Selvakumar Nadar",
+    category: "General Maintenance",
+    ...near("kadana", -0.008, -0.01),
+    rating: 4.4,
+    reviewCount: 12,
+    available: true,
+    suspended: false,
+  },
+
+  // Rajagiriya
+  {
+    name: "Priya Subramaniam",
+    category: "Plumbing",
+    ...near("rajagiriya", 0.006, 0.005),
+    rating: 4.6,
+    reviewCount: 15,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Arjun Selvam",
+    category: "Electrical",
+    ...near("rajagiriya", -0.008, 0.007),
+    rating: 4.5,
+    reviewCount: 10,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Mahesh Rathnayake",
+    category: "Roofing",
+    ...near("rajagiriya", 0.01, -0.006),
+    rating: 4.2,
+    reviewCount: 8,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Thilak Dissanayake",
+    category: "Carpentry",
+    ...near("rajagiriya", -0.005, -0.009),
+    rating: 4.4,
+    reviewCount: 11,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Lalith Weerasinghe",
+    category: "Painting",
+    ...near("rajagiriya", 0.007, 0.011),
+    rating: 4.3,
+    reviewCount: 7,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Anura Gunasekara",
+    category: "Garden / Landscaping",
+    ...near("rajagiriya", -0.011, 0.004),
+    rating: 4.1,
+    reviewCount: 6,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Ishara Mendis",
+    category: "General Maintenance",
+    ...near("rajagiriya", 0.004, -0.012),
+    rating: 4.7,
+    reviewCount: 19,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Farook Ismail",
+    category: "Plumbing",
+    ...near("rajagiriya", 0.012, -0.004),
+    rating: 4.5,
+    reviewCount: 14,
+    available: true,
+    suspended: false,
+  },
+
+  // Nawala
+  {
+    name: "Kumaran Pillai",
+    category: "Roofing",
+    ...near("nawala", 0.005, 0.006),
+    rating: 4.3,
+    reviewCount: 9,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Muthu Krishnan",
+    category: "Painting",
+    ...near("nawala", -0.007, 0.008),
+    rating: 4.4,
+    reviewCount: 12,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Janaka Perera",
+    category: "Plumbing",
+    ...near("nawala", 0.009, -0.005),
+    rating: 4.6,
+    reviewCount: 17,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Sandun Fernando",
+    category: "Electrical",
+    ...near("nawala", -0.006, -0.01),
+    rating: 4.5,
+    reviewCount: 13,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Gayan Silva",
+    category: "Carpentry",
+    ...near("nawala", 0.011, 0.003),
+    rating: 4.2,
+    reviewCount: 8,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Ruwan Bandara",
+    category: "Garden / Landscaping",
+    ...near("nawala", -0.01, 0.007),
+    rating: 4.4,
+    reviewCount: 10,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Heshan Jayasuriya",
+    category: "General Maintenance",
+    ...near("nawala", 0.003, -0.008),
+    rating: 4.8,
+    reviewCount: 21,
+    available: true,
+    suspended: false,
+  },
+  {
+    name: "Nadeesha Wijesinghe",
+    category: "Electrical",
+    ...near("nawala", 0.008, 0.01),
+    rating: 4.6,
+    reviewCount: 15,
+    available: true,
+    suspended: false,
+  },
 ];
 
 function supplierEmail(name: string, index: number) {
@@ -40,28 +276,83 @@ export const seedSuppliers = mutation({
     const existing = await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("role"), "supplier"))
-      .take(1);
-    if (existing.length > 0) {
-      return { seeded: 0, message: "Suppliers already seeded — skip or clear users table first" };
+      .collect();
+
+    // Soft-disable old @fixflow.lk suppliers not in this seed so geospatial stays clean.
+    const keepEmails = new Set(
+      SUPPLIERS.map((s, i) => supplierEmail(s.name, i + 1)),
+    );
+    for (const s of existing) {
+      if (s.email?.endsWith("@fixflow.lk") && s.email && !keepEmails.has(s.email)) {
+        await ctx.db.patch(s._id, {
+          available: false,
+          suspended: true,
+        });
+        await syncSupplierGeospatial(ctx, s._id);
+      }
     }
+
+    let created = 0;
+    let updated = 0;
 
     for (let i = 0; i < SUPPLIERS.length; i++) {
       const s = SUPPLIERS[i];
-      const supplierId = await ctx.db.insert("users", {
+      const email = supplierEmail(s.name, i + 1);
+      const prior = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .unique();
+
+      const fields = {
         name: s.name,
-        email: supplierEmail(s.name, i + 1),
-        role: "supplier",
-        preferredLanguage: s.preferredLanguage,
+        email,
+        role: "supplier" as const,
+        preferredLanguage: "en" as const,
         category: s.category,
         rating: s.rating,
-        lat: s.lat,
-        lng: s.lng,
+        reviewCount: s.reviewCount,
         available: s.available,
         suspended: s.suspended,
         approved: true,
-      });
-      await syncSupplierGeospatial(ctx, supplierId);
+        lat: s.lat,
+        lng: s.lng,
+        zoneId: s.zoneId,
+      };
+
+      if (prior) {
+        await ctx.db.patch(prior._id, fields);
+        await syncSupplierGeospatial(ctx, prior._id);
+        updated++;
+      } else {
+        const id = await ctx.db.insert("users", fields);
+        await syncSupplierGeospatial(ctx, id);
+        created++;
+      }
     }
-    return { seeded: SUPPLIERS.length };
+
+    return { created, updated, total: SUPPLIERS.length };
+  },
+});
+
+/** Demo owner account profile (password set via demoAuth). */
+export const ensureDemoOwner = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const email = "demo.owner@fixflow.lk";
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .unique();
+    if (existing) return { userId: existing._id, email };
+
+    const userId = await ctx.db.insert("users", {
+      name: "Demo Owner",
+      email,
+      role: "owner",
+      preferredLanguage: "en",
+      approved: true,
+      suspended: false,
+    });
+    return { userId, email };
   },
 });

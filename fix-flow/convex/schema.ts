@@ -17,17 +17,22 @@ export default defineSchema({
     preferredLanguage: v.union(v.literal("en"), v.literal("si"), v.literal("ta")),
     category: v.optional(v.string()),
     rating: v.optional(v.number()),
+    reviewCount: v.optional(v.number()),
     available: v.optional(v.boolean()),
     suspended: v.optional(v.boolean()),
     approved: v.optional(v.boolean()),
     lat: v.optional(v.number()),
     lng: v.optional(v.number()),
+    zoneId: v.optional(v.string()),
   }).index("by_email", ["email"]),
 
   jobs: defineTable({
     ownerId: v.id("users"),
     description: v.string(),
     photoId: v.optional(v.id("_storage")),
+    lat: v.optional(v.number()),
+    lng: v.optional(v.number()),
+    zoneId: v.optional(v.string()),
     status: v.union(
       v.literal("classifying"),
       v.literal("open"),
@@ -45,6 +50,7 @@ export default defineSchema({
       v.union(v.literal("High"), v.literal("Medium"), v.literal("Low")),
     ),
     aiSummary: v.optional(v.string()),
+    /** Legacy optional fields — no longer written (English-only). */
     aiSummary_si: v.optional(v.string()),
     aiSummary_ta: v.optional(v.string()),
     acceptedSupplierId: v.optional(v.id("users")),
@@ -91,5 +97,13 @@ export default defineSchema({
     supplierId: v.id("users"),
     rating: v.number(),
     comment: v.optional(v.string()),
-  }).index("by_supplier", ["supplierId"]),
+  })
+    .index("by_supplier", ["supplierId"])
+    .index("by_job", ["jobId"]),
+
+  waitlist: defineTable({
+    email: v.string(),
+    lat: v.number(),
+    lng: v.number(),
+  }).index("by_email", ["email"]),
 });

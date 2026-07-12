@@ -1,16 +1,20 @@
 import type { Id } from "../../../convex/_generated/dataModel";
 
-export type SupplierNearKadana = {
+export type NearbySupplierCard = {
   _id: Id<"users">;
   name: string | undefined;
   category: string | undefined;
   rating: number | undefined;
+  reviewCount?: number | undefined;
   available: boolean | undefined;
   distanceKm: number;
+  quoteStatus?: "pending" | "quoted" | "accepted" | "rejected";
+  priceLKR?: number;
+  isFinal?: boolean;
 };
 
 type SupplierCardProps = {
-  supplier: SupplierNearKadana;
+  supplier: NearbySupplierCard;
   selected: boolean;
   selectionDisabled: boolean;
   onToggle: () => void;
@@ -54,6 +58,15 @@ export function SupplierCard({
         {supplier.rating !== undefined && (
           <span className="text-xs text-gray-600">
             ★ {supplier.rating.toFixed(1)}
+            {supplier.reviewCount !== undefined
+              ? ` (${supplier.reviewCount})`
+              : ""}
+          </span>
+        )}
+        {supplier.quoteStatus === "quoted" && supplier.priceLKR !== undefined && (
+          <span className="text-xs font-medium text-emerald-800">
+            LKR {supplier.priceLKR.toLocaleString("en-LK")}
+            {supplier.isFinal ? " · Final" : ""}
           </span>
         )}
         <span
@@ -69,9 +82,6 @@ export function SupplierCard({
           <span className="text-xs font-medium text-gray-600">
             Tap to {selected ? "deselect" : "select"}
           </span>
-        )}
-        {!unavailable && !selected && selectionDisabled && (
-          <span className="text-xs text-gray-400">Max 3 — deselect one to add</span>
         )}
       </div>
     </button>

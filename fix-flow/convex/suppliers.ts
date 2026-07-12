@@ -5,90 +5,172 @@ import {
   internalQuery,
   mutation,
   query,
+  type QueryCtx,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "./_generated/dataModel";
 import { resolveDiscoveryCategory } from "./jobCategories";
 import {
-  distanceFromKadanaKm,
-  kadanaBoundingBox,
-  MAX_DISTANCE_KM,
+  haversineKm,
   supplierGeospatial,
   syncSupplierGeospatial,
 } from "./supplierGeospatial";
+import {
+  boundingBoxAround,
+  JOB_SEARCH_RADIUS_KM,
+  zoneById,
+} from "./zones";
 import { enforceRateLimit, userRateKey } from "./rateLimits";
 
 const MAX_SELECTED_SUPPLIERS = 3;
 
-export type SupplierNearKadana = {
+export type NearbySupplier = {
   _id: Id<"users">;
   name: string | undefined;
   category: string | undefined;
   rating: number | undefined;
+  reviewCount: number | undefined;
   available: boolean | undefined;
   distanceKm: number;
+  lat: number;
+  lng: number;
+  zoneId: string | undefined;
+  quoteStatus?: "pending" | "quoted" | "accepted" | "rejected";
+  priceLKR?: number;
+  isFinal?: boolean;
 };
 
-/** Nearby approved suppliers for a job category, sorted by distance from Kadana. */
-export const getSuppliersNearKadana = query({
-  args: { category: v.string() },
-  handler: async (ctx, { category }): Promise<SupplierNearKadana[]> => {
+async function findNearbySuppliers(
+  ctx: QueryCtx,
+  originLat: number,
+  originLng: number,
+  category: string,
+): Promise<NearbySupplier[]> {
+  const tradeCategory = resolveDiscoveryCategory(category);
+  const rectangle = boundingBoxAround(originLat, originLng);
+  const matches: NearbySupplier[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const page = await supplierGeospatial.query(
+      ctx,
+      {
+        shape: { type: "rectangle", rectangle },
+        limit: 64,
+        filter: (q) =>
+          q
+            .eq("category", tradeCategory)
+            .eq("approved", true)
+            .eq("available", true)
+            .eq("suspended", false),
+      },
+      cursor,
+    );
+
+    for (const hit of page.results) {
+      const supplier = await ctx.db.get(hit.key);
+      if (!supplier || supplier.lat === undefined || supplier.lng === undefined) {
+        continue;
+      }
+
+      const distanceKm = haversineKm(
+        originLat,
+        originLng,
+        supplier.lat,
+        supplier.lng,
+      );
+      if (distanceKm > JOB_SEARCH_RADIUS_KM) continue;
+
+      matches.push({
+        _id: supplier._id,
+        name: supplier.name,
+        category: supplier.category,
+        rating: supplier.rating,
+        reviewCount: supplier.reviewCount,
+        available: supplier.available,
+        distanceKm: Math.round(distanceKm * 10) / 10,
+        lat: supplier.lat,
+        lng: supplier.lng,
+        zoneId: supplier.zoneId,
+      });
+    }
+
+    cursor = page.nextCursor ?? undefined;
+  } while (cursor);
+
+  matches.sort((a, b) => a.distanceKm - b.distanceKm);
+  return matches;
+}
+
+/** Nearby approved suppliers around a job pin, sorted by distance. */
+export const getSuppliersNearJob = query({
+  args: { jobId: v.id("jobs") },
+  handler: async (ctx, { jobId }): Promise<NearbySupplier[]> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
     const user = await ctx.db.get(userId);
     if (!user || user.role !== "owner") return [];
 
-    const tradeCategory = resolveDiscoveryCategory(category);
-    const rectangle = kadanaBoundingBox();
-    const matches: SupplierNearKadana[] = [];
-    let cursor: string | undefined;
+    const job = await ctx.db.get(jobId);
+    if (!job || job.ownerId !== userId || !job.category) return [];
+    if (job.lat === undefined || job.lng === undefined) return [];
 
-    do {
-      const page = await supplierGeospatial.query(
-        ctx,
-        {
-          shape: { type: "rectangle", rectangle },
-          limit: 64,
-          filter: (q) =>
-            q
-              .eq("category", tradeCategory)
-              .eq("approved", true)
-              .eq("available", true)
-              .eq("suspended", false),
-        },
-        cursor,
-      );
+    const nearby = await findNearbySuppliers(
+      ctx,
+      job.lat,
+      job.lng,
+      job.category,
+    );
 
-      for (const hit of page.results) {
-        const supplier = await ctx.db.get(hit.key);
-        if (!supplier || supplier.lat === undefined || supplier.lng === undefined) {
-          continue;
-        }
+    const quotes = await ctx.db
+      .query("quoteRequests")
+      .withIndex("by_job", (q) => q.eq("jobId", jobId))
+      .collect();
+    const bySupplier = new Map(quotes.map((q) => [q.supplierId, q]));
 
-        const distanceKm = distanceFromKadanaKm(supplier.lat, supplier.lng);
-        if (distanceKm > MAX_DISTANCE_KM) continue;
-
-        matches.push({
-          _id: supplier._id,
-          name: supplier.name,
-          category: supplier.category,
-          rating: supplier.rating,
-          available: supplier.available,
-          distanceKm: Math.round(distanceKm * 10) / 10,
-        });
-      }
-
-      cursor = page.nextCursor ?? undefined;
-    } while (cursor);
-
-    matches.sort((a, b) => a.distanceKm - b.distanceKm);
-    return matches;
+    return nearby.map((s) => {
+      const q = bySupplier.get(s._id);
+      return {
+        ...s,
+        quoteStatus: q?.status,
+        priceLKR: q?.priceLKR,
+        isFinal: q?.isFinal,
+      };
+    });
   },
 });
 
-/** Owner selects suppliers to receive quote requests for a job. */
+/** @deprecated Prefer getSuppliersNearJob. */
+export const getSuppliersNearKadana = query({
+  args: { category: v.string(), jobId: v.optional(v.id("jobs")) },
+  handler: async (ctx, { category, jobId }): Promise<NearbySupplier[]> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const user = await ctx.db.get(userId);
+    if (!user || user.role !== "owner") return [];
+
+    let originLat = 7.0167;
+    let originLng = 79.9833;
+    let trade = category;
+
+    if (jobId) {
+      const job = await ctx.db.get(jobId);
+      if (job && job.ownerId === userId) {
+        if (job.lat !== undefined && job.lng !== undefined) {
+          originLat = job.lat;
+          originLng = job.lng;
+        }
+        if (job.category) trade = job.category;
+      }
+    }
+
+    return findNearbySuppliers(ctx, originLat, originLng, trade);
+  },
+});
+
 export const selectSuppliers = mutation({
   args: {
     jobId: v.id("jobs"),
@@ -110,6 +192,9 @@ export const selectSuppliers = mutation({
     if (!job.category) {
       throw new Error("Job must be classified before requesting quotes");
     }
+    if (job.lat === undefined || job.lng === undefined) {
+      throw new Error("Job location is required");
+    }
 
     const uniqueIds = [...new Set(supplierIds)];
     if (uniqueIds.length === 0) {
@@ -123,6 +208,8 @@ export const selectSuppliers = mutation({
 
     const nearby = await ctx.runQuery(internal.suppliers.listNearbySupplierIds, {
       category: job.category,
+      lat: job.lat,
+      lng: job.lng,
     });
     const nearbySet = new Set(nearby);
 
@@ -158,46 +245,15 @@ export const selectSuppliers = mutation({
   },
 });
 
-/** Internal helper so selectSuppliers can validate against the same discovery rules. */
 export const listNearbySupplierIds = internalQuery({
-  args: { category: v.string() },
-  handler: async (ctx, { category }) => {
-    const tradeCategory = resolveDiscoveryCategory(category);
-    const rectangle = kadanaBoundingBox();
-    const ids: Id<"users">[] = [];
-    let cursor: string | undefined;
-
-    do {
-      const page = await supplierGeospatial.query(
-        ctx,
-        {
-          shape: { type: "rectangle", rectangle },
-          limit: 64,
-          filter: (q) =>
-            q
-              .eq("category", tradeCategory)
-              .eq("approved", true)
-              .eq("available", true)
-              .eq("suspended", false),
-        },
-        cursor,
-      );
-
-      for (const hit of page.results) {
-        const supplier = await ctx.db.get(hit.key);
-        if (!supplier || supplier.lat === undefined || supplier.lng === undefined) {
-          continue;
-        }
-        if (distanceFromKadanaKm(supplier.lat, supplier.lng) > MAX_DISTANCE_KM) {
-          continue;
-        }
-        ids.push(supplier._id);
-      }
-
-      cursor = page.nextCursor ?? undefined;
-    } while (cursor);
-
-    return ids;
+  args: {
+    category: v.string(),
+    lat: v.number(),
+    lng: v.number(),
+  },
+  handler: async (ctx, { category, lat, lng }) => {
+    const nearby = await findNearbySuppliers(ctx, lat, lng, category);
+    return nearby.map((s) => s._id);
   },
 });
 
@@ -220,26 +276,19 @@ export const deliverSupplierNotifications = internalMutation({
     const job = await ctx.db.get(jobId);
     if (!job) return;
 
+    const zone = zoneById(job.zoneId);
+    const place = zone ? ` in ${zone.name}` : "";
+
     for (const supplierId of supplierIds) {
       const supplier = await ctx.db.get(supplierId);
       if (!supplier) continue;
 
-      let message: string;
-      switch (supplier.preferredLanguage) {
-        case "si":
-          message = job.aiSummary_si ?? job.aiSummary ?? "New quote request";
-          break;
-        case "ta":
-          message = job.aiSummary_ta ?? job.aiSummary ?? "New quote request";
-          break;
-        default:
-          message = job.aiSummary ?? "New quote request";
-      }
-
       await ctx.db.insert("notifications", {
         userId: supplierId,
         type: "quote_request",
-        message,
+        message: job.aiSummary
+          ? `${job.aiSummary} (${job.category ?? "Job"}${place})`
+          : `New quote request${place}`,
         read: false,
         jobId,
       });
@@ -249,7 +298,6 @@ export const deliverSupplierNotifications = internalMutation({
 
 const LEGACY_STRUCTURAL_CATEGORY = "Structural / Masonry";
 
-/** Backfill geospatial index + migrate legacy category name to Roofing. */
 export const indexAllSuppliers = mutation({
   args: {},
   handler: async (ctx) => {

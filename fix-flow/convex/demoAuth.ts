@@ -13,7 +13,8 @@ export const getDemoSupplierLoginInfo = query({
   args: {},
   handler: async () => ({
     password: DEMO_SUPPLIER_PASSWORD,
-    emailHint: "Use any seeded supplier email, e.g. mahesh.rathnayake.8@fixflow.lk",
+    emailHint:
+      "Demo suppliers: nimal.perera.1@fixflow.lk · janaka.perera.20@fixflow.lk · Password below",
   }),
 });
 

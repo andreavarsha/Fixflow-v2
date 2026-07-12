@@ -1,8 +1,10 @@
 # FixFlow AI
 
-Property maintenance marketplace — homeowners report repairs, AI classifies issues, nearby suppliers quote in real time, and both sides chat and close jobs through a demo payment flow.
+Property maintenance marketplace — homeowners report repairs with a map pin, AI classifies issues, nearby suppliers quote in real time, and both sides chat and close jobs through a demo payment flow.
 
-**Full documentation:** see **[DOCUMENTATION.md](./DOCUMENTATION.md)** (architecture, workflows, API reference, changes since PRD v6.1).
+**Full documentation:** see **[DOCUMENTATION.md](./DOCUMENTATION.md)** (architecture, workflows, API reference).
+
+**Live demo:** https://fix-flow-ai.netlify.app/
 
 ## Quick start
 
@@ -11,25 +13,55 @@ npm install
 npm run dev
 ```
 
-Set `VITE_CONVEX_URL` in `.env.local` and configure Convex env vars (`OPENAI_API_KEY`, auth secrets). See DOCUMENTATION.md §17.
+Set `VITE_CONVEX_URL` in `.env.local` and configure Convex env vars (`OPENAI_API_KEY`, auth secrets).
 
-## Demo logins
-
-After seeding suppliers:
+## Demo setup (stage / Netlify)
 
 ```bash
 npx convex run seed:seedSuppliers
+npx convex run suppliers:indexAllSuppliers
 npx convex run demoAuth:setupDemoSupplierPasswords
 ```
 
-- **Supplier:** any seeded `@fixflow.lk` email, password `FixFlowDemo1`  
-- **Owner:** sign up via `/signup` as homeowner
+### Demo accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| Owner | Sign up as homeowner (public signup is owner-only) | your password |
+| Supplier (Kadana plumbing) | `nimal.perera.1@fixflow.lk` | `FixFlowDemo1` |
+| Supplier (Nawala plumbing) | `janaka.perera.20@fixflow.lk` | `FixFlowDemo1` |
+| Supplier (Rajagiriya electrical) | `arjun.selvam.11@fixflow.lk` | `FixFlowDemo1` |
+
+Any seeded `@fixflow.lk` supplier email uses password **`FixFlowDemo1`**.
+
+### Coverage zones
+
+Jobs must be pinned in **Kadana**, **Rajagiriya**, or **Nawala**. Outside those zones → waitlist email capture.
+
+### Audience QR (live submit)
+
+Open the deployed site and go to `/signup` or `/owner/dashboard` after login:
+
+- Site: https://fix-flow-ai.netlify.app/
+- Direct login: https://fix-flow-ai.netlify.app/login
+- Sign up (homeowner): https://fix-flow-ai.netlify.app/signup
+
+Printable QR: see [`public/demo-qr.png`](./public/demo-qr.png) (points at the live login URL). Regenerate if the Netlify URL changes.
+
+### Smoke checklist (feature freeze)
+
+1. Owner signup → pin in Kadana → submit with photo → AI classifies in English.
+2. Map shows nearby suppliers; invite 2–3; quote inbox updates live (two-window test).
+3. Supplier submits final quote → owner compare table → Accept.
+4. Supplier marks complete → owner sees Ready to pay live → Confirm payment → rating prompt.
+5. Pin outside zones → waitlist form saves email.
+6. Public signup has **no** supplier option.
 
 ## Stack
 
-React · Vite · TypeScript · Convex · OpenAI GPT-4o-mini · `@convex-dev/auth` · `@convex-dev/geospatial` · `@convex-dev/rate-limiter`
+React · Vite · TypeScript · Convex · Leaflet · OpenAI GPT-4o-mini · `@convex-dev/auth` · `@convex-dev/geospatial` · `@convex-dev/rate-limiter`
 
 ## Learn more
 
 - [Convex docs](https://docs.convex.dev/)
-- [DOCUMENTATION.md](./DOCUMENTATION.md) — application guide for this repo
+- [DOCUMENTATION.md](./DOCUMENTATION.md)

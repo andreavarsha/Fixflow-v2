@@ -16,6 +16,7 @@ import {
   type JobUrgency,
 } from "./jobCategories";
 import { enforceRateLimit, userRateKey } from "./rateLimits";
+import { resolveZone } from "./zones";
 
 const MAX_DESCRIPTION_LENGTH = 300;
 
@@ -48,6 +49,8 @@ export const submitJob = mutation({
   args: {
     description: v.string(),
     photoId: v.optional(v.id("_storage")),
+    lat: v.number(),
+    lng: v.number(),
   },
   handler: async (ctx, args) => {
     const ownerId = await getAuthUserId(ctx);
@@ -66,12 +69,26 @@ export const submitJob = mutation({
       );
     }
 
+    if (!Number.isFinite(args.lat) || !Number.isFinite(args.lng)) {
+      throw new Error("Job location is required");
+    }
+
+    const zone = resolveZone(args.lat, args.lng);
+    if (!zone) {
+      throw new Error(
+        "OUT_OF_COVERAGE: FixFlow is not live at this pin yet. Join the waitlist.",
+      );
+    }
+
     await enforceRateLimit(ctx, "submitJob", { key: userRateKey(ownerId) });
 
     const jobId = await ctx.db.insert("jobs", {
       ownerId,
       description,
       photoId: args.photoId,
+      lat: args.lat,
+      lng: args.lng,
+      zoneId: zone.id,
       status: "classifying",
     });
 
@@ -340,8 +357,6 @@ export const applyClassification = internalMutation({
     subcategory: v.string(),
     urgency: urgencyValidator,
     aiSummary: v.string(),
-    aiSummary_si: v.string(),
-    aiSummary_ta: v.string(),
   },
   handler: async (ctx, { jobId, ...fields }) => {
     await ctx.db.patch(jobId, {
@@ -368,8 +383,6 @@ export const markClassificationFailed = internalMutation({
       subcategory: "Needs review",
       urgency: "Medium",
       aiSummary: fallback,
-      aiSummary_si: fallback,
-      aiSummary_ta: fallback,
       classificationFailed: true,
     });
   },
@@ -383,11 +396,10 @@ export const classifyIssue = internalAction({
   },
   handler: async (ctx, { jobId, description, photoId }) => {
     try {
-      await enforceRateLimit(ctx, "llmClassify", { key: jobId, count: 2 });
+      await enforceRateLimit(ctx, "llmClassify", { key: jobId, count: 1 });
 
       const image = photoId ? await loadImageForLlm(ctx, photoId) : undefined;
       const classified = await classifyWithLlm(description, image);
-      const translated = await translateWithLlm(classified.summary);
 
       await ctx.runMutation(internal.jobs.applyClassification, {
         jobId,
@@ -395,8 +407,6 @@ export const classifyIssue = internalAction({
         subcategory: classified.subcategory,
         urgency: classified.urgency,
         aiSummary: classified.summary,
-        aiSummary_si: translated.sinhala,
-        aiSummary_ta: translated.tamil,
       });
     } catch (error) {
       console.error("classifyIssue failed:", error);
@@ -413,11 +423,6 @@ type ClassifyResult = {
   subcategory: string;
   urgency: JobUrgency;
   summary: string;
-};
-
-type TranslateResult = {
-  sinhala: string;
-  tamil: string;
 };
 
 function bytesToBase64(bytes: Uint8Array): string {
@@ -521,26 +526,3 @@ async function classifyWithLlm(
   };
 }
 
-async function translateWithLlm(summary: string): Promise<TranslateResult> {
-  const content = await chatJson(
-    [
-      {
-        role: "system",
-        content:
-          "Translate the repair summary to Sinhala and Tamil for Sri Lankan homeowners. Return JSON only with keys: sinhala, tamil. Keep each translation concise (1-2 sentences).",
-      },
-      { role: "user", content: summary },
-    ],
-    "translate",
-  );
-
-  const parsed = JSON.parse(content) as {
-    sinhala?: string;
-    tamil?: string;
-  };
-
-  return {
-    sinhala: (parsed.sinhala ?? summary).slice(0, 500),
-    tamil: (parsed.tamil ?? summary).slice(0, 500),
-  };
-}

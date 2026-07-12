@@ -5,6 +5,12 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { OwnerStepHint } from "../layout/OwnerStepHint";
 import { OwnerPastJobs } from "./OwnerPastJobs";
 import {
+  JobLocationPicker,
+  type LatLng,
+} from "./JobLocationPicker";
+import { WaitlistCapture } from "./WaitlistCapture";
+import { resolveZone } from "../../lib/zones";
+import {
   ffBtnPrimary,
   ffCard,
   ffInput,
@@ -21,6 +27,8 @@ type OwnerHomeDashboardProps = {
 export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
+  const [location, setLocation] = useState<LatLng | null>(null);
+  const [showWaitlist, setShowWaitlist] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -42,6 +50,17 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!description.trim()) return;
+    if (!location) {
+      setError("Set the job location on the map before continuing.");
+      return;
+    }
+
+    const zone = resolveZone(location.lat, location.lng);
+    if (!zone) {
+      setShowWaitlist(true);
+      return;
+    }
+
     setError("");
     setSubmitting(true);
     try {
@@ -49,13 +68,34 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
       const id = await submitJob({
         description: description.trim(),
         photoId,
+        lat: location.lat,
+        lng: location.lng,
       });
       onJobCreated(id);
     } catch (err: unknown) {
-      setError(toUserFacingError(err));
+      const message = toUserFacingError(err);
+      if (
+        message.toLowerCase().includes("waitlist") ||
+        message.toLowerCase().includes("not live")
+      ) {
+        setShowWaitlist(true);
+      } else {
+        setError(message);
+      }
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (showWaitlist && location) {
+    return (
+      <div className="mx-auto w-full max-w-xl">
+        <WaitlistCapture
+          location={location}
+          onBack={() => setShowWaitlist(false)}
+        />
+      </div>
+    );
   }
 
   return (
@@ -79,8 +119,8 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                 New repair request
               </h2>
               <p className="mt-1 max-w-lg text-sm text-gray-600">
-                Tell us what&apos;s wrong. We&apos;ll sort the trade and urgency, then
-                you can invite nearby pros.
+                Pin where the work is, describe the issue, then invite nearby
+                pros.
               </p>
               <div className="mt-4">
                 <OwnerStepHint active={1} compact />
@@ -91,6 +131,8 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
               onSubmit={handleSubmit}
               className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7"
             >
+              <JobLocationPicker value={location} onChange={setLocation} />
+
               <div>
                 <label htmlFor="issue-desc" className={ffLabel}>
                   What&apos;s the problem?
@@ -99,7 +141,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                   id="issue-desc"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="e.g. Water stain on the ceiling, getting worse after rain."
+                  placeholder="e.g. Water leaking under the kitchen sink, getting worse."
                   maxLength={300}
                   rows={5}
                   required
@@ -148,7 +190,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
 
               <button
                 type="submit"
-                disabled={submitting || !description.trim()}
+                disabled={submitting || !description.trim() || !location}
                 className={`${ffBtnPrimary} sm:max-w-xs`}
               >
                 {submitting ? "Analysing…" : "Continue"}

@@ -34,11 +34,10 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   },
   providers: [
     Password({
-      profile(params) {
+      profile(params): { email: string; name: string } & Record<string, string | boolean> {
         const flow = params.flow as string | undefined;
         const email = params.email as string;
 
-        // profile() runs on signIn too; only signUp sends role from the form.
         if (flow === "signIn") {
           return {
             email,
@@ -46,23 +45,23 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           };
         }
 
-        const role = params.role as "owner" | "supplier" | undefined;
-        if (role !== "owner" && role !== "supplier") {
-          throw new Error("Role is required (owner or supplier)");
+        const role = params.role as string | undefined;
+        if (role === "supplier" || role === "admin") {
+          throw new Error(
+            "Supplier accounts are not created through public sign-up",
+          );
         }
-        const base = {
+        if (role !== undefined && role !== "owner") {
+          throw new Error("Only homeowner accounts can be created here");
+        }
+        return {
           email,
           name: (params.name as string) ?? "",
-          role,
-          preferredLanguage:
-            (params.preferredLanguage as "en" | "si" | "ta") ?? "en",
+          role: "owner",
+          preferredLanguage: "en",
           approved: true,
           suspended: false,
         };
-        if (role === "supplier") {
-          return { ...base, available: true };
-        }
-        return base;
       },
     }),
   ],

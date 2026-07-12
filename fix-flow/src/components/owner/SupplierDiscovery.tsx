@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { SupplierCard } from "./SupplierCard";
+import { SupplierDiscoveryMap } from "./SupplierDiscoveryMap";
 import {
   ffBtnPrimary,
   ffBtnSecondary,
@@ -10,12 +11,16 @@ import {
   ffCard,
 } from "../../lib/fixflowUi";
 import { toUserFacingError } from "../../lib/userFacingError";
+import { zoneByIdName } from "../../lib/zones";
 
 const MAX_SELECT = 3;
 
 type SupplierDiscoveryProps = {
   jobId: Id<"jobs">;
   category: string;
+  jobLat: number;
+  jobLng: number;
+  zoneId?: string;
   onBack: () => void;
   onQuotesSent: () => void;
 };
@@ -23,15 +28,20 @@ type SupplierDiscoveryProps = {
 export function SupplierDiscovery({
   jobId,
   category,
+  jobLat,
+  jobLng,
+  zoneId,
   onBack,
   onQuotesSent,
 }: SupplierDiscoveryProps) {
-  const suppliers = useQuery(api.suppliers.getSuppliersNearKadana, { category });
+  const suppliers = useQuery(api.suppliers.getSuppliersNearJob, { jobId });
   const selectSuppliers = useMutation(api.suppliers.selectSuppliers);
   const [selected, setSelected] = useState<Id<"users">[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  const zoneName = zoneByIdName(zoneId);
 
   function toggleSupplier(id: Id<"users">) {
     setError("");
@@ -87,29 +97,26 @@ export function SupplierDiscovery({
   return (
     <div className="flex flex-col gap-5">
       <div className={ffCard}>
-        <h2 className="text-base font-semibold text-gray-900">Nearby suppliers</h2>
+        <h2 className="text-base font-semibold text-gray-900">
+          Nearby suppliers{zoneName ? ` · ${zoneName}` : ""}
+        </h2>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">
-          Showing <strong>{category}</strong> pros within about{" "}
-          <strong>15 km</strong> of you. Tap a card to select — up to{" "}
-          <strong>{MAX_SELECT}</strong>.
-        </p>
-        <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 ring-1 ring-gray-100">
-          Tip: Grayed-out cards are unavailable and can&apos;t be selected.
+          Showing <strong>{category}</strong> pros near your job pin. Tap a pin
+          or card to select — up to <strong>{MAX_SELECT}</strong>. Quotes update
+          live on the map.
         </p>
       </div>
 
-      <div
-        className="hidden md:flex md:items-center md:justify-between md:rounded-xl md:bg-gray-900 md:px-5 md:py-3.5 md:text-white md:shadow-md"
-        aria-live="polite"
-      >
-        <span className="text-sm font-medium">Selection</span>
-        <span className="text-lg font-bold tabular-nums">
-          {selected.length} / {MAX_SELECT}
-        </span>
-      </div>
+      <SupplierDiscoveryMap
+        jobLat={jobLat}
+        jobLng={jobLng}
+        suppliers={suppliers ?? []}
+        selected={selected}
+        onToggle={toggleSupplier}
+      />
 
       <div
-        className="flex items-center justify-between rounded-xl bg-gray-900 px-4 py-3 text-white shadow-md md:hidden"
+        className="flex items-center justify-between rounded-xl bg-gray-900 px-4 py-3 text-white shadow-md"
         aria-live="polite"
       >
         <span className="text-sm font-medium">Selected</span>
@@ -126,9 +133,8 @@ export function SupplierDiscovery({
         <div className={`${ffCard} text-sm text-gray-600`}>
           <p className="font-medium text-gray-900">No one nearby right now</p>
           <p className="mt-2 leading-relaxed">
-            No approved {category} suppliers are available within 15 km right now. Try
-            another category from the job summary, or refresh the page in a moment
-            if your team just re-seeded data.
+            No approved {category} suppliers are available near this pin. Try
+            another category from the job summary, or re-run the demo seed.
           </p>
         </div>
       )}
@@ -157,11 +163,8 @@ export function SupplierDiscovery({
         </p>
       )}
 
-      <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm md:static md:flex-row md:items-center md:justify-between md:border-0 md:bg-transparent md:p-0 md:shadow-none xl:pt-2">
-        <p className="hidden text-sm text-gray-500 md:block xl:text-center xl:flex-1">
-          {selected.length} of {MAX_SELECT} selected — tap cards to change
-        </p>
-        <div className="flex flex-col gap-3 md:ml-auto md:flex-row md:justify-end xl:min-w-[min(100%,28rem)]">
+      <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm md:static md:flex-row md:items-center md:justify-between md:border-0 md:bg-transparent md:p-0 md:shadow-none">
+        <div className="flex flex-col gap-3 md:ml-auto md:flex-row md:justify-end">
           <button type="button" onClick={onBack} className={`${ffBtnSecondary} ${ffBtnInRow}`}>
             Cancel
           </button>

@@ -15,6 +15,7 @@ export type LiveQuote = {
   isFinal: boolean | undefined;
   supplierName: string | undefined;
   supplierRating: number | undefined;
+  supplierReviewCount: number | undefined;
 };
 
 /** Reactive quotes for the owner dashboard (Round 3 demo query). */
@@ -46,6 +47,7 @@ export const getLiveQuotes = query({
           isFinal: row.isFinal,
           supplierName: supplier?.name,
           supplierRating: supplier?.rating,
+          supplierReviewCount: supplier?.reviewCount,
         };
       }),
     );
@@ -251,8 +253,6 @@ export const listForSupplier = query({
           jobCategory: job?.category,
           jobUrgency: job?.urgency,
           jobSummary: job?.aiSummary,
-          jobSummary_si: job?.aiSummary_si,
-          jobSummary_ta: job?.aiSummary_ta,
           jobStatus: job?.status,
           jobHasPhoto: Boolean(job?.photoId),
           // Exposed so the supplier UI can open a masked chat with the homeowner (Exp R4).

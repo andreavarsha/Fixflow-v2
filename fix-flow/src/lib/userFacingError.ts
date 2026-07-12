@@ -102,6 +102,18 @@ function matchPartial(
     return "You can choose up to three suppliers. Tap one to deselect before adding another.";
   }
 
+  if (lower.includes("out_of_coverage") || lower.includes("not live at this pin")) {
+    return "FixFlow is not live at this pin yet. Join the waitlist with your email.";
+  }
+
+  if (lower.includes("supplier accounts are not created")) {
+    return "Supplier accounts are invited by FixFlow — sign up as a homeowner, or use a demo supplier login.";
+  }
+
+  if (lower.includes("already rated")) {
+    return "You already left a rating for this job.";
+  }
+
   return null;
 }
 

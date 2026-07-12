@@ -18,10 +18,13 @@ import type * as messages from "../messages.js";
 import type * as notifications from "../notifications.js";
 import type * as quoteRequests from "../quoteRequests.js";
 import type * as rateLimits from "../rateLimits.js";
+import type * as reviews from "../reviews.js";
 import type * as seed from "../seed.js";
 import type * as supplierGeospatial from "../supplierGeospatial.js";
 import type * as suppliers from "../suppliers.js";
 import type * as users from "../users.js";
+import type * as waitlist from "../waitlist.js";
+import type * as zones from "../zones.js";
 
 import type {
   ApiFromModules,
@@ -40,10 +43,13 @@ declare const fullApi: ApiFromModules<{
   notifications: typeof notifications;
   quoteRequests: typeof quoteRequests;
   rateLimits: typeof rateLimits;
+  reviews: typeof reviews;
   seed: typeof seed;
   supplierGeospatial: typeof supplierGeospatial;
   suppliers: typeof suppliers;
   users: typeof users;
+  waitlist: typeof waitlist;
+  zones: typeof zones;
 }>;
 
 /**

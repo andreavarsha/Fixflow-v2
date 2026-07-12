@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { OwnerStepHint } from "../layout/OwnerStepHint";
 import { ChatPanel } from "../messaging/ChatPanel";
+import { SupplierDiscoveryMap } from "./SupplierDiscoveryMap";
 import {
   ffBtnGhost,
   ffBtnPrimary,
@@ -32,6 +33,7 @@ export function LiveQuotesDashboard({
 }: LiveQuotesDashboardProps) {
   const quotes = useQuery(api.quoteRequests.getLiveQuotes, { jobId });
   const job = useQuery(api.jobs.getJob, { jobId });
+  const nearby = useQuery(api.suppliers.getSuppliersNearJob, { jobId });
   const unreadCount = useQuery(api.notifications.getUnreadCount);
   const acceptQuote = useMutation(api.quoteRequests.acceptQuote);
   const [acceptingId, setAcceptingId] = useState<Id<"quoteRequests"> | null>(
@@ -41,6 +43,10 @@ export function LiveQuotesDashboard({
   const [chatOpenFor, setChatOpenFor] = useState<Id<"users"> | null>(null);
 
   const jobOpen = job?.status === "open";
+  const canPickMoreSuppliers = jobOpen && Boolean(job?.category);
+  const quoted = (quotes ?? []).filter(
+    (q) => q.status === "quoted" || q.status === "accepted",
+  );
 
   async function handleAccept(quoteRequestId: Id<"quoteRequests">) {
     setAcceptError("");
@@ -54,18 +60,9 @@ export function LiveQuotesDashboard({
     }
   }
 
-  const statusLabel = (s: string) => {
-    const map: Record<string, string> = {
-      pending: "Awaiting quote",
-      quoted: "Received",
-      accepted: "Accepted",
-      rejected: "Not selected",
-    };
-    return map[s] ?? s;
-  };
-
-  const canPickMoreSuppliers =
-    jobOpen && Boolean(job?.category);
+  const mapSuppliers = (nearby ?? []).filter((s) =>
+    (quotes ?? []).some((q) => q.supplierId === s._id),
+  );
 
   return (
     <div className={ffPage}>
@@ -94,7 +91,7 @@ export function LiveQuotesDashboard({
         <div className="min-w-0 flex-1">
           <h1 className={ffScreenTitle}>Quote inbox</h1>
           <p className={ffScreenSubtitle}>
-            New quotes appear here automatically as suppliers respond.
+            Compare quotes side-by-side. New prices appear live — no refresh.
           </p>
         </div>
         <div
@@ -112,6 +109,20 @@ export function LiveQuotesDashboard({
         </div>
       </header>
 
+      {job?.lat !== undefined && job.lng !== undefined && mapSuppliers.length > 0 && (
+        <div className="mb-6">
+          <SupplierDiscoveryMap
+            jobLat={job.lat}
+            jobLng={job.lng}
+            suppliers={mapSuppliers}
+            selected={[]}
+            onToggle={() => undefined}
+            heightClassName="h-48 sm:h-56"
+            compact
+          />
+        </div>
+      )}
+
       {quotes === undefined && (
         <p className="text-sm text-gray-500">Loading quotes…</p>
       )}
@@ -122,7 +133,7 @@ export function LiveQuotesDashboard({
             <p className="font-medium text-gray-900">No requests sent yet</p>
             <p className="mt-2 leading-relaxed">
               Choose up to three suppliers first. After they submit prices,
-              you&apos;ll see them listed here — cheapest first.
+              you&apos;ll compare them here.
             </p>
           </div>
           {canPickMoreSuppliers && (
@@ -158,6 +169,74 @@ export function LiveQuotesDashboard({
         </div>
       )}
 
+      {quoted.length > 0 && (
+        <div className="mb-6 overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th className="px-4 py-3 font-medium">Supplier</th>
+                <th className="px-4 py-3 font-medium">Price</th>
+                <th className="px-4 py-3 font-medium">Duration</th>
+                <th className="px-4 py-3 font-medium">Rating</th>
+                <th className="px-4 py-3 font-medium">Final</th>
+                <th className="px-4 py-3 font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quoted.map((q) => {
+                const canAccept =
+                  jobOpen && q.status === "quoted" && q.isFinal === true;
+                return (
+                  <tr key={q._id} className="border-t border-gray-100">
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {q.supplierName ?? "Supplier"}
+                      {q.status === "accepted" && (
+                        <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+                          Hired
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 tabular-nums text-gray-900">
+                      {q.priceLKR !== undefined
+                        ? `LKR ${q.priceLKR.toLocaleString("en-LK")}`
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">{q.duration ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {q.supplierRating !== undefined
+                        ? `★ ${q.supplierRating.toFixed(1)}`
+                        : "—"}
+                      {q.supplierReviewCount !== undefined
+                        ? ` (${q.supplierReviewCount})`
+                        : ""}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {q.isFinal ? "Yes" : "No"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {canAccept ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleAccept(q._id)}
+                          disabled={acceptingId !== null}
+                          className={`${ffBtnPrimary} ${ffBtnInRow} text-xs`}
+                        >
+                          {acceptingId === q._id ? "Accepting…" : "Accept"}
+                        </button>
+                      ) : q.status === "quoted" && !q.isFinal ? (
+                        <span className="text-xs text-amber-800">Awaiting final</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {quotes !== undefined && quotes.length > 0 && (
         <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {quotes.map((q) => (
@@ -172,9 +251,8 @@ export function LiveQuotesDashboard({
                   current === q.supplierId ? null : q.supplierId,
                 )
               }
-              onAccept={() => handleAccept(q._id)}
+              onAccept={() => void handleAccept(q._id)}
               acceptingId={acceptingId}
-              statusLabel={statusLabel(q.status)}
             />
           ))}
         </ul>
@@ -191,7 +269,6 @@ function QuoteInboxCard({
   onToggleChat,
   onAccept,
   acceptingId,
-  statusLabel: statusText,
 }: {
   jobId: Id<"jobs">;
   quote: {
@@ -204,19 +281,30 @@ function QuoteInboxCard({
     isFinal?: boolean;
     supplierName?: string;
     supplierRating?: number;
+    supplierReviewCount?: number;
   };
   jobOpen: boolean;
   chatOpen: boolean;
   onToggleChat: () => void;
   onAccept: () => void;
   acceptingId: Id<"quoteRequests"> | null;
-  statusLabel: string;
 }) {
   const unreadCount = useQuery(api.messages.unreadCountForThread, {
     jobId,
     peerId: q.supplierId,
   });
   const unread = unreadCount ?? 0;
+
+  const statusText =
+    q.status === "pending"
+      ? "Awaiting quote"
+      : q.status === "quoted"
+        ? "Received"
+        : q.status === "accepted"
+          ? "Accepted"
+          : q.status === "rejected"
+            ? "Not selected"
+            : q.status;
 
   return (
     <li className={`${ffCard} flex h-full flex-col`}>
@@ -227,7 +315,10 @@ function QuoteInboxCard({
           </p>
           {q.supplierRating !== undefined && (
             <p className="mt-0.5 text-sm text-gray-600">
-              ★ {q.supplierRating.toFixed(1)} rating
+              ★ {q.supplierRating.toFixed(1)}
+              {q.supplierReviewCount !== undefined
+                ? ` · ${q.supplierReviewCount} reviews`
+                : ""}
             </p>
           )}
         </div>
@@ -254,12 +345,6 @@ function QuoteInboxCard({
                 <span className="font-medium text-gray-600">Note:</span> {q.notes}
               </p>
             )}
-            <p className="text-xs text-gray-500">
-              Final quote (owner can accept):{" "}
-              <span className="font-medium text-gray-800">
-                {q.isFinal ? "Yes" : "No — ask supplier to mark final"}
-              </span>
-            </p>
           </>
         ) : (
           <p className="text-sm italic text-gray-500">
@@ -277,13 +362,6 @@ function QuoteInboxCard({
         >
           {acceptingId === q._id ? "Accepting…" : "Accept this quote"}
         </button>
-      )}
-
-      {jobOpen && q.status === "quoted" && q.isFinal !== true && (
-        <p className="mt-auto mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-100">
-          You can accept only after the supplier marks this as their{" "}
-          <strong>final</strong> quote.
-        </p>
       )}
 
       <button

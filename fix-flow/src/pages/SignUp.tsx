@@ -17,7 +17,6 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"owner" | "supplier">("owner");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +29,12 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      await signIn("password", { email, password, flow: "signUp", role });
+      await signIn("password", {
+        email,
+        password,
+        flow: "signUp",
+        role: "owner",
+      });
       navigate("/");
     } catch (err: unknown) {
       console.error("Signup error:", err);
@@ -45,7 +49,8 @@ export default function Signup() {
       <div className={`${ffCard} mx-auto w-full max-w-md xl:max-w-xl 2xl:max-w-2xl`}>
         <h1 className={ffScreenTitle}>Create account</h1>
         <p className="mt-2 text-sm text-gray-600">
-          Homeowners and suppliers use the same sign-up — pick your role below.
+          Sign up as a homeowner to report repairs and get live quotes from
+          vetted tradespeople.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
@@ -54,21 +59,6 @@ export default function Signup() {
               {error}
             </p>
           )}
-
-          <div>
-            <label htmlFor="signup-role" className={ffLabel}>
-              I am a…
-            </label>
-            <select
-              id="signup-role"
-              value={role}
-              onChange={(e) => setRole(e.target.value as "owner" | "supplier")}
-              className={ffInput}
-            >
-              <option value="owner">Homeowner / property owner</option>
-              <option value="supplier">Supplier / tradesperson</option>
-            </select>
-          </div>
 
           <div>
             <label htmlFor="signup-email" className={ffLabel}>
@@ -113,8 +103,14 @@ export default function Signup() {
           </div>
 
           <button type="submit" disabled={loading} className={ffBtnPrimary}>
-            {loading ? "Creating…" : "Create account"}
+            {loading ? "Creating…" : "Create homeowner account"}
           </button>
+
+          <p className="text-center text-xs text-gray-500">
+            Tradespeople are pre-vetted by FixFlow. Supplier accounts are not
+            created through public sign-up — use a demo login if you were given
+            one.
+          </p>
 
           <Link
             to="/login"
