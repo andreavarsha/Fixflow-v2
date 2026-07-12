@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Set `VITE_CONVEX_URL` in `.env.local` and configure Convex env vars (`OPENAI_API_KEY`, auth secrets).
+Set `VITE_CONVEX_URL` in `.env.local` and configure Convex env vars (`ANTHROPIC_API_KEY`, auth secrets).
 
 ## Demo setup (stage / Netlify)
 
@@ -59,7 +59,7 @@ Printable QR: see [`public/demo-qr.png`](./public/demo-qr.png) (points at the li
 
 ## Stack
 
-React · Vite · TypeScript · Convex · Leaflet · OpenAI GPT-4o-mini · `@convex-dev/auth` · `@convex-dev/geospatial` · `@convex-dev/rate-limiter`
+React · Vite · TypeScript · Convex · Leaflet · Claude Haiku · `@convex-dev/auth` · `@convex-dev/geospatial` · `@convex-dev/rate-limiter`
 
 ## Learn more
 

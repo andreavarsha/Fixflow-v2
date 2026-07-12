@@ -36,7 +36,7 @@ This document describes **what the app does today**, how it is built, and **how 
 
 ## 1. Executive summary
 
-FixFlow AI is a **property maintenance marketplace** for homeowners and tradespeople. An owner describes a repair; **OpenAI GPT-4o-mini** classifies it and produces English, Sinhala, and Tamil summaries. The owner invites up to **three nearby suppliers** (geospatial filter from a fixed origin), receives **live quotes** via Convex reactive queries, chats with masked identities, **accepts a final quote**, then follows a **work-complete → pay** lifecycle before the job is closed.
+FixFlow AI is a **property maintenance marketplace** for homeowners and tradespeople. An owner describes a repair; **Claude** classifies it and produces an English summary. The owner invites up to **three nearby suppliers** (geospatial filter from the job pin), receives **live quotes** via Convex reactive queries, chats with masked identities, **accepts a final quote**, then follows a **work-complete → pay** lifecycle before the job is closed.
 
 **Convex is the core story:** mutations write data; `useQuery` subscriptions push updates to every open client with **no polling**—quotes, notifications, and supplier lists update in real time.
 
@@ -188,7 +188,7 @@ flowchart LR
 | Auth | `@convex-dev/auth` + Password provider |
 | Geospatial | `@convex-dev/geospatial` |
 | Rate limits | `@convex-dev/rate-limiter` |
-| AI | OpenAI `gpt-4o-mini` (primary), OpenRouter fallback (`convex/llm.ts`) |
+| AI | Claude Haiku (Anthropic, primary), OpenRouter Claude fallback (`convex/llm.ts`) |
 | UI primitives | Radix (shadcn-style components in `src/components/ui/`) |
 
 ---
@@ -382,7 +382,7 @@ See [§15 Rate limiting](#15-rate-limiting).
 3. **Success:** `applyClassification` → `status: "open"`.
 4. **Failure:** `markClassificationFailed` → defaults + `classificationFailed: true`.
 
-**Providers:** `convex/llm.ts` — OpenAI first, OpenRouter text-only fallback.
+**Providers:** `convex/llm.ts` — Anthropic Claude first, OpenRouter Claude fallback.
 
 **Rate limit:** `llmClassify` (2 units per job for classify + translate).
 
@@ -478,8 +478,8 @@ Example: `mahesh.rathnayake.8@fixflow.lk`
 
 | Variable | Purpose |
 |----------|---------|
-| `OPENAI_API_KEY` | Primary LLM |
-| `OPENROUTER_API_KEY` | Optional LLM fallback |
+| `ANTHROPIC_API_KEY` | Primary LLM (Claude) |
+| `OPENROUTER_API_KEY` | Optional Claude fallback via OpenRouter |
 | Auth secrets | Per `@convex-dev/auth` setup |
 
 ---
