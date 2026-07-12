@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import { Authenticated, Unauthenticated, AuthLoading, useQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
 import Login from "./pages/Login";
 import Signup from "./pages/SignUp.tsx";
 import OwnerDashboard from "./pages/owner/Dashboard.tsx";
@@ -45,6 +46,34 @@ function RequireAuth({ children }: { children: ReactNode }) {
   );
 }
 
+function RequireRole({
+  role,
+  children,
+}: {
+  role: "owner" | "supplier";
+  children: ReactNode;
+}) {
+  const user = useQuery(api.users.getUser);
+
+  if (user === undefined) {
+    return <AuthLoadingScreen title="Checking account…" />;
+  }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user.role !== role) {
+    if (user.role === "owner") {
+      return <Navigate to="/owner/dashboard" replace />;
+    }
+    if (user.role === "supplier") {
+      return <Navigate to="/supplier/dashboard" replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -74,9 +103,11 @@ export default function App() {
         path="/owner/dashboard"
         element={
           <RequireAuth>
-            <AuthenticatedShell>
-              <OwnerDashboard />
-            </AuthenticatedShell>
+            <RequireRole role="owner">
+              <AuthenticatedShell>
+                <OwnerDashboard />
+              </AuthenticatedShell>
+            </RequireRole>
           </RequireAuth>
         }
       />
@@ -84,9 +115,11 @@ export default function App() {
         path="/supplier/dashboard"
         element={
           <RequireAuth>
-            <AuthenticatedShell>
-              <SupplierDashboard />
-            </AuthenticatedShell>
+            <RequireRole role="supplier">
+              <AuthenticatedShell>
+                <SupplierDashboard />
+              </AuthenticatedShell>
+            </RequireRole>
           </RequireAuth>
         }
       />

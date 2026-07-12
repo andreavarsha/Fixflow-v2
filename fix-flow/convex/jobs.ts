@@ -16,6 +16,7 @@ import {
   type JobUrgency,
 } from "./jobCategories";
 import { enforceRateLimit, userRateKey } from "./rateLimits";
+import { haversineKm } from "./supplierGeospatial";
 import { resolveZone } from "./zones";
 
 const MAX_DESCRIPTION_LENGTH = 300;
@@ -174,6 +175,28 @@ export const listMyJobs = query({
           .withIndex("by_job", (q) => q.eq("jobId", job._id))
           .collect();
 
+        const quotedCount = quoteRows.filter(
+          (q) => q.status === "quoted" || q.status === "accepted",
+        ).length;
+        const pendingInviteCount = quoteRows.filter(
+          (q) => q.status === "pending",
+        ).length;
+
+        let nearestDistanceKm: number | undefined;
+        if (job.lat !== undefined && job.lng !== undefined && quotedCount > 0) {
+          let best = Number.POSITIVE_INFINITY;
+          for (const row of quoteRows) {
+            if (row.status !== "quoted" && row.status !== "accepted") continue;
+            const supplier = await ctx.db.get(row.supplierId);
+            if (supplier?.lat === undefined || supplier.lng === undefined) continue;
+            const d = haversineKm(job.lat, job.lng, supplier.lat, supplier.lng);
+            if (d < best) best = d;
+          }
+          if (Number.isFinite(best)) {
+            nearestDistanceKm = Math.round(best * 10) / 10;
+          }
+        }
+
         return {
           _id: job._id,
           _creationTime: job._creationTime,
@@ -184,6 +207,10 @@ export const listMyJobs = query({
           urgency: job.urgency,
           description: job.description,
           aiSummary: job.aiSummary,
+          zoneId: job.zoneId,
+          quotedCount,
+          pendingInviteCount,
+          nearestDistanceKm,
         };
       }),
     );

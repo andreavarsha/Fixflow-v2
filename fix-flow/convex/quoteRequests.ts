@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "./_generated/dataModel";
 import { enforceRateLimit, userRateKey } from "./rateLimits";
+import { haversineKm } from "./supplierGeospatial";
 
 export type LiveQuote = {
   _id: Id<"quoteRequests">;
@@ -16,6 +17,7 @@ export type LiveQuote = {
   supplierName: string | undefined;
   supplierRating: number | undefined;
   supplierReviewCount: number | undefined;
+  distanceKm: number | undefined;
 };
 
 /** Reactive quotes for the owner dashboard (Round 3 demo query). */
@@ -36,6 +38,17 @@ export const getLiveQuotes = query({
     const enriched: LiveQuote[] = await Promise.all(
       rows.map(async (row) => {
         const supplier = await ctx.db.get(row.supplierId);
+        let distanceKm: number | undefined;
+        if (
+          job.lat !== undefined &&
+          job.lng !== undefined &&
+          supplier?.lat !== undefined &&
+          supplier.lng !== undefined
+        ) {
+          distanceKm =
+            Math.round(haversineKm(job.lat, job.lng, supplier.lat, supplier.lng) * 10) /
+            10;
+        }
         return {
           _id: row._id,
           jobId: row.jobId,
@@ -48,6 +61,7 @@ export const getLiveQuotes = query({
           supplierName: supplier?.name,
           supplierRating: supplier?.rating,
           supplierReviewCount: supplier?.reviewCount,
+          distanceKm,
         };
       }),
     );
@@ -56,7 +70,9 @@ export const getLiveQuotes = query({
       const pa = a.priceLKR ?? Number.POSITIVE_INFINITY;
       const pb = b.priceLKR ?? Number.POSITIVE_INFINITY;
       if (pa !== pb) return pa - pb;
-      return 0;
+      const da = a.distanceKm ?? Number.POSITIVE_INFINITY;
+      const db = b.distanceKm ?? Number.POSITIVE_INFINITY;
+      return da - db;
     });
 
     return enriched;
@@ -145,9 +161,6 @@ export const acceptQuote = mutation({
     }
     if (chosen.status !== "quoted") {
       throw new Error("Quote must be submitted before it can be accepted");
-    }
-    if (!chosen.isFinal) {
-      throw new Error("You can only accept quotes marked as final by the supplier");
     }
 
     await enforceRateLimit(ctx, "acceptQuote", { key: userRateKey(userId) });

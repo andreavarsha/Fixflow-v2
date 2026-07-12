@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import { mutation } from "./_generated/server";
 import { syncSupplierGeospatial } from "./supplierGeospatial";
 import { DEMO_ZONES, type ZoneId } from "./zones";
@@ -354,5 +355,43 @@ export const ensureDemoOwner = mutation({
       suspended: false,
     });
     return { userId, email };
+  },
+});
+
+/** Demote a mis-tagged account to owner-only and drop geospatial supplier listing. */
+export const forceOwnerOnly = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const target = email.trim();
+    const normalized = target.toLowerCase();
+    const byIndex = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", target))
+      .unique();
+    const fallback =
+      byIndex ??
+      (await ctx.db.query("users").collect()).find(
+        (u) => u.email?.toLowerCase() === normalized,
+      );
+
+    if (!fallback) {
+      return { ok: false as const, reason: "not_found", email: target };
+    }
+
+    await ctx.db.patch(fallback._id, {
+      role: "owner",
+      preferredLanguage: fallback.preferredLanguage ?? "en",
+      approved: true,
+      suspended: false,
+      available: false,
+    });
+    await syncSupplierGeospatial(ctx, fallback._id);
+
+    return {
+      ok: true as const,
+      userId: fallback._id,
+      email: fallback.email,
+      previousRole: fallback.role,
+    };
   },
 });

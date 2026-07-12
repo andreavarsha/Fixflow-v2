@@ -10,7 +10,6 @@ import {
   ffBtnPrimary,
   ffBtnInRow,
   ffCard,
-  ffPage,
   ffScreenSubtitle,
   ffScreenTitle,
 } from "../../lib/fixflowUi";
@@ -22,6 +21,20 @@ type LiveQuotesDashboardProps = {
   onGoToSuppliers: () => void;
   onStepClick?: (step: 1 | 2 | 3) => void;
   canGoToStep?: (step: 1 | 2 | 3) => boolean;
+};
+
+type QuoteRow = {
+  _id: Id<"quoteRequests">;
+  supplierId: Id<"users">;
+  status: string;
+  priceLKR?: number;
+  duration?: string;
+  notes?: string;
+  isFinal?: boolean;
+  supplierName?: string;
+  supplierRating?: number;
+  supplierReviewCount?: number;
+  distanceKm?: number;
 };
 
 export function LiveQuotesDashboard({
@@ -44,9 +57,6 @@ export function LiveQuotesDashboard({
 
   const jobOpen = job?.status === "open";
   const canPickMoreSuppliers = jobOpen && Boolean(job?.category);
-  const quoted = (quotes ?? []).filter(
-    (q) => q.status === "quoted" || q.status === "accepted",
-  );
 
   async function handleAccept(quoteRequestId: Id<"quoteRequests">) {
     setAcceptError("");
@@ -64,8 +74,10 @@ export function LiveQuotesDashboard({
     (quotes ?? []).some((q) => q.supplierId === s._id),
   );
 
+  const chatPeer = (quotes ?? []).find((q) => q.supplierId === chatOpenFor);
+
   return (
-    <div className={ffPage}>
+    <div>
       <OwnerStepHint
         active={3}
         onStepClick={onStepClick}
@@ -91,7 +103,8 @@ export function LiveQuotesDashboard({
         <div className="min-w-0 flex-1">
           <h1 className={ffScreenTitle}>Quote inbox</h1>
           <p className={ffScreenSubtitle}>
-            Compare quotes side-by-side. New prices appear live — no refresh.
+            Compare offers in one table. Distance is from your job pin. Accept
+            when ready — chat if you need to negotiate.
           </p>
         </div>
         <div
@@ -169,222 +182,182 @@ export function LiveQuotesDashboard({
         </div>
       )}
 
-      {quoted.length > 0 && (
-        <div className="mb-6 overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Supplier</th>
-                <th className="px-4 py-3 font-medium">Price</th>
-                <th className="px-4 py-3 font-medium">Duration</th>
-                <th className="px-4 py-3 font-medium">Rating</th>
-                <th className="px-4 py-3 font-medium">Final</th>
-                <th className="px-4 py-3 font-medium">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {quoted.map((q) => {
-                const canAccept =
-                  jobOpen && q.status === "quoted" && q.isFinal === true;
-                return (
-                  <tr key={q._id} className="border-t border-gray-100">
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      {q.supplierName ?? "Supplier"}
-                      {q.status === "accepted" && (
-                        <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
-                          Hired
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 tabular-nums text-gray-900">
-                      {q.priceLKR !== undefined
-                        ? `LKR ${q.priceLKR.toLocaleString("en-LK")}`
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">{q.duration ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {q.supplierRating !== undefined
-                        ? `★ ${q.supplierRating.toFixed(1)}`
-                        : "—"}
-                      {q.supplierReviewCount !== undefined
-                        ? ` (${q.supplierReviewCount})`
-                        : ""}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {q.isFinal ? "Yes" : "No"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {canAccept ? (
-                        <button
-                          type="button"
-                          onClick={() => void handleAccept(q._id)}
-                          disabled={acceptingId !== null}
-                          className={`${ffBtnPrimary} ${ffBtnInRow} text-xs`}
-                        >
-                          {acceptingId === q._id ? "Accepting…" : "Accept"}
-                        </button>
-                      ) : q.status === "quoted" && !q.isFinal ? (
-                        <span className="text-xs text-amber-800">Awaiting final</span>
-                      ) : (
-                        <span className="text-xs text-gray-400">—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
       {quotes !== undefined && quotes.length > 0 && (
-        <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-          {quotes.map((q) => (
-            <QuoteInboxCard
-              key={q._id}
-              jobId={jobId}
-              quote={q}
-              jobOpen={jobOpen}
-              chatOpen={chatOpenFor === q.supplierId}
-              onToggleChat={() =>
-                setChatOpenFor((current) =>
-                  current === q.supplierId ? null : q.supplierId,
-                )
-              }
-              onAccept={() => void handleAccept(q._id)}
-              acceptingId={acceptingId}
-            />
-          ))}
-        </ul>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Supplier</th>
+                  <th className="px-4 py-3 font-medium">Distance</th>
+                  <th className="px-4 py-3 font-medium">Price</th>
+                  <th className="px-4 py-3 font-medium">Duration</th>
+                  <th className="px-4 py-3 font-medium">Rating</th>
+                  <th className="px-4 py-3 font-medium">Offer</th>
+                  <th className="px-4 py-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotes.map((q) => (
+                  <QuoteTableRow
+                    key={q._id}
+                    jobId={jobId}
+                    quote={q}
+                    jobOpen={jobOpen}
+                    chatOpen={chatOpenFor === q.supplierId}
+                    acceptingId={acceptingId}
+                    onAccept={() => void handleAccept(q._id)}
+                    onToggleChat={() =>
+                      setChatOpenFor((current) =>
+                        current === q.supplierId ? null : q.supplierId,
+                      )
+                    }
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {chatPeer && (
+            <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 sm:px-6">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-gray-900">
+                  Chat with {chatPeer.supplierName ?? "tradesperson"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setChatOpenFor(null)}
+                  className={`${ffBtnGhost} w-auto text-sm`}
+                >
+                  Close
+                </button>
+              </div>
+              <ChatPanel
+                jobId={jobId}
+                peerId={chatPeer.supplierId}
+                peerLabel="Tradesperson"
+              />
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
 }
 
-function QuoteInboxCard({
+function QuoteTableRow({
   jobId,
   quote: q,
   jobOpen,
   chatOpen,
-  onToggleChat,
-  onAccept,
   acceptingId,
+  onAccept,
+  onToggleChat,
 }: {
   jobId: Id<"jobs">;
-  quote: {
-    _id: Id<"quoteRequests">;
-    supplierId: Id<"users">;
-    status: string;
-    priceLKR?: number;
-    duration?: string;
-    notes?: string;
-    isFinal?: boolean;
-    supplierName?: string;
-    supplierRating?: number;
-    supplierReviewCount?: number;
-  };
+  quote: QuoteRow;
   jobOpen: boolean;
   chatOpen: boolean;
-  onToggleChat: () => void;
-  onAccept: () => void;
   acceptingId: Id<"quoteRequests"> | null;
+  onAccept: () => void;
+  onToggleChat: () => void;
 }) {
   const unreadCount = useQuery(api.messages.unreadCountForThread, {
     jobId,
     peerId: q.supplierId,
   });
   const unread = unreadCount ?? 0;
-
-  const statusText =
-    q.status === "pending"
-      ? "Awaiting quote"
-      : q.status === "quoted"
-        ? "Received"
-        : q.status === "accepted"
-          ? "Accepted"
-          : q.status === "rejected"
-            ? "Not selected"
-            : q.status;
+  const canAccept = jobOpen && q.status === "quoted";
+  const hasQuote = q.status === "quoted" || q.status === "accepted";
 
   return (
-    <li className={`${ffCard} flex h-full flex-col`}>
-      <div className="flex justify-between gap-3 border-b border-gray-100 pb-3">
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-gray-900">
-            {q.supplierName ?? "Supplier"}
-          </p>
-          {q.supplierRating !== undefined && (
-            <p className="mt-0.5 text-sm text-gray-600">
-              ★ {q.supplierRating.toFixed(1)}
-              {q.supplierReviewCount !== undefined
-                ? ` · ${q.supplierReviewCount} reviews`
-                : ""}
-            </p>
+    <tr className={`border-t border-gray-100 ${chatOpen ? "bg-sky-50/60" : ""}`}>
+      <td className="px-4 py-3 align-top">
+        <p className="font-medium text-gray-900">
+          {q.supplierName ?? "Supplier"}
+          {q.status === "accepted" && (
+            <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+              Hired
+            </span>
           )}
-        </div>
-        <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-          {statusText}
-        </span>
-      </div>
-
-      <div className="mt-4 flex flex-1 flex-col gap-2">
-        {q.status === "quoted" || q.status === "accepted" ? (
-          <>
-            <p className="text-lg font-bold text-gray-900">
-              LKR{" "}
-              {q.priceLKR !== undefined
-                ? q.priceLKR.toLocaleString("en-LK")
-                : "—"}
-            </p>
-            <p className="text-sm text-gray-600">
-              <span className="text-gray-500">Time estimate:</span>{" "}
-              {q.duration ?? "—"}
-            </p>
-            {q.notes && (
-              <p className="text-sm leading-relaxed text-gray-700">
-                <span className="font-medium text-gray-600">Note:</span> {q.notes}
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="text-sm italic text-gray-500">
-            Waiting for this supplier to send their quote…
+          {q.status === "rejected" && (
+            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-gray-600">
+              Not selected
+            </span>
+          )}
+          {q.status === "pending" && (
+            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-gray-600">
+              Awaiting
+            </span>
+          )}
+        </p>
+        {q.notes && hasQuote && (
+          <p className="mt-1 max-w-xs text-xs leading-relaxed text-gray-500">
+            {q.notes}
           </p>
         )}
-      </div>
-
-      {jobOpen && q.status === "quoted" && q.isFinal === true && (
-        <button
-          type="button"
-          onClick={onAccept}
-          disabled={acceptingId !== null}
-          className={`${ffBtnPrimary} ${ffBtnInRow} mt-auto pt-5`}
-        >
-          {acceptingId === q._id ? "Accepting…" : "Accept this quote"}
-        </button>
-      )}
-
-      <button
-        type="button"
-        onClick={onToggleChat}
-        className={`${ffBtnGhost} relative mt-3 self-start text-sm`}
-        aria-expanded={chatOpen}
-      >
-        {chatOpen ? "Close chat" : "Message this tradesperson"}
-        {!chatOpen && unread > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
-            {unread > 9 ? "9+" : unread}
-          </span>
+      </td>
+      <td className="px-4 py-3 align-top tabular-nums text-gray-700">
+        {q.distanceKm !== undefined ? `${q.distanceKm.toFixed(1)} km` : "—"}
+      </td>
+      <td className="px-4 py-3 align-top tabular-nums text-gray-900">
+        {hasQuote && q.priceLKR !== undefined
+          ? `LKR ${q.priceLKR.toLocaleString("en-LK")}`
+          : "—"}
+      </td>
+      <td className="px-4 py-3 align-top text-gray-700">
+        {hasQuote ? (q.duration ?? "—") : "—"}
+      </td>
+      <td className="px-4 py-3 align-top text-gray-700">
+        {q.supplierRating !== undefined
+          ? `★ ${q.supplierRating.toFixed(1)}`
+          : "—"}
+        {q.supplierReviewCount !== undefined
+          ? ` (${q.supplierReviewCount})`
+          : ""}
+      </td>
+      <td className="px-4 py-3 align-top">
+        {q.status === "quoted" || q.status === "accepted" ? (
+          q.isFinal ? (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+              Final
+            </span>
+          ) : (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+              Negotiable
+            </span>
+          )
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
         )}
-      </button>
-
-      {chatOpen && (
-        <ChatPanel
-          jobId={jobId}
-          peerId={q.supplierId}
-          peerLabel="Tradesperson"
-        />
-      )}
-    </li>
+      </td>
+      <td className="px-4 py-3 align-top">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+          {canAccept && (
+            <button
+              type="button"
+              onClick={onAccept}
+              disabled={acceptingId !== null}
+              className={`${ffBtnPrimary} ${ffBtnInRow} min-h-[40px] w-auto px-3 py-2 text-xs`}
+            >
+              {acceptingId === q._id ? "Accepting…" : "Accept"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onToggleChat}
+            className={`${ffBtnGhost} relative w-auto min-h-[40px] px-2 py-1.5 text-xs`}
+            aria-expanded={chatOpen}
+          >
+            {chatOpen ? "Hide chat" : "Message"}
+            {!chatOpen && unread > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }

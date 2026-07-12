@@ -11,7 +11,7 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
   sendMessage: { kind: "token bucket", rate: 30, period: MINUTE, capacity: 10 },
   /** Supplier quote create/update. */
   submitQuote: { kind: "token bucket", rate: 15, period: MINUTE, capacity: 5 },
-  /** Owner accepts a final quote. */
+  /** Owner accepts a submitted quote. */
   acceptQuote: { kind: "fixed window", rate: 10, period: MINUTE },
   /** Owner invites suppliers to quote. */
   selectSuppliers: { kind: "fixed window", rate: 15, period: MINUTE },

@@ -66,7 +66,7 @@ export function SupplierCard({
         {supplier.quoteStatus === "quoted" && supplier.priceLKR !== undefined && (
           <span className="text-xs font-medium text-emerald-800">
             LKR {supplier.priceLKR.toLocaleString("en-LK")}
-            {supplier.isFinal ? " · Final" : ""}
+            {supplier.isFinal ? " · Final" : " · Negotiable"}
           </span>
         )}
         <span

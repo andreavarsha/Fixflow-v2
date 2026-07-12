@@ -22,7 +22,7 @@ type SupplierDiscoveryProps = {
   jobLng: number;
   zoneId?: string;
   onBack: () => void;
-  onQuotesSent: () => void;
+  onQuotesSent: (count: number) => void;
 };
 
 export function SupplierDiscovery({
@@ -66,7 +66,7 @@ export function SupplierDiscovery({
     try {
       await selectSuppliers({ jobId, supplierIds: selected });
       setSuccess(true);
-      onQuotesSent();
+      onQuotesSent(selected.length);
     } catch (err: unknown) {
       setError(toUserFacingError(err));
     } finally {
@@ -75,23 +75,7 @@ export function SupplierDiscovery({
   }
 
   if (success) {
-    return (
-      <div className={`${ffCard} flex flex-col gap-4`}>
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-2xl" aria-hidden>
-          ✓
-        </div>
-        <div>
-          <p className="text-lg font-semibold text-gray-900">Requests sent</p>
-          <p className="mt-1 text-sm leading-relaxed text-gray-600">
-            We&apos;ve notified {selected.length} supplier
-            {selected.length === 1 ? "" : "s"}. Opening your quote inbox…
-          </p>
-        </div>
-        <button type="button" onClick={onBack} className={ffBtnSecondary}>
-          Back to job details
-        </button>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -101,9 +85,9 @@ export function SupplierDiscovery({
           Nearby suppliers{zoneName ? ` · ${zoneName}` : ""}
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">
-          Showing <strong>{category}</strong> pros near your job pin. Tap a pin
-          or card to select — up to <strong>{MAX_SELECT}</strong>. Quotes update
-          live on the map.
+          Showing <strong>{category}</strong> pros near your job pin
+          (distance from the pin). Tap a pin or card to select — up to{" "}
+          <strong>{MAX_SELECT}</strong>. Quotes update live on the map.
         </p>
       </div>
 

@@ -72,7 +72,7 @@ function FitBounds({
 
 function quoteBadge(s: MapSupplier): string | null {
   if (s.quoteStatus === "quoted" && s.priceLKR !== undefined) {
-    return `Quoted LKR ${s.priceLKR.toLocaleString("en-LK")}${s.isFinal ? " · Final" : ""}`;
+    return `Quoted LKR ${s.priceLKR.toLocaleString("en-LK")}${s.isFinal ? " · Final" : " · Negotiable"}`;
   }
   if (s.quoteStatus === "pending") return "Awaiting quote";
   if (s.quoteStatus === "accepted") return "Accepted";

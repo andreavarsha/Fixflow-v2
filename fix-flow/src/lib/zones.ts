@@ -10,15 +10,15 @@ export type DemoZone = {
 };
 
 export const DEMO_ZONES: DemoZone[] = [
-  { id: "kadana", name: "Kadana", lat: 7.0167, lng: 79.9833, radiusKm: 4 },
+  { id: "kadana", name: "Kadana", lat: 7.0167, lng: 79.9833, radiusKm: 2.5 },
   {
     id: "rajagiriya",
     name: "Rajagiriya",
     lat: 6.9106,
     lng: 79.8947,
-    radiusKm: 3.5,
+    radiusKm: 2.2,
   },
-  { id: "nawala", name: "Nawala", lat: 6.8997, lng: 79.8886, radiusKm: 3.5 },
+  { id: "nawala", name: "Nawala", lat: 6.8997, lng: 79.8886, radiusKm: 2.0 },
 ];
 
 export const DEFAULT_MAP_CENTER = {

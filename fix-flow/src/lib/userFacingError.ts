@@ -40,8 +40,6 @@ const EXACT: Record<string, string> = {
   "Price must be greater than zero": "Please enter a price greater than zero.",
   "Quote not found for this job": "That quote could not be found for this job.",
   "Quote must be submitted before it can be accepted": "Wait until the supplier submits their quote before accepting.",
-  "You can only accept quotes marked as final by the supplier":
-    "You can only accept a quote after the supplier marks it as their final price.",
   "This job is not in progress": "This job is not waiting for completion.",
   "You are not the accepted tradesperson for this job":
     "Only the hired tradesperson can mark this job complete.",

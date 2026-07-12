@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as demoAuth from "../demoAuth.js";
+import type * as geocode from "../geocode.js";
 import type * as http from "../http.js";
 import type * as jobCategories from "../jobCategories.js";
 import type * as jobs from "../jobs.js";
@@ -35,6 +36,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   demoAuth: typeof demoAuth;
+  geocode: typeof geocode;
   http: typeof http;
   jobCategories: typeof jobCategories;
   jobs: typeof jobs;
