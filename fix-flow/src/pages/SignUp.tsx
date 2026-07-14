@@ -1,5 +1,6 @@
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useState } from "react";
+import { useConvexAuth } from "convex/react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ffBtnPrimary,
@@ -13,12 +14,20 @@ import { toUserFacingError } from "../lib/userFacingError";
 
 export default function Signup() {
   const { signIn } = useAuthActions();
+  const { isAuthenticated } = useConvexAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Same fix as Login.tsx: wait for the reactive auth state instead of
+  // navigating right after signIn() resolves, which can race the client's
+  // token handshake and bounce back to /login.
+  useEffect(() => {
+    if (isAuthenticated) navigate("/");
+  }, [isAuthenticated, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,11 +44,9 @@ export default function Signup() {
         flow: "signUp",
         role: "owner",
       });
-      navigate("/");
     } catch (err: unknown) {
       console.error("Signup error:", err);
       setError(toUserFacingError(err, "signup"));
-    } finally {
       setLoading(false);
     }
   }
