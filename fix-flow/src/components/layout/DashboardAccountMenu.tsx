@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import { ffBtnGhost } from "../../lib/fixflowUi";
+import { initials } from "../../lib/initials";
 import { ThemeToggle } from "../ThemeToggle";
 
 const ROLE_LABEL = {
@@ -11,19 +12,6 @@ const ROLE_LABEL = {
   supplier: "Supplier",
   admin: "Admin",
 } as const;
-
-function initials(name: string | undefined, email: string | undefined): string {
-  const fromName = name?.trim();
-  if (fromName) {
-    const parts = fromName.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return fromName.slice(0, 2).toUpperCase();
-  }
-  const local = email?.split("@")[0] ?? "?";
-  return local.slice(0, 2).toUpperCase();
-}
 
 export function DashboardAccountMenu() {
   const user = useQuery(api.users.getUser);

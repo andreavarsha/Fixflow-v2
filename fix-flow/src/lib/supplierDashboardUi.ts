@@ -208,6 +208,13 @@ export function formatDurationDays(days: number): string {
   return n === 1 ? "1 day" : `${n} days`;
 }
 
+/** "~15 min" / "~2 hr" — average time-to-first-quote, rounded for display. */
+export function formatResponseMinutes(minutes: number): string {
+  if (minutes < 60) return `~${Math.max(1, Math.round(minutes))} min`;
+  const hours = minutes / 60;
+  return hours < 10 ? `~${hours.toFixed(1)} hr` : `~${Math.round(hours)} hr`;
+}
+
 export function statusBadgeClass(
   status: "pending" | "quoted" | "accepted" | "rejected",
 ): string {
