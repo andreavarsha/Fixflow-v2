@@ -213,14 +213,14 @@ export function statusBadgeClass(
 ): string {
   switch (status) {
     case "pending":
-      return "bg-amber-50 text-amber-900 ring-amber-200";
+      return "bg-amber-50 text-amber-900 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900/50";
     case "quoted":
-      return "bg-emerald-50 text-emerald-900 ring-emerald-200";
+      return "bg-teal-50 text-teal-900 ring-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:ring-teal-900/50";
     case "accepted":
-      return "bg-blue-50 text-blue-900 ring-blue-200";
+      return "bg-blue-50 text-blue-900 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900/50";
     case "rejected":
-      return "bg-gray-100 text-gray-600 ring-gray-200";
+      return "bg-muted text-muted-foreground ring-border";
     default:
-      return "bg-gray-100 text-gray-700 ring-gray-200";
+      return "bg-muted text-muted-foreground ring-border";
   }
 }

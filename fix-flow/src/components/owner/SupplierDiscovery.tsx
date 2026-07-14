@@ -81,10 +81,10 @@ export function SupplierDiscovery({
   return (
     <div className="flex flex-col gap-5">
       <div className={ffCard}>
-        <h2 className="text-base font-semibold text-gray-900">
+        <h2 className="text-base font-semibold text-foreground">
           Nearby suppliers{zoneName ? ` · ${zoneName}` : ""}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-gray-600">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Showing <strong>{category}</strong> pros near your job pin
           (distance from the pin). Tap a pin or card to select — up to{" "}
           <strong>{MAX_SELECT}</strong>. Quotes update live on the map.
@@ -100,7 +100,7 @@ export function SupplierDiscovery({
       />
 
       <div
-        className="flex items-center justify-between rounded-xl bg-gray-900 px-4 py-3 text-white shadow-md"
+        className="flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-foreground shadow-md"
         aria-live="polite"
       >
         <span className="text-sm font-medium">Selected</span>
@@ -110,12 +110,12 @@ export function SupplierDiscovery({
       </div>
 
       {suppliers === undefined && (
-        <p className="text-center text-sm text-gray-500">Finding suppliers…</p>
+        <p className="text-center text-sm text-muted-foreground">Finding suppliers…</p>
       )}
 
       {suppliers !== undefined && suppliers.length === 0 && (
-        <div className={`${ffCard} text-sm text-gray-600`}>
-          <p className="font-medium text-gray-900">No one nearby right now</p>
+        <div className={`${ffCard} text-sm text-muted-foreground`}>
+          <p className="font-medium text-foreground">No one nearby right now</p>
           <p className="mt-2 leading-relaxed">
             No approved {category} suppliers are available near this pin. Try
             another category from the job summary, or re-run the demo seed.
@@ -142,12 +142,15 @@ export function SupplierDiscovery({
       )}
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p
+          className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {error}
         </p>
       )}
 
-      <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm md:static md:flex-row md:items-center md:justify-between md:border-0 md:bg-transparent md:p-0 md:shadow-none">
+      <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur-sm md:static md:flex-row md:items-center md:justify-between md:border-0 md:bg-transparent md:p-0 md:shadow-none">
         <div className="flex flex-col gap-3 md:ml-auto md:flex-row md:justify-end">
           <button type="button" onClick={onBack} className={`${ffBtnSecondary} ${ffBtnInRow}`}>
             Cancel

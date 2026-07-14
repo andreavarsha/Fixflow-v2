@@ -174,12 +174,12 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
       </div>
 
       {suggestions.length > 0 && (
-        <ul className="overflow-hidden rounded-xl border border-gray-200 bg-white text-sm shadow-sm">
+        <ul className="overflow-hidden rounded-xl border border-border bg-card text-sm shadow-sm">
           {suggestions.map((hit) => (
             <li key={`${hit.lat},${hit.lng},${hit.label}`}>
               <button
                 type="button"
-                className="w-full px-3 py-2.5 text-left text-gray-800 hover:bg-gray-50"
+                className="w-full px-3 py-2.5 text-left text-foreground/90 hover:bg-accent"
                 onClick={() => applyHit(hit)}
               >
                 {hit.label}
@@ -202,14 +202,14 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
             key={z.id}
             type="button"
             onClick={() => jumpToZone(z.id)}
-            className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-200"
+            className="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground ring-1 ring-border hover:bg-accent"
           >
             {z.name}
           </button>
         ))}
       </div>
 
-      <div className="h-56 w-full overflow-hidden rounded-xl border border-gray-200 sm:h-64">
+      <div className="h-56 w-full overflow-hidden rounded-xl border border-border sm:h-64">
         <MapContainer
           center={[mapCenter.lat, mapCenter.lng]}
           zoom={13}
@@ -242,13 +242,13 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
         </MapContainer>
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-muted-foreground">
         Type an address and tap Find, use GPS, pick a demo area, or tap the map
         to drop a pin. Drag the pin to fine-tune.
       </p>
 
       {!hasPin && (
-        <p className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600 ring-1 ring-gray-100">
+        <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground ring-1 ring-border">
           Set a job location to continue. FixFlow is live in{" "}
           <strong>Kadana</strong>, <strong>Rajagiriya</strong>, and{" "}
           <strong>Nawala</strong>.
@@ -256,20 +256,20 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
       )}
 
       {hasPin && zone && (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900 ring-1 ring-emerald-100">
-          You&apos;re in <strong>{zone.name}</strong> — FixFlow is live here.
+        <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-200 dark:ring-teal-900/50">
+          ✓ You&apos;re in <strong>{zone.name}</strong> — FixFlow is live here.
         </p>
       )}
 
       {hasPin && !zone && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-100">
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-100 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50">
           This pin is outside our demo zones (Kadana, Rajagiriya, Nawala). You
           can join the waitlist after trying to submit.
         </p>
       )}
 
       {geoError && (
-        <p className="text-sm text-amber-800" role="status">
+        <p className="text-sm text-amber-800 dark:text-amber-300" role="status">
           {geoError}
         </p>
       )}

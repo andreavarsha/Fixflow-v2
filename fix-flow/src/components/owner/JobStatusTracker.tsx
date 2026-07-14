@@ -56,17 +56,17 @@ export function JobStatusTracker({ jobId, status }: JobStatusTrackerProps) {
             <li key={step.id} className="flex items-center gap-1 sm:gap-2">
               {i > 0 && (
                 <span
-                  className={`h-px w-3 sm:w-5 ${done || active ? "bg-gray-900" : "bg-gray-200"}`}
+                  className={`h-px w-3 sm:w-5 ${done || active ? "bg-primary" : "bg-border"}`}
                   aria-hidden
                 />
               )}
               <span
                 className={`rounded-full px-2.5 py-1 text-[11px] font-medium sm:text-xs ${
                   active
-                    ? "bg-gray-900 text-white"
+                    ? "bg-primary text-primary-foreground"
                     : done
-                      ? "bg-gray-200 text-gray-800"
-                      : "bg-gray-100 text-gray-400"
+                      ? "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+                      : "bg-muted text-muted-foreground/70"
                 }`}
                 aria-current={active ? "step" : undefined}
               >

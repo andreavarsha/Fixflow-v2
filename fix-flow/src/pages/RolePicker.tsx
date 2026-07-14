@@ -25,14 +25,14 @@ export default function RolePicker() {
       <div className={`${ffPage} flex min-h-dvh flex-col items-center justify-center`}>
         <div className="flex flex-col items-center gap-4 text-center">
           <div
-            className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-gray-900"
+            className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-primary"
             aria-hidden
           />
           <div>
-            <p className="text-base font-medium text-gray-900">
+            <p className="text-base font-medium text-foreground">
               Taking you to your dashboard…
             </p>
-            <p className="mt-1 text-sm text-gray-500">One moment.</p>
+            <p className="mt-1 text-sm text-muted-foreground">One moment.</p>
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function RolePicker() {
     <div className={`${ffPage} flex min-h-dvh flex-col items-center justify-center px-4`}>
       <div className={`${ffCard} w-full max-w-md text-center`}>
         <h1 className={ffScreenTitle}>Admin not available</h1>
-        <p className="mt-3 text-sm leading-relaxed text-gray-600">
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           Admin tools are turned off in this build. Sign out and use a homeowner
           or tradesperson account instead.
         </p>

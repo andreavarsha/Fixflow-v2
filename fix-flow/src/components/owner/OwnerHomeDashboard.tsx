@@ -123,7 +123,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
     <div className="mx-auto w-full max-w-xl lg:max-w-2xl">
       <header className="mb-6 flex flex-col items-center text-center pr-0 sm:pr-0">
         <div
-          className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-900 text-3xl font-light text-white shadow-md"
+          className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-3xl font-light text-primary-foreground shadow-md"
           aria-hidden
         >
           +
@@ -142,7 +142,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
           <JobLocationPicker value={location} onChange={setLocation} />
 
           <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Or start from a common issue
             </p>
             <div className="flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                   key={issue.label}
                   type="button"
                   onClick={() => setDescription(issue.description)}
-                  className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-800 transition hover:border-gray-900 hover:bg-gray-50"
+                  className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground/90 transition hover:border-primary hover:bg-accent"
                 >
                   {issue.label}
                 </button>
@@ -173,23 +173,23 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
               required
               className={`${ffInput} resize-none`}
             />
-            <p className="mt-1.5 text-right text-xs text-gray-400">
+            <p className="mt-1.5 text-right text-xs text-muted-foreground/70">
               {description.length}/300
             </p>
           </div>
 
           <div>
             <span className={ffLabel}>
-              Photo <span className="font-normal text-gray-500">(optional)</span>
+              Photo <span className="font-normal text-muted-foreground">(optional)</span>
             </span>
             <label
               htmlFor="issue-photo"
-              className="mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/80 px-4 py-6 text-center transition hover:border-gray-300 hover:bg-gray-50"
+              className="mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/40 px-4 py-6 text-center transition hover:border-primary/40 hover:bg-muted"
             >
-              <span className="text-sm font-medium text-gray-800">
+              <span className="text-sm font-medium text-foreground/90">
                 {photo ? photo.name : "Add a photo"}
               </span>
-              <span className="mt-1 text-xs text-gray-500">
+              <span className="mt-1 text-xs text-muted-foreground">
                 Helps us classify the issue faster
               </span>
               <input
@@ -204,7 +204,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
 
           {error && (
             <p
-              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+              className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
               role="alert"
             >
               {error}

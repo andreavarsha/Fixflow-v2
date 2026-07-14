@@ -17,7 +17,7 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
   const jobs = useQuery(api.jobs.listMyJobs);
 
   if (jobs === undefined) {
-    return <p className="text-sm text-gray-500">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   return (
@@ -28,9 +28,9 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
       </header>
 
       {jobs.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-12 text-center">
-          <p className="font-medium text-gray-900">No requests yet</p>
-          <p className="mt-2 text-sm text-gray-500">
+        <div className="rounded-2xl border border-dashed border-border bg-card px-5 py-12 text-center">
+          <p className="font-medium text-foreground">No requests yet</p>
+          <p className="mt-2 text-sm text-muted-foreground">
             Tap + to report your first repair.
           </p>
         </div>
@@ -48,16 +48,16 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
               (job.quotedCount ?? 0) > 0;
 
             const dot = needsYou
-              ? "bg-red-500"
+              ? "bg-primary"
               : completed
-                ? "bg-emerald-500"
+                ? "bg-teal-500"
                 : "bg-amber-400";
 
             const border = needsYou
-              ? "border-red-200 ring-1 ring-red-50"
+              ? "border-primary/30 ring-1 ring-primary/10"
               : justSubmitted
-                ? "border-amber-200"
-                : "border-gray-200";
+                ? "border-amber-200 dark:border-amber-900/50"
+                : "border-border";
 
             const meta = activityMeta(job);
 
@@ -69,7 +69,7 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
                     if (quotesIn && onOpenQuotes) onOpenQuotes(job._id);
                     else onOpenJob(job._id);
                   }}
-                  className={`flex w-full gap-3 rounded-2xl border bg-white px-4 py-4 text-left shadow-sm transition hover:bg-gray-50 ${border}`}
+                  className={`flex w-full gap-3 rounded-2xl border bg-card px-4 py-4 text-left shadow-sm transition hover:bg-accent ${border}`}
                 >
                   <span
                     className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${dot}`}
@@ -80,8 +80,8 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
                       <span
                         className={`mb-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                           quotesIn
-                            ? "bg-red-600 text-white"
-                            : "bg-amber-100 text-amber-900"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300"
                         }`}
                       >
                         {quotesIn
@@ -91,10 +91,10 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
                             : "Just submitted"}
                       </span>
                     )}
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-foreground">
                       {ownerJobTitle(job)}
                     </p>
-                    <p className="mt-1 text-sm text-gray-500">{meta}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{meta}</p>
                   </div>
                 </button>
               </li>

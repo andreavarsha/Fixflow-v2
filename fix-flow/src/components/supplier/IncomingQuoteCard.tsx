@@ -19,9 +19,10 @@ import {
 import { toUserFacingError } from "../../lib/userFacingError";
 
 const urgencyStyle = {
-  High: "text-red-800 bg-red-50 ring-red-100",
-  Medium: "text-amber-900 bg-amber-50 ring-amber-100",
-  Low: "text-emerald-900 bg-emerald-50 ring-emerald-100",
+  High: "text-primary bg-primary/10 ring-primary/20 dark:bg-primary/15",
+  Medium:
+    "text-amber-900 bg-amber-50 ring-amber-100 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900/50",
+  Low: "text-teal-900 bg-teal-50 ring-teal-100 dark:bg-teal-950/50 dark:text-teal-300 dark:ring-teal-900/50",
 };
 
 export type IncomingQuoteRequest = {
@@ -44,9 +45,9 @@ const t = supplierUi("en");
 
 const STATUS_ACCENT: Record<IncomingQuoteRequest["status"], string> = {
   pending: "border-l-amber-500",
-  quoted: "border-l-emerald-500",
+  quoted: "border-l-teal-500",
   accepted: "border-l-blue-500",
-  rejected: "border-l-gray-400",
+  rejected: "border-l-muted-foreground/40",
 };
 
 type IncomingQuoteCardProps = {
@@ -117,7 +118,7 @@ export function IncomingQuoteCard({
               )}
             </div>
             {request.jobCategory && (
-              <h3 className="mt-2 text-base font-semibold text-gray-900 sm:text-lg">
+              <h3 className="mt-2 text-base font-semibold text-foreground sm:text-lg">
                 {request.jobCategory}
               </h3>
             )}
@@ -132,7 +133,7 @@ export function IncomingQuoteCard({
             >
               {chatOpen ? "Close chat" : "Message homeowner"}
               {!chatOpen && unread > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
                   {unread > 9 ? "9+" : unread}
                 </span>
               )}
@@ -146,13 +147,13 @@ export function IncomingQuoteCard({
           request.priceLKR !== undefined &&
           request.priceLKR > 0 && (
             <div
-              className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-100"
+              className="mt-4 rounded-xl bg-teal-50 px-4 py-3 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:ring-teal-900/50"
               role="status"
             >
-              <p className="text-sm font-semibold text-emerald-900">
+              <p className="text-sm font-semibold text-teal-900 dark:text-teal-200">
                 {t.quoteSubmittedTitle}
               </p>
-              <p className="mt-1 text-sm text-emerald-800">
+              <p className="mt-1 text-sm text-teal-800 dark:text-teal-300">
                 {t.quoteSubmittedPrice(request.priceLKR.toLocaleString("en-LK"))}
                 {submittedDays
                   ? ` · ${t.quoteSubmittedDays(Number(submittedDays))}`
@@ -160,18 +161,18 @@ export function IncomingQuoteCard({
                     ? ` · ${request.duration}`
                     : ""}
               </p>
-              <p className="mt-1 text-xs text-emerald-700">
+              <p className="mt-1 text-xs text-teal-700 dark:text-teal-400">
                 {request.isFinal ? t.quoteSubmittedFinal : t.quoteSubmittedDraft}
               </p>
             </div>
           )}
 
-        <p className="mt-3 text-sm leading-relaxed text-gray-700">
+        <p className="mt-3 text-sm leading-relaxed text-foreground/80">
           {summaryText}
         </p>
 
         {chatOpen && request.ownerId && (
-          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/50 p-3 sm:p-4">
+          <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
             <ChatPanel
               jobId={request.jobId}
               peerId={request.ownerId}
@@ -263,14 +264,19 @@ function JobActionsSection({
     }
 
     return (
-      <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50/80 p-4 sm:p-5">
-        <p className="text-sm font-semibold text-blue-900">Job in progress</p>
-        <p className="mt-1 text-sm leading-relaxed text-blue-800">
+      <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50/80 p-4 dark:border-blue-900/40 dark:bg-blue-950/30 sm:p-5">
+        <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+          Job in progress
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-blue-800 dark:text-blue-300">
           When the repair is finished on site, confirm below. The homeowner will
           be asked to pay the agreed quote amount.
         </p>
         {completeError && (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          <p
+            className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            role="alert"
+          >
             {completeError}
           </p>
         )}
@@ -288,7 +294,7 @@ function JobActionsSection({
 
   if (quoteStatus === "accepted" && lifecycle === "awaiting_payment") {
     return (
-      <p className="mt-5 rounded-lg bg-violet-50 px-3 py-2.5 text-sm text-violet-900 ring-1 ring-violet-100">
+      <p className="mt-5 rounded-lg bg-primary/10 px-3 py-2.5 text-sm text-primary ring-1 ring-primary/20 dark:bg-primary/15">
         {t.awaitingPayment}
       </p>
     );
@@ -296,7 +302,7 @@ function JobActionsSection({
 
   if (quoteStatus === "accepted" && lifecycle === "completed") {
     return (
-      <p className="mt-5 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900 ring-1 ring-emerald-100">
+      <p className="mt-5 rounded-lg bg-teal-50 px-3 py-2.5 text-sm text-teal-900 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-200 dark:ring-teal-900/50">
         {t.jobPaidComplete}
       </p>
     );
@@ -304,7 +310,7 @@ function JobActionsSection({
 
   if (quoteStatus === "rejected") {
     return (
-      <p className="mt-5 rounded-lg bg-gray-50 px-3 py-2.5 text-sm text-gray-600 ring-1 ring-gray-100">
+      <p className="mt-5 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground ring-1 ring-border">
         {t.notSelected}
       </p>
     );
@@ -316,7 +322,7 @@ function JobActionsSection({
 
   if (!jobOpen) {
     return (
-      <p className="mt-5 rounded-lg bg-gray-50 px-3 py-2.5 text-sm text-gray-600 ring-1 ring-gray-100">
+      <p className="mt-5 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground ring-1 ring-border">
         {t.jobClosed}
       </p>
     );
@@ -324,7 +330,7 @@ function JobActionsSection({
 
   if (!canSubmit) {
     return (
-      <p className="mt-5 rounded-lg bg-gray-50 px-3 py-2.5 text-sm text-gray-600 ring-1 ring-gray-100">
+      <p className="mt-5 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground ring-1 ring-border">
         {t.noAction}
       </p>
     );
@@ -362,11 +368,11 @@ function JobActionsSection({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-5 rounded-xl bg-gray-50/90 p-4 ring-1 ring-gray-100 sm:p-5"
+      className="mt-5 rounded-xl bg-muted/50 p-4 ring-1 ring-border sm:p-5"
     >
       <div className="mb-4">
-        <h4 className="text-sm font-semibold text-gray-900">{t.sendQuote}</h4>
-        <p className="mt-1 text-xs leading-relaxed text-gray-500">
+        <h4 className="text-sm font-semibold text-foreground">{t.sendQuote}</h4>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           {t.sendQuoteHint}
         </p>
       </div>
@@ -411,7 +417,7 @@ function JobActionsSection({
       <div className="mt-4">
         <label htmlFor={`notes-${jobId}`} className={ffLabel}>
           {t.notesLabel}{" "}
-          <span className="font-normal text-gray-500">{t.notesOptional}</span>
+          <span className="font-normal text-muted-foreground">{t.notesOptional}</span>
         </label>
         <textarea
           id={`notes-${jobId}`}
@@ -423,23 +429,23 @@ function JobActionsSection({
         />
       </div>
 
-      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-white px-3 py-3">
+      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-3 py-3">
         <input
           type="checkbox"
           checked={isFinal}
           onChange={(e) => setIsFinal(e.target.checked)}
-          className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300"
+          className="mt-1 h-4 w-4 shrink-0 rounded border-border text-primary focus:ring-primary/30"
         />
-        <span className="text-sm leading-snug text-gray-700">
-          <span className="font-medium text-gray-900">{t.finalQuote}</span>
+        <span className="text-sm leading-snug text-foreground/80">
+          <span className="font-medium text-foreground">{t.finalQuote}</span>
           <br />
-          <span className="text-xs text-gray-500">{t.finalQuoteHint}</span>
+          <span className="text-xs text-muted-foreground">{t.finalQuoteHint}</span>
         </span>
       </label>
 
       {error && (
         <p
-          className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+          className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
           role="alert"
         >
           {error}

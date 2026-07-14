@@ -108,14 +108,14 @@ export function LiveQuotesDashboard({
           </p>
         </div>
         <div
-          className="relative shrink-0 rounded-full bg-white p-2 shadow-sm ring-1 ring-gray-200"
+          className="relative shrink-0 rounded-full bg-card p-2 shadow-sm ring-1 ring-border"
           title={unreadCount ? `${unreadCount} unread notifications` : "Notifications"}
         >
           <span className="text-xl leading-none" aria-hidden>
             🔔
           </span>
           {unreadCount !== undefined && unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -137,13 +137,13 @@ export function LiveQuotesDashboard({
       )}
 
       {quotes === undefined && (
-        <p className="text-sm text-gray-500">Loading quotes…</p>
+        <p className="text-sm text-muted-foreground">Loading quotes…</p>
       )}
 
       {quotes !== undefined && quotes.length === 0 && (
-        <div className={`${ffCard} flex flex-col gap-4 text-sm text-gray-600`}>
+        <div className={`${ffCard} flex flex-col gap-4 text-sm text-muted-foreground`}>
           <div>
-            <p className="font-medium text-gray-900">No requests sent yet</p>
+            <p className="font-medium text-foreground">No requests sent yet</p>
             <p className="mt-2 leading-relaxed">
               Choose up to three suppliers first. After they submit prices,
               you&apos;ll compare them here.
@@ -162,15 +162,18 @@ export function LiveQuotesDashboard({
       )}
 
       {acceptError && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p
+          className="mb-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {acceptError}
         </p>
       )}
 
       {job && !jobOpen && (
-        <div className={`${ffCard} mb-4 text-sm text-gray-700`}>
+        <div className={`${ffCard} mb-4 text-sm text-foreground/80`}>
           <p>
-            <span className="font-medium text-gray-900">Job status:</span>{" "}
+            <span className="font-medium text-foreground">Job status:</span>{" "}
             {job.status === "in_progress"
               ? "Quote accepted — the tradesperson is working on site."
               : job.status === "awaiting_payment"
@@ -183,10 +186,10 @@ export function LiveQuotesDashboard({
       )}
 
       {quotes !== undefined && quotes.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-medium">Supplier</th>
                   <th className="px-4 py-3 font-medium">Distance</th>
@@ -219,9 +222,9 @@ export function LiveQuotesDashboard({
           </div>
 
           {chatPeer && (
-            <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 sm:px-6">
+            <div className="border-t border-border bg-muted/40 px-4 py-4 sm:px-6">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-foreground">
                   Chat with {chatPeer.supplierName ?? "tradesperson"}
                 </p>
                 <button
@@ -271,44 +274,44 @@ function QuoteTableRow({
   const hasQuote = q.status === "quoted" || q.status === "accepted";
 
   return (
-    <tr className={`border-t border-gray-100 ${chatOpen ? "bg-sky-50/60" : ""}`}>
+    <tr className={`border-t border-border ${chatOpen ? "bg-primary/5" : ""}`}>
       <td className="px-4 py-3 align-top">
-        <p className="font-medium text-gray-900">
+        <p className="font-medium text-foreground">
           {q.supplierName ?? "Supplier"}
           {q.status === "accepted" && (
-            <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+            <span className="ml-2 rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
               Hired
             </span>
           )}
           {q.status === "rejected" && (
-            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-gray-600">
+            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
               Not selected
             </span>
           )}
           {q.status === "pending" && (
-            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-gray-600">
+            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
               Awaiting
             </span>
           )}
         </p>
         {q.notes && hasQuote && (
-          <p className="mt-1 max-w-xs text-xs leading-relaxed text-gray-500">
+          <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
             {q.notes}
           </p>
         )}
       </td>
-      <td className="px-4 py-3 align-top tabular-nums text-gray-700">
+      <td className="px-4 py-3 align-top tabular-nums text-foreground/80">
         {q.distanceKm !== undefined ? `${q.distanceKm.toFixed(1)} km` : "—"}
       </td>
-      <td className="px-4 py-3 align-top tabular-nums text-gray-900">
+      <td className="px-4 py-3 align-top tabular-nums text-foreground">
         {hasQuote && q.priceLKR !== undefined
           ? `LKR ${q.priceLKR.toLocaleString("en-LK")}`
           : "—"}
       </td>
-      <td className="px-4 py-3 align-top text-gray-700">
+      <td className="px-4 py-3 align-top text-foreground/80">
         {hasQuote ? (q.duration ?? "—") : "—"}
       </td>
-      <td className="px-4 py-3 align-top text-gray-700">
+      <td className="px-4 py-3 align-top text-foreground/80">
         {q.supplierRating !== undefined
           ? `★ ${q.supplierRating.toFixed(1)}`
           : "—"}
@@ -319,16 +322,16 @@ function QuoteTableRow({
       <td className="px-4 py-3 align-top">
         {q.status === "quoted" || q.status === "accepted" ? (
           q.isFinal ? (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
               Final
             </span>
           ) : (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900 dark:bg-amber-950/60 dark:text-amber-300">
               Negotiable
             </span>
           )
         ) : (
-          <span className="text-xs text-gray-400">—</span>
+          <span className="text-xs text-muted-foreground/60">—</span>
         )}
       </td>
       <td className="px-4 py-3 align-top">
@@ -351,7 +354,7 @@ function QuoteTableRow({
           >
             {chatOpen ? "Hide chat" : "Message"}
             {!chatOpen && unread > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
                 {unread > 9 ? "9+" : unread}
               </span>
             )}

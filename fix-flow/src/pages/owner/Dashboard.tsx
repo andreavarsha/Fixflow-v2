@@ -185,13 +185,13 @@ function ClassificationResult({
   }, [job]);
 
   if (job === undefined) {
-    return <p className="text-sm text-gray-500">Loading your job…</p>;
+    return <p className="text-sm text-muted-foreground">Loading your job…</p>;
   }
 
   if (job === null) {
     return (
       <div>
-        <p className="text-sm text-red-600">We couldn&apos;t load this job.</p>
+        <p className="text-sm text-destructive">We couldn&apos;t load this job.</p>
         <button type="button" onClick={onClose} className={`${ffBtnGhost} mt-4`}>
           Back
         </button>
@@ -211,9 +211,10 @@ function ClassificationResult({
 
   const urgency = job.urgency ?? "Medium";
   const urgencyStyle = {
-    High: "bg-red-50 text-red-800 ring-1 ring-red-200",
-    Medium: "bg-amber-50 text-amber-900 ring-1 ring-amber-200",
-    Low: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
+    High: "bg-primary/10 text-primary ring-1 ring-primary/25 dark:bg-primary/15",
+    Medium:
+      "bg-amber-50 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50",
+    Low: "bg-teal-50 text-teal-800 ring-1 ring-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-900/50",
   };
 
   const summary = job.aiSummary ?? "";
@@ -318,8 +319,8 @@ function ClassificationResult({
             }}
           />
         ) : (
-          <div className={`${ffCard} text-sm text-gray-600`}>
-            <p className="font-medium text-gray-900">Location is missing</p>
+          <div className={`${ffCard} text-sm text-muted-foreground`}>
+            <p className="font-medium text-foreground">Location is missing</p>
             <p className="mt-2 leading-relaxed">
               This job needs a location before we can find nearby suppliers.
             </p>
@@ -348,10 +349,10 @@ function ClassificationResult({
       <button
         type="button"
         onClick={onClose}
-        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <span
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card"
           aria-hidden
         >
           ←
@@ -391,10 +392,10 @@ function ClassificationResult({
               <img
                 src={job.photoUrl}
                 alt="Photo you attached"
-                className="max-h-64 w-full rounded-xl border border-gray-100 object-cover"
+                className="max-h-64 w-full rounded-xl border border-border object-cover"
               />
             ) : (
-              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-400">
+              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground">
                 No photo
               </div>
             )}
@@ -413,7 +414,7 @@ function ClassificationResult({
 
             <div className="flex flex-wrap gap-2">
               {job.category && (
-                <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
+                <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
                   {job.category}
                 </span>
               )}
@@ -423,14 +424,14 @@ function ClassificationResult({
                 {urgency} urgency
               </span>
               {zoneName && (
-                <span className="rounded-full bg-gray-50 px-3 py-1 text-sm text-gray-600 ring-1 ring-gray-200">
+                <span className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground ring-1 ring-border">
                   {zoneName}
                 </span>
               )}
             </div>
 
             {job.classificationFailed && (
-              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200">
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50">
                 We couldn&apos;t reach the AI classifier — please check the category
                 below before finding suppliers.
               </p>
@@ -445,7 +446,7 @@ function ClassificationResult({
                 Adjust category & urgency
               </button>
             ) : (
-              <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50/80 p-4">
+              <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <div className="min-w-[200px] flex-1">
                     <label htmlFor="job-category" className={ffLabel}>
@@ -483,7 +484,7 @@ function ClassificationResult({
                   </div>
                 </div>
                 {categorySaveError && (
-                  <p className="text-sm text-red-600">{categorySaveError}</p>
+                  <p className="text-sm text-destructive">{categorySaveError}</p>
                 )}
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -509,7 +510,7 @@ function ClassificationResult({
             )}
           </div>
 
-          <div className="flex flex-col border-t border-gray-100 pt-6 lg:border-t-0 lg:pt-0">
+          <div className="flex flex-col border-t border-border pt-6 lg:border-t-0 lg:pt-0">
             <p className={ffLabel}>Summary</p>
             {editingSummary ? (
               <div className="mt-2 flex flex-col gap-3">
@@ -519,7 +520,7 @@ function ClassificationResult({
                   rows={5}
                   className={`${ffInput} resize-none`}
                 />
-                {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+                {saveError && <p className="text-sm text-destructive">{saveError}</p>}
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <button
                     type="button"
@@ -543,7 +544,7 @@ function ClassificationResult({
               </div>
             ) : (
               <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <p className="flex-1 text-base leading-relaxed text-gray-800">
+                <p className="flex-1 text-base leading-relaxed text-foreground/90">
                   {summary}
                 </p>
                 <button
@@ -562,7 +563,7 @@ function ClassificationResult({
         </div>
 
         {!jobLocked && (
-          <div className="border-t border-gray-100 pt-6">
+          <div className="border-t border-border pt-6">
             <button
               type="button"
               onClick={() => setJobView("discovery")}
@@ -620,10 +621,10 @@ function UnderstandTracker({
             key={step.id}
             className={`rounded-full px-3 py-1 text-xs font-semibold ${
               isActive
-                ? "border-2 border-gray-900 bg-white text-gray-900"
+                ? "border-2 border-primary bg-card text-primary"
                 : done
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-500"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
             }`}
           >
             {step.label}

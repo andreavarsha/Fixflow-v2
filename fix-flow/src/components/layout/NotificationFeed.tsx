@@ -20,29 +20,29 @@ export function NotificationFeed({
   const items = useQuery(api.notifications.listRecent, { limit: 12 });
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <header className="border-b border-gray-100 bg-gray-50/90 px-5 py-4 sm:px-6">
+    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <header className="border-b border-border bg-muted/50 px-5 py-4 sm:px-6">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
           {unreadCount !== undefined && unreadCount > 0 && (
-            <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm text-gray-500">{hint}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
       </header>
 
       {items === undefined && (
-        <p className="px-5 py-6 text-sm text-gray-500 sm:px-6">Loading…</p>
+        <p className="px-5 py-6 text-sm text-muted-foreground sm:px-6">Loading…</p>
       )}
 
       {items !== undefined && items.length === 0 && (
-        <p className="px-5 py-6 text-sm text-gray-600 sm:px-6">{emptyLabel}</p>
+        <p className="px-5 py-6 text-sm text-muted-foreground sm:px-6">{emptyLabel}</p>
       )}
 
       {items !== undefined && items.length > 0 && (
-        <ul className="max-h-72 divide-y divide-gray-100 overflow-y-auto">
+        <ul className="max-h-72 divide-y divide-border overflow-y-auto">
           {items.map((n) => {
             const isMessage = n.type === "new_message";
             const canOpen = isMessage && n.jobId && onOpenJobChat;
@@ -53,8 +53,8 @@ export function NotificationFeed({
                   <button
                     type="button"
                     onClick={() => onOpenJobChat(n.jobId!)}
-                    className={`flex w-full flex-col gap-1 px-5 py-3.5 text-left transition hover:bg-gray-50 sm:px-6 ${
-                      !n.read ? "bg-blue-50/40" : ""
+                    className={`flex w-full flex-col gap-1 px-5 py-3.5 text-left transition hover:bg-accent sm:px-6 ${
+                      !n.read ? "bg-primary/5" : ""
                     }`}
                   >
                     <NotificationRow
@@ -66,7 +66,7 @@ export function NotificationFeed({
                   </button>
                 ) : (
                   <div
-                    className={`px-5 py-3.5 sm:px-6 ${!n.read ? "bg-gray-50/80" : ""}`}
+                    className={`px-5 py-3.5 sm:px-6 ${!n.read ? "bg-muted/60" : ""}`}
                   >
                     <NotificationRow
                       message={n.message}
@@ -102,13 +102,15 @@ function NotificationRow({
           {isMessage ? "💬" : "🔔"}
         </span>
         <span
-          className={`text-sm leading-snug ${read ? "text-gray-600" : "font-medium text-gray-900"}`}
+          className={`text-sm leading-snug ${
+            read ? "text-muted-foreground" : "font-medium text-foreground"
+          }`}
         >
           {message}
         </span>
       </span>
       {actionLabel && (
-        <span className="pl-7 text-xs font-medium text-blue-700">{actionLabel}</span>
+        <span className="pl-7 text-xs font-medium text-primary">{actionLabel}</span>
       )}
     </>
   );
