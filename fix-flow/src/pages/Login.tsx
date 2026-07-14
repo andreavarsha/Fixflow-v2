@@ -1,6 +1,6 @@
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useQuery } from "convex/react";
-import { useState } from "react";
+import { useConvexAuth, useQuery } from "convex/react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import {
@@ -15,6 +15,7 @@ import { toUserFacingError } from "../lib/userFacingError";
 
 export default function Login() {
   const { signIn } = useAuthActions();
+  const { isAuthenticated } = useConvexAuth();
   const demoLogin = useQuery(api.demoAuth.getDemoSupplierLoginInfo);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -23,17 +24,23 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // `signIn()` resolving doesn't mean the client's reactive auth state has
+  // caught up yet — navigating immediately can land on "/" while it's still
+  // transiently unauthenticated, bouncing back to /login. Wait for the real
+  // auth state instead of racing it.
+  useEffect(() => {
+    if (isAuthenticated) navigate("/");
+  }, [isAuthenticated, navigate]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await signIn("password", { email, password, flow: "signIn" });
-      navigate("/");
     } catch (err: unknown) {
       console.error("Login error:", err);
       setError(toUserFacingError(err, "login"));
-    } finally {
       setLoading(false);
     }
   }
