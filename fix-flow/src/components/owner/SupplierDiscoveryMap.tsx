@@ -91,7 +91,7 @@ export function SupplierDiscoveryMap({
 }: SupplierDiscoveryMapProps) {
   return (
     <div
-      className={`w-full overflow-hidden rounded-xl border border-gray-200 ${heightClassName}`}
+      className={`w-full overflow-hidden rounded-xl border border-border ${heightClassName}`}
     >
       <MapContainer
         center={[jobLat, jobLng]}
@@ -143,11 +143,11 @@ export function SupplierDiscoveryMap({
                   </p>
                   <p className="text-gray-500">{s.distanceKm.toFixed(1)} km away</p>
                   {badge && (
-                    <p className="mt-1 font-medium text-emerald-800">{badge}</p>
+                    <p className="mt-1 font-medium text-teal-800">{badge}</p>
                   )}
                   <button
                     type="button"
-                    className="mt-2 w-full rounded-md bg-gray-900 px-2 py-1.5 text-xs font-medium text-white"
+                    className="mt-2 w-full rounded-md bg-primary px-2 py-1.5 text-xs font-medium text-primary-foreground"
                     onClick={() => onToggle(s._id)}
                   >
                     {isSelected ? "Deselect" : "Select for quote"}

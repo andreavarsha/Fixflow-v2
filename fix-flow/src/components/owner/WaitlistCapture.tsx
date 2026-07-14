@@ -45,10 +45,10 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
   if (done) {
     return (
       <div className={`${ffCard} flex flex-col gap-3`}>
-        <p className="text-lg font-semibold text-gray-900">
+        <p className="text-lg font-semibold text-foreground">
           {already ? "You're already on the list" : "You're on the waitlist"}
         </p>
-        <p className="text-sm leading-relaxed text-gray-600">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           We&apos;ll reach out when FixFlow expands to your area. Thanks for the
           interest — it helps us show investors where demand is.
         </p>
@@ -62,10 +62,10 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
   return (
     <div className={`${ffCard} flex flex-col gap-4`}>
       <div>
-        <p className="text-lg font-semibold text-gray-900">
+        <p className="text-lg font-semibold text-foreground">
           Not in our demo zones yet
         </p>
-        <p className="mt-2 text-sm leading-relaxed text-gray-600">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           FixFlow is live in Kadana, Rajagiriya, and Nawala. Leave your email and
           we&apos;ll notify you when we expand.
         </p>
@@ -86,7 +86,10 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
           />
         </div>
         {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          <p
+            className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            role="alert"
+          >
             {error}
           </p>
         )}
@@ -94,7 +97,11 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
           <button type="submit" disabled={submitting} className={ffBtnPrimary}>
             {submitting ? "Saving…" : "Join waitlist"}
           </button>
-          <button type="button" onClick={onBack} className="text-sm text-gray-600 underline">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-sm text-muted-foreground underline"
+          >
             Move the pin instead
           </button>
         </div>

@@ -32,15 +32,15 @@ export function OwnerStepHint({
           (canGoToStep === undefined || canGoToStep(n));
         const pillClass =
           n === active
-            ? "bg-gray-900 text-white"
+            ? "bg-primary text-primary-foreground"
             : n < active
-              ? "bg-gray-200 text-gray-700"
-              : "bg-gray-100 text-gray-500";
+              ? "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+              : "bg-muted text-muted-foreground";
 
         return (
           <span key={n} className="flex items-center gap-1">
             {i > 0 && (
-              <span className="mx-0.5 text-gray-300" aria-hidden>
+              <span className="mx-0.5 text-muted-foreground/50" aria-hidden>
                 →
               </span>
             )}
@@ -48,7 +48,7 @@ export function OwnerStepHint({
               <button
                 type="button"
                 onClick={() => onStepClick(n)}
-                className={`rounded-full px-2.5 py-1 font-medium underline-offset-2 transition hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 ${pillClass}`}
+                className={`rounded-full px-2.5 py-1 font-medium underline-offset-2 transition hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${pillClass}`}
                 aria-current={n === active ? "step" : undefined}
               >
                 {n}. {labels[n]}

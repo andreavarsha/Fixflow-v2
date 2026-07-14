@@ -25,7 +25,7 @@ export function OwnerNeedsYou({
   const jobs = useQuery(api.jobs.listMyJobs);
 
   if (jobs === undefined) {
-    return <p className="text-sm text-gray-500">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   const actionable = jobs
@@ -51,8 +51,8 @@ export function OwnerNeedsYou({
           <p className="text-2xl" aria-hidden>
             ✓
           </p>
-          <p className="mt-3 font-medium text-gray-900">You&apos;re all caught up</p>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-3 font-medium text-foreground">You&apos;re all caught up</p>
+          <p className="mt-2 text-sm text-muted-foreground">
             New quotes and payment requests will show up here.
           </p>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
@@ -71,15 +71,15 @@ export function OwnerNeedsYou({
             return (
               <li
                 key={job._id}
-                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ring-1 ring-red-100"
+                className="rounded-2xl border border-border bg-card p-5 shadow-sm ring-1 ring-primary/15"
               >
-                <span className="inline-flex rounded-full bg-red-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                <span className="inline-flex rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
                   {isPay ? "Payment due" : "Quotes ready"}
                 </span>
-                <h2 className="mt-3 text-lg font-semibold text-gray-900">
+                <h2 className="mt-3 text-lg font-semibold text-foreground">
                   {ownerJobTitle(job)}
                 </h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {isPay
                     ? formatOwnerJobMeta({ ...job, quotedCount: 0 })
                     : formatOwnerJobMeta(job)}
@@ -91,7 +91,7 @@ export function OwnerNeedsYou({
                       ? onConfirmPayment(job._id)
                       : onCompareQuotes(job._id)
                   }
-                  className={`${ffBtnSecondary} mt-5 border-gray-900`}
+                  className={`${ffBtnSecondary} mt-5 border-foreground`}
                 >
                   {isPay ? "Confirm payment" : "Compare & accept"}
                 </button>

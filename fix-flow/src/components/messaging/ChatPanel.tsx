@@ -79,27 +79,27 @@ export function ChatPanel({
   const loading = allMessages === undefined || me === undefined;
 
   return (
-    <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-3 sm:p-4">
+    <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
       <header className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-gray-900">
+        <p className="text-sm font-semibold text-foreground">
           Chat with {peerLabel}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Identities are masked — no names or numbers shared.
         </p>
       </header>
 
       <div
-        className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-xl bg-white p-3 ring-1 ring-gray-100 sm:max-h-80"
+        className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-xl bg-card p-3 ring-1 ring-border sm:max-h-80"
         role="log"
         aria-live="polite"
       >
         {loading && (
-          <p className="text-sm text-gray-500">Loading messages…</p>
+          <p className="text-sm text-muted-foreground">Loading messages…</p>
         )}
 
         {!loading && thread.length === 0 && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             No messages yet. Say hello to {peerLabel.toLowerCase()}.
           </p>
         )}
@@ -119,13 +119,13 @@ export function ChatPanel({
                 <span
                   className={
                     mine
-                      ? "rounded-2xl rounded-br-sm bg-gray-900 px-3 py-2 text-sm text-white"
-                      : "rounded-2xl rounded-bl-sm bg-gray-100 px-3 py-2 text-sm text-gray-900 ring-1 ring-gray-200"
+                      ? "rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-foreground"
+                      : "rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm text-foreground ring-1 ring-border"
                   }
                 >
                   {m.content}
                 </span>
-                <span className="mt-1 text-[11px] text-gray-400">
+                <span className="mt-1 text-[11px] text-muted-foreground/70">
                   {mine ? selfLabel : peerLabel} ·{" "}
                   {formatRelative(m._creationTime)}
                 </span>
@@ -138,7 +138,7 @@ export function ChatPanel({
 
       {error && (
         <p
-          className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+          className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
           role="alert"
         >
           {error}

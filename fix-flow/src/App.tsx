@@ -20,12 +20,12 @@ function AuthLoadingScreen({ title }: { title?: string }) {
     <div className={`${ffPage} flex min-h-dvh flex-col items-center justify-center`}>
       <div className="flex flex-col items-center gap-4 text-center">
         <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-gray-900"
+          className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-primary"
           aria-hidden
         />
         <div>
-          <p className="text-base font-medium text-gray-900">{title ?? "Loading…"}</p>
-          <p className="mt-1 text-sm text-gray-500">One moment.</p>
+          <p className="text-base font-medium text-foreground">{title ?? "Loading…"}</p>
+          <p className="mt-1 text-sm text-muted-foreground">One moment.</p>
         </div>
       </div>
     </div>

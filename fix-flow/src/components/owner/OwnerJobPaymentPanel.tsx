@@ -36,7 +36,7 @@ function RatingPrompt({
   if (existing || done || skipped) {
     if (existing || done) {
       return (
-        <p className="mt-3 text-sm text-emerald-800">
+        <p className="mt-3 text-sm text-teal-800 dark:text-teal-300">
           Thanks for rating {supplierName ?? "your tradesperson"}.
         </p>
       );
@@ -67,12 +67,14 @@ function RatingPrompt({
   return (
     <form
       onSubmit={(e) => void handleSubmit(e)}
-      className="mt-4 border-t border-emerald-100 pt-4"
+      className="mt-4 border-t border-teal-200/60 pt-4 dark:border-teal-900/50"
     >
-      <p className="text-sm font-semibold text-gray-900">
+      <p className="text-sm font-semibold text-foreground">
         Rate {supplierName ?? "your tradesperson"}
       </p>
-      <p className="mt-1 text-xs text-gray-600">Optional — helps other homeowners.</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Optional — helps other homeowners.
+      </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -81,8 +83,8 @@ function RatingPrompt({
             onClick={() => setRating(n)}
             className={`min-h-[40px] min-w-[40px] rounded-full text-sm font-semibold ${
               rating === n
-                ? "bg-gray-900 text-white"
-                : "bg-white text-gray-700 ring-1 ring-gray-200"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card text-foreground ring-1 ring-border"
             }`}
             aria-label={`${n} stars`}
           >
@@ -103,7 +105,10 @@ function RatingPrompt({
         placeholder="How was the work?"
       />
       {error && (
-        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p
+          className="mt-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -114,7 +119,7 @@ function RatingPrompt({
         <button
           type="button"
           onClick={() => setSkipped(true)}
-          className="text-sm text-gray-600 underline"
+          className="text-sm text-muted-foreground underline"
         >
           Skip for now
         </button>
@@ -135,11 +140,13 @@ export function OwnerJobPaymentPanel({
   if (status === "in_progress") {
     return (
       <div
-        className={`${ffCard} mb-6 border-blue-100 bg-blue-50/60`}
+        className={`${ffCard} mb-6 border-blue-100 bg-blue-50/60 dark:border-blue-900/40 dark:bg-blue-950/30`}
         role="status"
       >
-        <p className="text-sm font-semibold text-blue-900">Work in progress</p>
-        <p className="mt-1 text-sm leading-relaxed text-blue-800">
+        <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+          Work in progress
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-blue-800 dark:text-blue-300">
           {acceptedQuote?.supplierName ?? "Your tradesperson"} is working on this
           repair. You&apos;ll be prompted to pay here once they mark the job
           complete.
@@ -150,9 +157,14 @@ export function OwnerJobPaymentPanel({
 
   if (status === "completed") {
     return (
-      <div className={`${ffCard} mb-6 border-emerald-100 bg-emerald-50/60`} role="status">
-        <p className="text-sm font-semibold text-emerald-900">Payment complete</p>
-        <p className="mt-1 text-sm leading-relaxed text-emerald-800">
+      <div
+        className={`${ffCard} mb-6 border-teal-100 bg-teal-50/60 dark:border-teal-900/40 dark:bg-teal-950/30`}
+        role="status"
+      >
+        <p className="text-sm font-semibold text-teal-900 dark:text-teal-200">
+          Payment complete
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-teal-800 dark:text-teal-300">
           Thank you — this job is closed.
           {acceptedQuote?.priceLKR !== undefined && (
             <>
@@ -197,38 +209,41 @@ export function OwnerJobPaymentPanel({
 
   return (
     <div
-      className={`${ffCard} mb-6 border-violet-200 bg-gradient-to-br from-violet-50 to-white`}
+      className={`${ffCard} mb-6 border-primary/25 bg-gradient-to-br from-primary/5 to-card`}
       role="region"
       aria-labelledby="pay-heading"
     >
       <p
         id="pay-heading"
-        className="text-lg font-semibold text-gray-900 sm:text-xl"
+        className="text-lg font-semibold text-foreground sm:text-xl"
       >
         Ready to pay
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-gray-600">
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         {acceptedQuote?.supplierName ?? "Your tradesperson"} marked this job
         complete. Confirm payment to close the job.
       </p>
 
       {price && (
-        <p className="mt-4 text-2xl font-bold tracking-tight text-gray-900">
+        <p className="mt-4 text-2xl font-bold tracking-tight text-foreground">
           LKR {price}
           {acceptedQuote?.duration && (
-            <span className="mt-1 block text-sm font-normal text-gray-500">
+            <span className="mt-1 block text-sm font-normal text-muted-foreground">
               Agreed timeline: {acceptedQuote.duration}
             </span>
           )}
         </p>
       )}
 
-      <p className="mt-3 text-xs text-gray-500">
+      <p className="mt-3 text-xs text-muted-foreground">
         Demo only — this records payment in FixFlow; no card is charged.
       </p>
 
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p
+          className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {error}
         </p>
       )}

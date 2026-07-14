@@ -23,23 +23,23 @@ const WORKFLOW_LABEL: Record<WorkflowStatus, string> = {
 };
 
 const WORKFLOW_STYLE: Record<WorkflowStatus, string> = {
-  classifying: "bg-gray-100 text-gray-700",
-  find_suppliers: "bg-slate-100 text-slate-800",
-  pending_quotes: "bg-amber-100 text-amber-900",
-  select_supplier: "bg-blue-100 text-blue-900",
-  work_in_progress: "bg-blue-100 text-blue-900",
-  pay_supplier: "bg-violet-100 text-violet-900",
-  completed: "bg-emerald-100 text-emerald-900",
+  classifying: "bg-muted text-muted-foreground",
+  find_suppliers: "bg-secondary text-secondary-foreground",
+  pending_quotes: "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300",
+  select_supplier: "bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-300",
+  work_in_progress: "bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-300",
+  pay_supplier: "bg-primary/15 text-primary dark:bg-primary/20",
+  completed: "bg-teal-100 text-teal-900 dark:bg-teal-950/60 dark:text-teal-300",
 };
 
 const WORKFLOW_ACCENT: Record<WorkflowStatus, string> = {
-  classifying: "border-l-gray-400",
-  find_suppliers: "border-l-slate-400",
+  classifying: "border-l-muted-foreground/40",
+  find_suppliers: "border-l-muted-foreground/40",
   pending_quotes: "border-l-amber-500",
   select_supplier: "border-l-blue-500",
   work_in_progress: "border-l-blue-500",
-  pay_supplier: "border-l-violet-500",
-  completed: "border-l-emerald-500",
+  pay_supplier: "border-l-primary",
+  completed: "border-l-teal-500",
 };
 
 type OwnerPastJobsProps = {
@@ -59,7 +59,7 @@ export function OwnerPastJobs({
   if (jobs === undefined) {
     return (
       <Panel variant={variant} count={0}>
-        <p className="px-4 py-8 text-center text-sm text-gray-500">Loading…</p>
+        <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading…</p>
       </Panel>
     );
   }
@@ -74,21 +74,21 @@ export function OwnerPastJobs({
     <Panel variant={variant} count={jobs.length}>
       {jobs.length === 0 ? (
         <div className="px-5 py-10 text-center sm:px-6">
-          <p className="text-sm font-medium text-gray-900">No requests yet</p>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="text-sm font-medium text-foreground">No requests yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
             Your repair history will show up here after you submit one.
           </p>
         </div>
       ) : visible.length === 0 ? (
-        <p className="px-5 py-6 text-center text-sm text-gray-500 sm:px-6">
+        <p className="px-5 py-6 text-center text-sm text-muted-foreground sm:px-6">
           Only viewing the current request.
         </p>
       ) : (
         <ul
           className={
             isSidebar
-              ? "max-h-[min(32rem,calc(100dvh-12rem))] divide-y divide-gray-100 overflow-y-auto"
-              : "divide-y divide-gray-100"
+              ? "max-h-[min(32rem,calc(100dvh-12rem))] divide-y divide-border overflow-y-auto"
+              : "divide-y divide-border"
           }
         >
           {visible.map((job) => {
@@ -103,7 +103,7 @@ export function OwnerPastJobs({
                 <button
                   type="button"
                   onClick={() => onOpenJob(job._id)}
-                  className={`group flex w-full gap-3 border-l-4 px-4 py-4 text-left transition hover:bg-gray-50 sm:px-5 ${WORKFLOW_ACCENT[workflow]}`}
+                  className={`group flex w-full gap-3 border-l-4 px-4 py-4 text-left transition hover:bg-accent sm:px-5 ${WORKFLOW_ACCENT[workflow]}`}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -113,10 +113,10 @@ export function OwnerPastJobs({
                         {WORKFLOW_LABEL[workflow]}
                       </span>
                     </div>
-                    <p className="mt-2 line-clamp-2 text-sm leading-snug text-gray-900 group-hover:text-gray-950">
+                    <p className="mt-2 line-clamp-2 text-sm leading-snug text-foreground">
                       {preview}
                     </p>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-xs text-muted-foreground">
                       {[job.category, job.urgency ? `${job.urgency} urgency` : null]
                         .filter(Boolean)
                         .join(" · ")}
@@ -125,7 +125,7 @@ export function OwnerPastJobs({
                     </p>
                   </div>
                   <span
-                    className="shrink-0 self-center text-lg text-gray-300 transition group-hover:text-gray-500"
+                    className="shrink-0 self-center text-lg text-muted-foreground/50 transition group-hover:text-muted-foreground"
                     aria-hidden
                   >
                     →
@@ -162,7 +162,7 @@ function Panel({
       <header
         className={
           isSidebar
-            ? "border-b border-gray-100 bg-gray-50/90 px-5 py-4 sm:px-6"
+            ? "border-b border-border bg-muted/50 px-5 py-4 sm:px-6"
             : "mb-4"
         }
       >
@@ -170,19 +170,19 @@ function Panel({
           <h2
             className={
               isSidebar
-                ? "text-base font-semibold text-gray-900"
-                : "text-sm font-semibold uppercase tracking-wide text-gray-400"
+                ? "text-base font-semibold text-foreground"
+                : "text-sm font-semibold uppercase tracking-wide text-muted-foreground"
             }
           >
             Your requests
           </h2>
           {count > 0 && (
-            <span className="rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
+            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
               {count}
             </span>
           )}
         </div>
-        <p className={`mt-1 text-sm text-gray-500 ${isSidebar ? "" : "max-w-xl"}`}>
+        <p className={`mt-1 text-sm text-muted-foreground ${isSidebar ? "" : "max-w-xl"}`}>
           Tap to continue where you left off — quotes update live.
         </p>
       </header>

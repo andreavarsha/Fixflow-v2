@@ -70,7 +70,7 @@ export function SupplierHomeDashboard() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <header className="mb-6 pr-12 sm:pr-14">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t.roleLabel}
         </p>
         <h1 className={ffScreenTitle}>{t.dashboardTitle}</h1>
@@ -80,18 +80,18 @@ export function SupplierHomeDashboard() {
       <div className="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:items-start lg:gap-8 xl:gap-10">
         <section className="min-w-0 lg:col-span-8 xl:col-span-8">
           <div className={`${ffCard} overflow-hidden p-0`}>
-            <div className="border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white px-5 py-4 sm:px-6 sm:py-5">
+            <div className="border-b border-border bg-gradient-to-br from-muted/50 to-card px-5 py-4 sm:px-6 sm:py-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
+                <h2 className="text-lg font-semibold text-foreground sm:text-xl">
                   {t.incomingRequests}
                 </h2>
                 {total > 0 && (
-                  <span className="rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
+                  <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
                     {total}
                   </span>
                 )}
               </div>
-              <p className="mt-1 max-w-xl text-sm text-gray-600">{t.incomingHint}</p>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t.incomingHint}</p>
 
               {total > 0 && (
                 <div
@@ -110,8 +110,8 @@ export function SupplierHomeDashboard() {
                         onClick={() => setFilter(id)}
                         className={
                           selected
-                            ? "rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
-                            : "rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50"
+                            ? "rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm"
+                            : "rounded-full bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground ring-1 ring-border transition hover:bg-accent"
                         }
                       >
                         {label}
@@ -124,7 +124,7 @@ export function SupplierHomeDashboard() {
 
             <div className="px-1 py-1 sm:px-2 sm:py-2">
               {quoteRequests === undefined && (
-                <p className="px-4 py-10 text-center text-sm text-gray-500">
+                <p className="px-4 py-10 text-center text-sm text-muted-foreground">
                   {t.loading}
                 </p>
               )}
@@ -134,23 +134,23 @@ export function SupplierHomeDashboard() {
                   <p className="text-3xl" aria-hidden>
                     📋
                   </p>
-                  <p className="mt-3 text-sm font-semibold text-gray-900">
+                  <p className="mt-3 text-sm font-semibold text-foreground">
                     {t.emptyTitle}
                   </p>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-500">
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
                     {t.emptyBody}
                   </p>
                 </div>
               )}
 
               {quoteRequests !== undefined && total > 0 && filtered.length === 0 && (
-                <p className="px-5 py-10 text-center text-sm text-gray-500 sm:px-6">
+                <p className="px-5 py-10 text-center text-sm text-muted-foreground sm:px-6">
                   {t.emptyFiltered}
                 </p>
               )}
 
               {filtered.length > 0 && (
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-y divide-border">
                   {filtered.map((request) => (
                     <IncomingQuoteCard
                       key={request._id}
@@ -169,13 +169,13 @@ export function SupplierHomeDashboard() {
 
         <aside className="flex flex-col gap-6 lg:col-span-4 xl:col-span-4">
           <section className={`${ffCard} overflow-hidden p-0`}>
-            <header className="border-b border-gray-100 bg-gray-50/90 px-5 py-4 sm:px-6">
-              <h2 className="text-base font-semibold text-gray-900">At a glance</h2>
+            <header className="border-b border-border bg-muted/50 px-5 py-4 sm:px-6">
+              <h2 className="text-base font-semibold text-foreground">At a glance</h2>
             </header>
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-border">
               <StatRow label={t.statAwaiting} value={stats.pending} accent="amber" />
-              <StatRow label={t.statSubmitted} value={stats.quoted} accent="emerald" />
-              <StatRow label={t.statWon} value={stats.accepted} accent="blue" />
+              <StatRow label={t.statSubmitted} value={stats.quoted} accent="teal" />
+              <StatRow label={t.statWon} value={stats.accepted} accent="brand" />
               <StatRow label={t.statLost} value={stats.rejected} accent="gray" />
             </ul>
           </section>
@@ -202,24 +202,24 @@ function StatRow({
 }: {
   label: string;
   value: number;
-  accent: "amber" | "emerald" | "blue" | "gray";
+  accent: "amber" | "teal" | "brand" | "gray";
 }) {
   const dot =
     accent === "amber"
       ? "bg-amber-500"
-      : accent === "emerald"
-        ? "bg-emerald-500"
-        : accent === "blue"
-          ? "bg-blue-500"
-          : "bg-gray-400";
+      : accent === "teal"
+        ? "bg-teal-500"
+        : accent === "brand"
+          ? "bg-primary"
+          : "bg-muted-foreground/40";
 
   return (
     <li className="flex items-center justify-between gap-3 px-5 py-3.5 sm:px-6">
-      <span className="flex items-center gap-2.5 text-sm text-gray-700">
+      <span className="flex items-center gap-2.5 text-sm text-foreground/80">
         <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} aria-hidden />
         {label}
       </span>
-      <span className="text-lg font-semibold tabular-nums text-gray-900">{value}</span>
+      <span className="text-lg font-semibold tabular-nums text-foreground">{value}</span>
     </li>
   );
 }

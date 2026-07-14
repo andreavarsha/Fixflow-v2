@@ -12,7 +12,7 @@ export function JobIssuePhoto({ jobId }: JobIssuePhotoProps) {
   if (photo === undefined) {
     return (
       <div
-        className="mt-4 h-40 animate-pulse rounded-xl bg-gray-100"
+        className="mt-4 h-40 animate-pulse rounded-xl bg-muted"
         aria-hidden
       />
     );
@@ -25,7 +25,7 @@ export function JobIssuePhoto({ jobId }: JobIssuePhotoProps) {
       <img
         src={photo.url}
         alt="Photo of the issue from the homeowner"
-        className="mt-4 max-h-56 w-full rounded-xl border border-gray-100 object-cover sm:max-h-64"
+        className="mt-4 max-h-56 w-full rounded-xl border border-border object-cover sm:max-h-64"
         loading="lazy"
         decoding="async"
       />
@@ -33,7 +33,7 @@ export function JobIssuePhoto({ jobId }: JobIssuePhotoProps) {
   }
 
   return (
-    <p className="mt-4 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+    <p className="mt-4 rounded-xl border border-dashed border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
       The homeowner attached a photo, but it could not be loaded. Ask them to
       re-submit the request with the image, or message them for details.
     </p>
