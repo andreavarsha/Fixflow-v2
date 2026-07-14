@@ -42,6 +42,7 @@ function matchesFilter(request: IncomingQuoteRequest, filter: FilterId): boolean
 export function SupplierHomeDashboard() {
   const [filter, setFilter] = useState<FilterId>("all");
   const [openChatJobId, setOpenChatJobId] = useState<Id<"jobs"> | null>(null);
+  const me = useQuery(api.users.getUser);
   const quoteRequests = useQuery(api.quoteRequests.listForSupplier);
 
   useEffect(() => {
@@ -69,12 +70,28 @@ export function SupplierHomeDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <header className="mb-6 pr-12 sm:pr-14">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t.roleLabel}
-        </p>
-        <h1 className={ffScreenTitle}>{t.dashboardTitle}</h1>
-        <p className={ffScreenSubtitle}>{t.dashboardSubtitle}</p>
+      <header className="mb-6 flex items-start justify-between gap-3 pr-12 sm:pr-14">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t.roleLabel}
+          </p>
+          <h1 className={ffScreenTitle}>{t.dashboardTitle}</h1>
+          <p className={ffScreenSubtitle}>{t.dashboardSubtitle}</p>
+        </div>
+        {me && (
+          <span className="mt-1 inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
+            {me.reviewCount ? (
+              <>
+                <span className="text-amber-500">★</span> {(me.rating ?? 0).toFixed(1)}
+                <span className="font-normal text-muted-foreground">
+                  ({me.reviewCount})
+                </span>
+              </>
+            ) : (
+              <span className="uppercase tracking-wide">New</span>
+            )}
+          </span>
+        )}
       </header>
 
       <div className="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:items-start lg:gap-8 xl:gap-10">
