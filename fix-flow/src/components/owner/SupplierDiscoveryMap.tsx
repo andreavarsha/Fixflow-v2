@@ -10,6 +10,7 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { formatResponseMinutes } from "../../lib/supplierDashboardUi";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -34,6 +35,9 @@ export type MapSupplier = {
   quoteStatus?: "pending" | "quoted" | "accepted" | "rejected";
   priceLKR?: number;
   isFinal?: boolean;
+  /** Not yet populated by the backend — falls back to "New" until it is. */
+  completedJobs?: number;
+  avgResponseMinutes?: number;
 };
 
 type SupplierDiscoveryMapProps = {
@@ -141,7 +145,15 @@ export function SupplierDiscoveryMap({
                       ? ` · ${s.reviewCount} reviews`
                       : ""}
                   </p>
-                  <p className="text-gray-500">{s.distanceKm.toFixed(1)} km away</p>
+                  <p className="text-gray-500">
+                    {s.distanceKm.toFixed(1)} km away
+                    {s.completedJobs !== undefined
+                      ? ` · ${s.completedJobs} job${s.completedJobs === 1 ? "" : "s"} done`
+                      : " · New"}
+                    {s.avgResponseMinutes !== undefined
+                      ? ` · ${formatResponseMinutes(s.avgResponseMinutes)} response`
+                      : ""}
+                  </p>
                   {badge && (
                     <p className="mt-1 font-medium text-teal-800">{badge}</p>
                   )}
