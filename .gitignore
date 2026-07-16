@@ -1,8 +1,31 @@
+# Dependency Directories
 node_modules/
 dist/
-.env*.local
+dist-ssr/
+
+# Logs
+logs
 *.log
-.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local Environment and Private Configs
+.env*.local
+*.local
 .agents/
 .tempmediaStorage/
 .system_generated/
+
+# Editor and OS Cache files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
