@@ -1,0 +1,636 @@
+import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { SupplierDiscovery } from "../../components/owner/SupplierDiscovery";
+import { SupplierDiscoveryMap } from "../../components/owner/SupplierDiscoveryMap";
+import { JobStatusTracker } from "../../components/owner/JobStatusTracker";
+import { LiveQuotesDashboard } from "../../components/owner/LiveQuotesDashboard";
+import { OwnerHomeDashboard } from "../../components/owner/OwnerHomeDashboard";
+import { OwnerJobPaymentPanel } from "../../components/owner/OwnerJobPaymentPanel";
+import { OwnerAppShell, type OwnerTab } from "../../components/owner/OwnerAppShell";
+import { OwnerNeedsYou } from "../../components/owner/OwnerNeedsYou";
+import { OwnerActivity } from "../../components/owner/OwnerActivity";
+import { OwnerAnalyzing } from "../../components/owner/OwnerAnalyzing";
+import { InviteToast } from "../../components/owner/InviteToast";
+import { OwnerStepHint } from "../../components/layout/OwnerStepHint";
+import {
+  ffBtnGhost,
+  ffBtnPrimary,
+  ffBtnSecondary,
+  ffBtnInRow,
+  ffCard,
+  ffInput,
+  ffLabel,
+  ffScreenSubtitle,
+  ffScreenTitle,
+} from "../../lib/fixflowUi";
+import { toUserFacingError } from "../../lib/userFacingError";
+import {
+  JOB_CATEGORIES,
+  JOB_URGENCIES,
+  type JobCategory,
+  type JobUrgency,
+} from "../../lib/jobCategories";
+import { zoneByIdName } from "../../lib/zones";
+import { isNeedsYouJob } from "../../lib/ownerJobMeta";
+
+type JobView = "detail" | "discovery" | "quotes";
+
+export default function OwnerDashboard() {
+  const jobs = useQuery(api.jobs.listMyJobs);
+  const [tab, setTab] = useState<OwnerTab>("report");
+  const [jobId, setJobId] = useState<Id<"jobs"> | null>(null);
+  const [jobView, setJobView] = useState<JobView>("detail");
+  const [inviteToastCount, setInviteToastCount] = useState<number | null>(null);
+
+  const needsCount =
+    jobs?.filter((j) => isNeedsYouJob(j.workflowStatus)).length ?? 0;
+
+  const job = useQuery(api.jobs.getJob, jobId ? { jobId } : "skip");
+
+  const inDeepFlow =
+    Boolean(jobId) &&
+    (job === undefined ||
+      job?.status === "classifying" ||
+      jobView === "discovery" ||
+      (jobView === "detail" &&
+        job !== null &&
+        job !== undefined &&
+        job.status === "open"));
+
+  const showNav =
+    !inDeepFlow ||
+    jobView === "quotes" ||
+    (jobView === "detail" &&
+      job !== null &&
+      job !== undefined &&
+      (job.status === "awaiting_payment" ||
+        job.status === "in_progress" ||
+        job.status === "completed"));
+
+  function clearJob() {
+    setJobId(null);
+    setJobView("detail");
+  }
+
+  function openJob(id: Id<"jobs">, view: JobView = "detail") {
+    setJobId(id);
+    setJobView(view);
+  }
+
+  function handleTabChange(next: OwnerTab) {
+    setTab(next);
+    clearJob();
+  }
+
+  function handleJobCreated(id: Id<"jobs">) {
+    setJobId(id);
+    setJobView("detail");
+  }
+
+  useEffect(() => {
+    if (inviteToastCount === null) return;
+    const t = window.setTimeout(() => {
+      setInviteToastCount(null);
+      setTab("activity");
+      clearJob();
+    }, 2800);
+    return () => window.clearTimeout(t);
+  }, [inviteToastCount]);
+
+  return (
+    <OwnerAppShell
+      tab={tab}
+      onTabChange={handleTabChange}
+      needsCount={needsCount}
+      showNav={showNav && inviteToastCount === null}
+    >
+      {inviteToastCount !== null && (
+        <InviteToast
+          count={inviteToastCount}
+          onDismiss={() => {
+            setInviteToastCount(null);
+            setTab("activity");
+            clearJob();
+          }}
+        />
+      )}
+
+      {jobId ? (
+        <ClassificationResult
+          jobId={jobId}
+          jobView={jobView}
+          setJobView={setJobView}
+          onClose={() => {
+            clearJob();
+            setTab("activity");
+          }}
+          onInvited={(count) => setInviteToastCount(count)}
+        />
+      ) : tab === "needs" ? (
+        <OwnerNeedsYou
+          onCompareQuotes={(id) => openJob(id, "quotes")}
+          onConfirmPayment={(id) => openJob(id, "detail")}
+          onGoActivity={() => setTab("activity")}
+          onGoReport={() => setTab("report")}
+        />
+      ) : tab === "activity" ? (
+        <OwnerActivity
+          onOpenJob={(id) => openJob(id, "detail")}
+          onOpenQuotes={(id) => openJob(id, "quotes")}
+        />
+      ) : (
+        <OwnerHomeDashboard onJobCreated={handleJobCreated} />
+      )}
+    </OwnerAppShell>
+  );
+}
+
+function ClassificationResult({
+  jobId,
+  jobView,
+  setJobView,
+  onClose,
+  onInvited,
+}: {
+  jobId: Id<"jobs">;
+  jobView: JobView;
+  setJobView: (v: JobView) => void;
+  onClose: () => void;
+  onInvited: (count: number) => void;
+}) {
+  const job = useQuery(api.jobs.getJob, { jobId });
+  const nearbySuppliers = useQuery(api.suppliers.getSuppliersNearJob, { jobId });
+  const updateSummary = useMutation(api.jobs.updateSummary);
+  const updateJobClassification = useMutation(api.jobs.updateJobClassification);
+  const [editingSummary, setEditingSummary] = useState(false);
+  const [showCategoryEdit, setShowCategoryEdit] = useState(false);
+  const [categoryDraft, setCategoryDraft] = useState<JobCategory>("General Maintenance");
+  const [urgencyDraft, setUrgencyDraft] = useState<JobUrgency>("Medium");
+  const [categorySaveError, setCategorySaveError] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
+  const [summaryDraft, setSummaryDraft] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (job === undefined || job === null || job.status === "classifying") return;
+    if (job.category && JOB_CATEGORIES.includes(job.category as JobCategory)) {
+      setCategoryDraft(job.category as JobCategory);
+    }
+    if (job.urgency && JOB_URGENCIES.includes(job.urgency)) {
+      setUrgencyDraft(job.urgency);
+    }
+  }, [job]);
+
+  if (job === undefined) {
+    return <p className="text-sm text-muted-foreground">Loading your job…</p>;
+  }
+
+  if (job === null) {
+    return (
+      <div>
+        <p className="text-sm text-destructive">We couldn&apos;t load this job.</p>
+        <button type="button" onClick={onClose} className={`${ffBtnGhost} mt-4`}>
+          Back
+        </button>
+      </div>
+    );
+  }
+
+  if (job.status === "classifying") {
+    return (
+      <OwnerAnalyzing
+        hasPhoto={Boolean(job.photoUrl)}
+        zoneId={job.zoneId}
+        onBack={onClose}
+      />
+    );
+  }
+
+  const urgency = job.urgency ?? "Medium";
+  const urgencyStyle = {
+    High: "bg-primary/10 text-primary ring-1 ring-primary/25 dark:bg-primary/15",
+    Medium:
+      "bg-amber-50 text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50",
+    Low: "bg-teal-50 text-teal-800 ring-1 ring-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-900/50",
+  };
+
+  const summary = job.aiSummary ?? "";
+  const zoneName = zoneByIdName(job.zoneId);
+  const hasJobLocation = job.lat != null && job.lng != null;
+
+  async function handleSaveSummary() {
+    setSaveError("");
+    setSaving(true);
+    try {
+      await updateSummary({ jobId, aiSummary: summaryDraft });
+      setEditingSummary(false);
+    } catch (err: unknown) {
+      setSaveError(toUserFacingError(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSaveCategory() {
+    setCategorySaveError("");
+    setSavingCategory(true);
+    try {
+      await updateJobClassification({
+        jobId,
+        category: categoryDraft,
+        urgency: urgencyDraft,
+      });
+      setShowCategoryEdit(false);
+    } catch (err: unknown) {
+      setCategorySaveError(toUserFacingError(err));
+    } finally {
+      setSavingCategory(false);
+    }
+  }
+
+  const loadedJob = job;
+
+  const jobLocked =
+    loadedJob.status === "in_progress" ||
+    loadedJob.status === "awaiting_payment" ||
+    loadedJob.status === "completed";
+
+  function goToOwnerStep(step: 1 | 2 | 3) {
+    if (step === 3) {
+      setJobView("quotes");
+      return;
+    }
+    if (step === 2) {
+      if (loadedJob.category && !jobLocked) setJobView("discovery");
+      else setJobView("detail");
+      return;
+    }
+    setJobView("detail");
+  }
+
+  function canGoToOwnerStep(step: 1 | 2 | 3) {
+    if (step === 1) return true;
+    if (step === 2) return Boolean(loadedJob.category) && !jobLocked;
+    if (step === 3) return true;
+    return false;
+  }
+
+  if (jobView === "quotes") {
+    return (
+      <LiveQuotesDashboard
+        jobId={jobId}
+        onBack={() => setJobView("detail")}
+        onGoToSuppliers={() => goToOwnerStep(2)}
+        onStepClick={goToOwnerStep}
+        canGoToStep={canGoToOwnerStep}
+      />
+    );
+  }
+
+  if (jobView === "discovery" && job.category) {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setJobView("detail")}
+          className={`${ffBtnGhost} mb-4 text-left`}
+        >
+          ← Edit details
+        </button>
+        <header className="mb-6">
+          <h1 className={ffScreenTitle}>Find nearby suppliers</h1>
+          <p className={ffScreenSubtitle}>
+            Distances are from your job pin. Pick up to three.
+          </p>
+        </header>
+        {hasJobLocation ? (
+          <SupplierDiscovery
+            jobId={jobId}
+            category={job.category}
+            jobLat={job.lat ?? 7.0167}
+            jobLng={job.lng ?? 79.9833}
+            zoneId={job.zoneId}
+            onBack={() => setJobView("detail")}
+            onQuotesSent={(count) => {
+              onInvited(count);
+            }}
+          />
+        ) : (
+          <div className={`${ffCard} text-sm text-muted-foreground`}>
+            <p className="font-medium text-foreground">Location is missing</p>
+            <p className="mt-2 leading-relaxed">
+              This job needs a location before we can find nearby suppliers.
+            </p>
+            <button
+              type="button"
+              onClick={() => setJobView("detail")}
+              className={`${ffBtnSecondary} mt-4`}
+            >
+              Back to job details
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const understandStep =
+    job.status === "open"
+      ? "analyzed"
+      : job.status === "in_progress"
+        ? "quoted"
+        : "analyzed";
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        <span
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card"
+          aria-hidden
+        >
+          ←
+        </span>
+        {job.status === "open" ? "Edit details" : "Activity"}
+      </button>
+
+      {job.status === "open" && (
+        <OwnerStepHint
+          active={1}
+          onStepClick={goToOwnerStep}
+          canGoToStep={canGoToOwnerStep}
+        />
+      )}
+
+      <UnderstandTracker active={understandStep} />
+
+      <JobStatusTracker jobId={jobId} />
+
+      <header className="mb-6 pr-12 sm:pr-14">
+        <h1 className={ffScreenTitle}>Here&apos;s what we understood</h1>
+        <p className={ffScreenSubtitle}>
+          One tracker, then find nearby suppliers when you&apos;re ready.
+        </p>
+      </header>
+
+      <OwnerJobPaymentPanel
+        jobId={jobId}
+        status={job.status}
+        acceptedQuote={job.acceptedQuote ?? null}
+      />
+
+      <div className={`${ffCard} flex flex-col gap-6 xl:gap-8`}>
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:gap-10">
+          <div className="flex flex-col gap-4">
+            {job.photoUrl ? (
+              <img
+                src={job.photoUrl}
+                alt="Photo you attached"
+                className="max-h-64 w-full rounded-xl border border-border object-cover"
+              />
+            ) : (
+              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground">
+                No photo
+              </div>
+            )}
+
+            {hasJobLocation && job.status === "open" && (
+              <SupplierDiscoveryMap
+                jobLat={job.lat!}
+                jobLng={job.lng!}
+                suppliers={nearbySuppliers ?? []}
+                selected={[]}
+                onToggle={() => undefined}
+                heightClassName="h-48 sm:h-56"
+                compact
+              />
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              {job.category && (
+                <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+                  {job.category}
+                </span>
+              )}
+              <span
+                className={`rounded-full px-3 py-1 text-sm font-semibold ${urgencyStyle[urgency]}`}
+              >
+                {urgency} urgency
+              </span>
+              {zoneName && (
+                <span className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground ring-1 ring-border">
+                  {zoneName}
+                </span>
+              )}
+            </div>
+
+            {job.classificationFailed && (
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50">
+                We couldn&apos;t reach the AI classifier — please check the category
+                below before finding suppliers.
+              </p>
+            )}
+
+            {!showCategoryEdit ? (
+              <button
+                type="button"
+                onClick={() => setShowCategoryEdit(true)}
+                className={`${ffBtnGhost} w-fit text-sm`}
+              >
+                Adjust category & urgency
+              </button>
+            ) : (
+              <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  <div className="min-w-[200px] flex-1">
+                    <label htmlFor="job-category" className={ffLabel}>
+                      Trade category
+                    </label>
+                    <select
+                      id="job-category"
+                      value={categoryDraft}
+                      onChange={(e) => setCategoryDraft(e.target.value as JobCategory)}
+                      className={ffInput}
+                    >
+                      {JOB_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-[140px] sm:w-40">
+                    <label htmlFor="job-urgency" className={ffLabel}>
+                      Urgency
+                    </label>
+                    <select
+                      id="job-urgency"
+                      value={urgencyDraft}
+                      onChange={(e) => setUrgencyDraft(e.target.value as JobUrgency)}
+                      className={ffInput}
+                    >
+                      {JOB_URGENCIES.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {categorySaveError && (
+                  <p className="text-sm text-destructive">{categorySaveError}</p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveCategory()}
+                    disabled={savingCategory}
+                    className={`${ffBtnPrimary} ${ffBtnInRow}`}
+                  >
+                    {savingCategory ? "Saving…" : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCategoryEdit(false);
+                      setCategorySaveError("");
+                    }}
+                    className={`${ffBtnSecondary} ${ffBtnInRow}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col border-t border-border pt-6 lg:border-t-0 lg:pt-0">
+            <p className={ffLabel}>Summary</p>
+            {editingSummary ? (
+              <div className="mt-2 flex flex-col gap-3">
+                <textarea
+                  value={summaryDraft}
+                  onChange={(e) => setSummaryDraft(e.target.value)}
+                  rows={5}
+                  className={`${ffInput} resize-none`}
+                />
+                {saveError && <p className="text-sm text-destructive">{saveError}</p>}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveSummary()}
+                    disabled={saving || !summaryDraft.trim()}
+                    className={`${ffBtnPrimary} ${ffBtnInRow}`}
+                  >
+                    {saving ? "Saving…" : "Save summary"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingSummary(false);
+                      setSaveError("");
+                    }}
+                    className={`${ffBtnSecondary} ${ffBtnInRow}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <p className="flex-1 text-base leading-relaxed text-foreground/90">
+                  {summary}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSummaryDraft(summary);
+                    setEditingSummary(true);
+                  }}
+                  className={`${ffBtnGhost} shrink-0 sm:w-auto`}
+                >
+                  Edit text
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {!jobLocked && (
+          <div className="border-t border-border pt-6">
+            <button
+              type="button"
+              onClick={() => setJobView("discovery")}
+              disabled={!job.category}
+              className={ffBtnPrimary}
+            >
+              Find nearby suppliers
+            </button>
+            <button
+              type="button"
+              onClick={() => setJobView("quotes")}
+              className={`${ffBtnGhost} mt-3`}
+            >
+              Open quote inbox →
+            </button>
+          </div>
+        )}
+
+        {(job.status === "in_progress" ||
+          job.status === "awaiting_payment" ||
+          job.status === "completed") && (
+          <button
+            type="button"
+            onClick={() => setJobView("quotes")}
+            className={`${ffBtnSecondary} mt-2`}
+          >
+            View quotes
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UnderstandTracker({
+  active,
+}: {
+  active: "submitted" | "analyzed" | "finding" | "quoted";
+}) {
+  const steps: { id: typeof active; label: string }[] = [
+    { id: "submitted", label: "Submitted" },
+    { id: "analyzed", label: "Analyzed" },
+    { id: "finding", label: "Finding pros" },
+    { id: "quoted", label: "Quoted" },
+  ];
+  const activeIdx = steps.findIndex((s) => s.id === active);
+
+  return (
+    <div className="mb-6 flex flex-wrap gap-2">
+      {steps.map((step, i) => {
+        const isActive = i === activeIdx;
+        const done = i < activeIdx;
+        return (
+          <span
+            key={step.id}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              isActive
+                ? "border-2 border-primary bg-card text-primary"
+                : done
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {step.label}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
