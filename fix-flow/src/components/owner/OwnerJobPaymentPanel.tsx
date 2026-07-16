@@ -211,7 +211,7 @@ export function OwnerJobPaymentPanel({
             downloadJobInvoice({
               jobId,
               category,
-              zoneName: zoneByIdName(zoneId),
+              zoneName: zoneByIdName(zoneId) ?? undefined,
               description,
               supplierName: acceptedQuote?.supplierName,
               priceLKR: acceptedQuote?.priceLKR,

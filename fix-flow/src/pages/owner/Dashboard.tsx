@@ -181,7 +181,7 @@ function ClassificationResult({
     if (job.status === "open") {
       setShowDetails(true);
     }
-  }, [job?.status]);
+  }, [job]);
 
 
   useEffect(() => {
