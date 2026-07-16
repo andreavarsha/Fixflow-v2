@@ -10,18 +10,9 @@ import {
 } from "./IncomingQuoteCard";
 import { ffCard, ffScreenSubtitle, ffScreenTitle } from "../../lib/fixflowUi";
 import { supplierUi } from "../../lib/supplierDashboardUi";
-
-const t = supplierUi("en");
+import { useLanguage } from "../../lib/LanguageContext";
 
 type FilterId = "all" | "action" | "submitted" | "active" | "closed";
-
-const FILTERS: { id: FilterId; label: string }[] = [
-  { id: "all", label: t.filterAll },
-  { id: "action", label: t.filterAction },
-  { id: "submitted", label: t.filterSubmitted },
-  { id: "active", label: t.filterActive },
-  { id: "closed", label: t.filterClosed },
-];
 
 function matchesFilter(request: IncomingQuoteRequest, filter: FilterId): boolean {
   if (filter === "all") return true;
@@ -46,6 +37,17 @@ export function SupplierHomeDashboard() {
   const [expandedJobId, setExpandedJobId] = useState<Id<"jobs"> | null>(null);
   const me = useQuery(api.users.getUser);
   const quoteRequests = useQuery(api.quoteRequests.listForSupplier);
+  const { language } = useLanguage();
+
+  const t = useMemo(() => supplierUi(language), [language]);
+
+  const filters = useMemo(() => [
+    { id: "all" as FilterId, label: t.filterAll },
+    { id: "action" as FilterId, label: t.filterAction },
+    { id: "submitted" as FilterId, label: t.filterSubmitted },
+    { id: "active" as FilterId, label: t.filterActive },
+    { id: "closed" as FilterId, label: t.filterClosed },
+  ], [t]);
 
   useEffect(() => {
     if (!openChatJobId) return;
@@ -122,7 +124,7 @@ export function SupplierHomeDashboard() {
                   role="tablist"
                   aria-label="Filter requests"
                 >
-                  {FILTERS.map(({ id, label }) => {
+                  {filters.map(({ id, label }) => {
                     const selected = filter === id;
                     return (
                       <button

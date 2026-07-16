@@ -8,6 +8,8 @@ import App from "./App.tsx";
 import "./index.css";
 import "leaflet/dist/leaflet.css";
 
+import { LanguageProvider } from "./lib/LanguageContext.tsx";
+
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -15,7 +17,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <ConvexAuthProvider client={convex}>
         <BrowserRouter>
-          <App />
+          <LanguageProvider>
+            <App />
+          </LanguageProvider>
         </BrowserRouter>
       </ConvexAuthProvider>
     </ThemeProvider>

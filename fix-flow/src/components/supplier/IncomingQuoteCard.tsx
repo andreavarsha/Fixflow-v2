@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -17,6 +17,7 @@ import {
   supplierUi,
 } from "../../lib/supplierDashboardUi";
 import { toUserFacingError } from "../../lib/userFacingError";
+import { useLanguage } from "../../lib/LanguageContext";
 
 const urgencyStyle = {
   High: "text-primary bg-primary/10 ring-primary/20 dark:bg-primary/15",
@@ -44,8 +45,6 @@ export type IncomingQuoteRequest = {
   addressNote?: string;
 };
 
-const t = supplierUi("en");
-
 const STATUS_ACCENT: Record<IncomingQuoteRequest["status"], string> = {
   pending: "border-l-amber-500",
   quoted: "border-l-primary",
@@ -70,6 +69,9 @@ export function IncomingQuoteCard({
 }: IncomingQuoteCardProps) {
   const [expandedLocal, setExpandedLocal] = useState(false);
   const [chatOpenLocal, setChatOpenLocal] = useState(false);
+  const { language } = useLanguage();
+
+  const t = useMemo(() => supplierUi(language), [language]);
 
   const expanded = expandedControlled ?? expandedLocal;
   const setExpanded = onExpandedChange ?? setExpandedLocal;
@@ -83,8 +85,15 @@ export function IncomingQuoteCard({
       : "skip",
   );
 
-  const summaryText =
-    request.jobSummary ?? request.jobDescription ?? "No summary available.";
+  const summaryText = useMemo(() => {
+    if (language === "si" && request.jobSummary_si) {
+      return request.jobSummary_si;
+    }
+    if (language === "ta" && request.jobSummary_ta) {
+      return request.jobSummary_ta;
+    }
+    return request.jobSummary ?? request.jobDescription ?? "No summary available.";
+  }, [language, request.jobSummary, request.jobSummary_si, request.jobSummary_ta, request.jobDescription]);
 
   const statusLabel =
     request.status === "pending"
@@ -279,6 +288,8 @@ function JobActionsSection({
   const [isFinal, setIsFinal] = useState(initialIsFinal ?? false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const { language } = useLanguage();
+  const t = useMemo(() => supplierUi(language), [language]);
 
   const lifecycle = jobStatus as JobLifecycleStatus;
 

@@ -6,6 +6,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, CircleMarker, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { useLanguage } from "../../lib/LanguageContext";
 import {
   ffBtnPrimary,
   ffBtnSecondary,
@@ -46,6 +47,7 @@ export default function AdminDashboard() {
   const overrideJob = useMutation(api.admin.overrideJob);
   const { signOut } = useAuthActions();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   // Tab State
   const [activeTab, setActiveTab] = useState<"moderation" | "archive" | "analytics" >("moderation");
@@ -246,9 +248,9 @@ export default function AdminDashboard() {
       {/* Header */}
       <header className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className={ffScreenTitle}>Admin Workspace</h1>
+          <h1 className={ffScreenTitle}>{t("adminWorkspace")}</h1>
           <p className={ffScreenSubtitle}>
-            Human-in-the-loop oversight portal. Monitor ratings, override AI classifications, and audit quotes.
+            {t("adminSubtitle")}
           </p>
         </div>
         <button
@@ -258,7 +260,7 @@ export default function AdminDashboard() {
           }}
           className={`${ffBtnSecondary} w-auto self-start px-4 text-sm`}
         >
-          Sign out
+          {t("signOut")}
         </button>
       </header>
 
@@ -276,7 +278,7 @@ export default function AdminDashboard() {
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
-          Active Moderation Queue ({moderationJobs?.length ?? 0})
+          {t("tabActiveQueue")} ({moderationJobs?.length ?? 0})
         </button>
         <button
           type="button"
@@ -290,7 +292,7 @@ export default function AdminDashboard() {
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
           </svg>
-          Completed Archives ({archivedJobs?.length ?? 0})
+          {t("tabCompletedArchives")} ({archivedJobs?.length ?? 0})
         </button>
         <button
           type="button"
@@ -304,7 +306,7 @@ export default function AdminDashboard() {
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          Marketplace Analytics
+          {t("tabMarketplaceAnalytics")}
         </button>
       </div>
 
@@ -314,7 +316,7 @@ export default function AdminDashboard() {
           {/* Moderation Filters */}
           <div className={`${ffCard} mb-6 grid grid-cols-1 gap-4 sm:grid-cols-4`}>
             <div>
-              <label htmlFor="search-mod" className={ffLabel}>Search Jobs</label>
+              <label htmlFor="search-mod" className={ffLabel}>{t("searchJobs")}</label>
               <input
                 id="search-mod"
                 type="text"
@@ -325,14 +327,14 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label htmlFor="filter-status" className={ffLabel}>Job Status</label>
+              <label htmlFor="filter-status" className={ffLabel}>{t("filterStatus")}</label>
               <select
                 id="filter-status"
                 value={modStatus}
                 onChange={(e) => setModStatus(e.target.value)}
                 className={ffInput}
               >
-                <option value="all">All Active States</option>
+                <option value="all">{t("allActiveStates")}</option>
                 <option value="classifying">Classifying</option>
                 <option value="open">Open Marketplace</option>
                 <option value="in_progress">In Progress</option>
@@ -340,28 +342,28 @@ export default function AdminDashboard() {
               </select>
             </div>
             <div>
-              <label htmlFor="filter-urgency" className={ffLabel}>Urgency</label>
+              <label htmlFor="filter-urgency" className={ffLabel}>{t("filterUrgency")}</label>
               <select
                 id="filter-urgency"
                 value={modUrgency}
                 onChange={(e) => setModUrgency(e.target.value)}
                 className={ffInput}
               >
-                <option value="all">All Urgency</option>
+                <option value="all">{t("allUrgency")}</option>
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
                 <option value="Low">Low</option>
               </select>
             </div>
             <div>
-              <label htmlFor="filter-category" className={ffLabel}>Category</label>
+              <label htmlFor="filter-category" className={ffLabel}>{t("filterCategory")}</label>
               <select
                 id="filter-category"
                 value={modCategory}
                 onChange={(e) => setModCategory(e.target.value)}
                 className={ffInput}
               >
-                <option value="all">All Categories</option>
+                <option value="all">{t("allCategories")}</option>
                 {JOB_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -380,13 +382,13 @@ export default function AdminDashboard() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="pb-3 font-semibold">Created</th>
-                      <th className="pb-3 font-semibold">Homeowner</th>
-                      <th className="pb-3 font-semibold">Category</th>
-                      <th className="pb-3 font-semibold">Urgency</th>
-                      <th className="pb-3 font-semibold">Status</th>
-                      <th className="pb-3 font-semibold">Description</th>
-                      <th className="pb-3 font-semibold text-center">Quotes</th>
+                      <th className="pb-3 font-semibold">{t("colCreated")}</th>
+                      <th className="pb-3 font-semibold">{t("colHomeowner")}</th>
+                      <th className="pb-3 font-semibold">{t("colCategory")}</th>
+                      <th className="pb-3 font-semibold">{t("colUrgency")}</th>
+                      <th className="pb-3 font-semibold">{t("colStatus")}</th>
+                      <th className="pb-3 font-semibold">{t("colDescription")}</th>
+                      <th className="pb-3 font-semibold text-center">{t("colQuotes")}</th>
                       <th className="pb-3 font-semibold text-right">Audit</th>
                     </tr>
                   </thead>
@@ -442,7 +444,7 @@ export default function AdminDashboard() {
                             onClick={() => setSelectedJobId(job._id)}
                             className={`${ffBtnSecondary} w-auto text-xs px-3 py-1`}
                           >
-                            Audit & Override
+                            {t("btnAudit")}
                           </button>
                         </td>
                       </tr>
@@ -461,7 +463,7 @@ export default function AdminDashboard() {
           {/* Completed Filters */}
           <div className={`${ffCard} mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2`}>
             <div>
-              <label htmlFor="search-archive" className={ffLabel}>Search Archive</label>
+              <label htmlFor="search-archive" className={ffLabel}>{t("searchArchive")}</label>
               <input
                 id="search-archive"
                 type="text"
@@ -472,14 +474,14 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label htmlFor="filter-rating" className={ffLabel}>Min Rating Filter</label>
+              <label htmlFor="filter-rating" className={ffLabel}>{t("minRatingFilter")}</label>
               <select
                 id="filter-rating"
                 value={archiveRating}
                 onChange={(e) => setArchiveRating(e.target.value)}
                 className={ffInput}
               >
-                <option value="all">All Ratings</option>
+                <option value="all">{t("allRatings")}</option>
                 <option value="5">5 Stars only</option>
                 <option value="4">4 Stars or higher</option>
                 <option value="3">3 Stars or higher</option>
@@ -498,13 +500,13 @@ export default function AdminDashboard() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="pb-3 font-semibold">Date Completed</th>
-                      <th className="pb-3 font-semibold">Homeowner</th>
-                      <th className="pb-3 font-semibold">Hired Tradesperson</th>
-                      <th className="pb-3 font-semibold">Cost (LKR)</th>
-                      <th className="pb-3 font-semibold">Category</th>
-                      <th className="pb-3 font-semibold">Customer Rating</th>
-                      <th className="pb-3 font-semibold">Review Comment</th>
+                      <th className="pb-3 font-semibold">{t("colDateCompleted")}</th>
+                      <th className="pb-3 font-semibold">{t("colHomeowner")}</th>
+                      <th className="pb-3 font-semibold">{t("colHiredTradesperson")}</th>
+                      <th className="pb-3 font-semibold">{t("colCost")}</th>
+                      <th className="pb-3 font-semibold">{t("colCategory")}</th>
+                      <th className="pb-3 font-semibold">{t("colRating")}</th>
+                      <th className="pb-3 font-semibold">{t("colReviewComment")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -557,26 +559,26 @@ export default function AdminDashboard() {
           {/* Key Aggregate Cards */}
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div className={ffCard}>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Marketplace Volume</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("analyticsVolume")}</h4>
               <p className="mt-2 text-2xl font-bold text-foreground">{jobs?.length ?? "…"}</p>
               <span className="text-[10px] text-muted-foreground block mt-1">Total submitted jobs to date</span>
             </div>
             <div className={ffCard}>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Invoices Settled</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("analyticsInvoices")}</h4>
               <p className="mt-2 text-2xl font-bold text-emerald-500">
                 LKR {totalRevenue.toLocaleString("en-LK")}
               </p>
               <span className="text-[10px] text-muted-foreground block mt-1">Platform gross transaction value</span>
             </div>
             <div className={ffCard}>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Overall Customer Satisfaction</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("analyticsSatisfaction")}</h4>
               <p className="mt-2 text-2xl font-bold text-amber-500">
                 {averageRating > 0 ? `★ ${averageRating.toFixed(1)}` : "★ -"}
               </p>
               <span className="text-[10px] text-muted-foreground block mt-1">Hired tradesperson feedback avg</span>
             </div>
             <div className={ffCard}>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Active Registrations</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("analyticsRegistrations")}</h4>
               <p className="mt-2 text-2xl font-bold text-primary">
                 {users?.length ?? "…"}
               </p>
@@ -590,7 +592,7 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Left: Monthly Growth */}
             <div className={`${ffCard} lg:col-span-5`}>
-              <h3 className="text-base font-bold text-foreground mb-4">Jobs Received Per Month</h3>
+              <h3 className="text-base font-bold text-foreground mb-4">{t("jobsPerMonth")}</h3>
               {monthlyBars.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No historical monthly data found.</p>
               ) : (
@@ -618,7 +620,7 @@ export default function AdminDashboard() {
 
             {/* Right: Supplier Leaderboard */}
             <div className={`${ffCard} lg:col-span-7`}>
-              <h3 className="text-base font-bold text-foreground mb-4">Top Rated Tradespersons</h3>
+              <h3 className="text-base font-bold text-foreground mb-4">{t("topTradespersons")}</h3>
               {suppliers.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No registered suppliers found.</p>
               ) : (
@@ -626,10 +628,10 @@ export default function AdminDashboard() {
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-border text-muted-foreground uppercase tracking-wider">
-                        <th className="pb-2 font-semibold">Tradesperson</th>
-                        <th className="pb-2 font-semibold">Category</th>
-                        <th className="pb-2 font-semibold text-center">Jobs Completed</th>
-                        <th className="pb-2 font-semibold text-right">Average Rating</th>
+                        <th className="pb-2 font-semibold">{t("roleSupplier")}</th>
+                        <th className="pb-2 font-semibold">{t("colCategory")}</th>
+                        <th className="pb-2 font-semibold text-center">{t("colJobsCompleted")}</th>
+                        <th className="pb-2 font-semibold text-right">{t("colAverageRating")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60">
@@ -653,7 +655,7 @@ export default function AdminDashboard() {
 
           {/* Homeowner Audit Logs */}
           <div className={ffCard}>
-            <h3 className="text-base font-bold text-foreground mb-4">Homeowner Submission Audits</h3>
+            <h3 className="text-base font-bold text-foreground mb-4">{t("homeownerAudits")}</h3>
             {owners.length === 0 ? (
               <p className="text-sm text-muted-foreground">No registered homeowners found.</p>
             ) : (
@@ -661,10 +663,10 @@ export default function AdminDashboard() {
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground uppercase tracking-wider">
-                      <th className="pb-2 font-semibold">Homeowner</th>
-                      <th className="pb-2 font-semibold">Email</th>
-                      <th className="pb-2 font-semibold text-center">Total Jobs Submitted</th>
-                      <th className="pb-2 font-semibold text-center">Active Jobs</th>
+                      <th className="pb-2 font-semibold">{t("colHomeowner")}</th>
+                      <th className="pb-2 font-semibold">{t("colEmail")}</th>
+                      <th className="pb-2 font-semibold text-center">{t("totalSubmitted")}</th>
+                      <th className="pb-2 font-semibold text-center">{t("activeJobs")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">

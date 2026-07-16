@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ffPage } from "../../lib/fixflowUi";
+import { useLanguage } from "../../lib/LanguageContext";
 
 export type OwnerTab = "needs" | "report" | "activity";
 
@@ -18,6 +19,8 @@ export function OwnerAppShell({
   showNav,
   children,
 }: OwnerAppShellProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="relative min-h-dvh bg-background">
       {/* Desktop / tablet top header rail */}
@@ -43,7 +46,7 @@ export function OwnerAppShell({
                   <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                Better Call
+                {t("navBrand")}
               </span>
             </div>
 
@@ -52,7 +55,7 @@ export function OwnerAppShell({
               <RailButton
                 active={tab === "report"}
                 onClick={() => onTabChange("report")}
-                label="Request Repair"
+                label={t("tabReport")}
                 icon={
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -72,7 +75,7 @@ export function OwnerAppShell({
               <RailButton
                 active={tab === "needs"}
                 onClick={() => onTabChange("needs")}
-                label="Action Required"
+                label={t("tabNeeds")}
                 badge={needsCount}
                 icon={
                   <svg
@@ -94,7 +97,7 @@ export function OwnerAppShell({
               <RailButton
                 active={tab === "activity"}
                 onClick={() => onTabChange("activity")}
-                label="Activity History"
+                label={t("tabActivity")}
                 icon={
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -139,7 +142,7 @@ export function OwnerAppShell({
             <MobileTab
               active={tab === "needs"}
               onClick={() => onTabChange("needs")}
-              label="Action"
+              label={t("mobileNeeds")}
               badge={needsCount}
               icon={
                 <svg
@@ -161,7 +164,7 @@ export function OwnerAppShell({
             <MobileTab
               active={tab === "report"}
               onClick={() => onTabChange("report")}
-              label="Report"
+              label={t("mobileReport")}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -181,7 +184,7 @@ export function OwnerAppShell({
             <MobileTab
               active={tab === "activity"}
               onClick={() => onTabChange("activity")}
-              label="Activity"
+              label={t("mobileActivity")}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

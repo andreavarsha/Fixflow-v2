@@ -7,11 +7,7 @@ import { ffBtnGhost } from "../../lib/fixflowUi";
 import { initials } from "../../lib/initials";
 import { ThemeToggle } from "../ThemeToggle";
 
-const ROLE_LABEL = {
-  owner: "Homeowner",
-  supplier: "Supplier",
-  admin: "Admin",
-} as const;
+import { useLanguage } from "../../lib/LanguageContext";
 
 export function DashboardAccountMenu() {
   const user = useQuery(api.users.getUser);
@@ -20,6 +16,7 @@ export function DashboardAccountMenu() {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +40,8 @@ export function DashboardAccountMenu() {
     }
   }
 
-  const label = user?.role ? ROLE_LABEL[user.role] : "Account";
+  const roleKey = user?.role === "owner" ? "roleOwner" : user?.role === "supplier" ? "roleSupplier" : "roleAdmin";
+  const label = user?.role ? t(roleKey) : "Account";
   const displayName = user?.name?.trim() || user?.email || "Signed in";
   const avatar = initials(user?.name, user?.email);
 
@@ -79,10 +77,47 @@ export function DashboardAccountMenu() {
                 {user.email}
               </p>
             )}
-            <p className="mt-2 text-xs font-medium text-muted-foreground">{label}</p>
+            <p className="mt-2 text-xs font-medium text-muted-foreground">{t("roleLabel")}: {label}</p>
           </div>
+          
+          {/* Language Selection Row */}
+          <div className="flex flex-col gap-1.5 border-b border-border px-4 py-2.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Language / භාෂාව / மொழி
+            </span>
+            <div className="flex gap-1 bg-secondary p-0.5 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${
+                  language === "en" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("si")}
+                className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${
+                  language === "si" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                සිංහල
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("ta")}
+                className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${
+                  language === "ta" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                தமிழ்
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-            <span className="text-xs font-medium text-muted-foreground">Theme</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("theme")}</span>
             <ThemeToggle />
           </div>
           <div className="px-2 py-1">
@@ -93,7 +128,7 @@ export function DashboardAccountMenu() {
               onClick={() => void handleSignOut()}
               className={`${ffBtnGhost} w-full justify-center text-sm text-destructive hover:bg-destructive/10 hover:text-destructive`}
             >
-              {signingOut ? "Signing out…" : "Sign out"}
+              {signingOut ? t("signingOut") : t("signOut")}
             </button>
           </div>
         </div>

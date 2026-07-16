@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useLanguage } from "../../lib/LanguageContext";
 import {
   IconGarden,
   IconLockDoor,
@@ -26,34 +27,37 @@ import {
 import { toUserFacingError } from "../../lib/userFacingError";
 import type { JobCategory } from "../../lib/jobCategories";
 
+type CommonIssueKey = "roofCard" | "gardenCard" | "plumbingCard" | "lockDoorCard";
+type CommonIssueDescKey = "roofDesc" | "gardenDesc" | "plumbingDesc" | "lockDoorDesc";
+
 const COMMON_ISSUES: {
-  label: string;
+  labelKey: CommonIssueKey;
   category: JobCategory;
-  description: string;
+  descriptionKey: CommonIssueDescKey;
   Icon: typeof IconRoof;
 }[] = [
   {
-    label: "Roof",
+    labelKey: "roofCard",
     category: "Roofing",
-    description: "Roof leak or damage. Need a roofing professional to inspect and fix.",
+    descriptionKey: "roofDesc",
     Icon: IconRoof,
   },
   {
-    label: "Garden",
+    labelKey: "gardenCard",
     category: "Garden / Landscaping",
-    description: "Garden or outdoor maintenance needed.",
+    descriptionKey: "gardenDesc",
     Icon: IconGarden,
   },
   {
-    label: "Plumbing",
+    labelKey: "plumbingCard",
     category: "Plumbing",
-    description: "Water leak or plumbing issue. Need a plumber to inspect and fix.",
+    descriptionKey: "plumbingDesc",
     Icon: IconPlumbing,
   },
   {
-    label: "Lock/Door",
+    labelKey: "lockDoorCard",
     category: "Carpentry",
-    description: "Door or lock problem. Need a locksmith or carpenter.",
+    descriptionKey: "lockDoorDesc",
     Icon: IconLockDoor,
   },
 ];
@@ -76,6 +80,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const { t } = useLanguage();
 
   const generateUploadUrl = useMutation(api.jobs.generateUploadUrl);
   const submitJob = useMutation(api.jobs.submitJob);
@@ -103,9 +108,9 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
   }
 
   function handleSelectIssue(issue: (typeof COMMON_ISSUES)[number]) {
-    setSelectedIssue(issue.label);
+    setSelectedIssue(issue.labelKey);
     setPreferredCategory(issue.category);
-    setDescription(issue.description);
+    setDescription(t(issue.descriptionKey));
   }
 
   function clearPhoto() {
@@ -129,8 +134,9 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = description.trim();
-    const fallback =
-      COMMON_ISSUES.find((i) => i.label === selectedIssue)?.description ?? "";
+    const fallback = selectedIssue
+      ? t(COMMON_ISSUES.find((i) => i.labelKey === selectedIssue)!.descriptionKey)
+      : "";
     const finalDescription = trimmed || fallback;
     if (!finalDescription) {
       setError("Pick an issue type or describe the problem.");
@@ -205,14 +211,12 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
             >
               ←
             </span>
-            Back to location
+            {t("backToLocation")}
           </button>
         )}
-        <h1 className={ffScreenTitle}>Report an issue</h1>
+        <h1 className={ffScreenTitle}>{t("formTitle")}</h1>
         <p className={ffScreenSubtitle}>
-          {step === 1
-            ? "Step 1 of 2: find the location and add details"
-            : "Step 2 of 2: describe the issue and add a photo"}
+          {step === 1 ? t("step1Title") : t("step2Title")}
         </p>
         <div className="mt-4 flex justify-center gap-2" aria-hidden>
           <span
@@ -231,20 +235,19 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
 
             <div>
               <label htmlFor="address-note" className={ffLabel}>
-                Address / Location details{" "}
-                <span className="font-normal text-muted-foreground">(optional)</span>
+                {t("labelAddress")}
               </label>
               <input
                 id="address-note"
                 type="text"
                 value={addressNote}
                 onChange={(e) => setAddressNote(e.target.value)}
-                placeholder="e.g. Gate 2, blue house behind the pharmacy"
+                placeholder={t("placeholderAddress")}
                 maxLength={200}
                 className={ffInput}
               />
               <p className="mt-1 text-xs text-muted-foreground/70">
-                Only shared with the professional you accept to hire.
+                {t("addressTip")}
               </p>
             </div>
 
@@ -263,7 +266,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
               disabled={!location}
               className={ffBtnPrimary}
             >
-              Continue
+              {t("btnContinue")}
             </button>
           </div>
         ) : (
@@ -275,25 +278,25 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
           >
             <div>
               <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                What type of issue?
+                {t("issueTypeLabel")}
               </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {COMMON_ISSUES.map((issue) => {
-                  const selected = selectedIssue === issue.label;
+                  const selected = selectedIssue === issue.labelKey;
                   return (
-                    <button
-                      key={issue.label}
-                      type="button"
-                      onClick={() => handleSelectIssue(issue)}
-                      className={`flex flex-col items-center gap-2 rounded-xl border px-2 py-4 text-sm font-medium transition ${
-                        selected
-                          ? "border-highlight bg-highlight/20 text-highlight-foreground ring-2 ring-highlight/50"
-                          : "border-border bg-card text-foreground/90 hover:border-highlight/60 hover:bg-white/10"
-                      }`}
-                    >
-                      <issue.Icon size={44} />
-                      {issue.label}
-                    </button>
+                     <button
+                       key={issue.labelKey}
+                       type="button"
+                       onClick={() => handleSelectIssue(issue)}
+                       className={`flex flex-col items-center gap-2 rounded-xl border px-2 py-4 text-sm font-medium transition ${
+                         selected
+                           ? "border-highlight bg-highlight/20 text-highlight-foreground ring-2 ring-highlight/50"
+                           : "border-border bg-card text-foreground/90 hover:border-highlight/60 hover:bg-white/10"
+                       }`}
+                     >
+                       <issue.Icon size={44} />
+                       {t(issue.labelKey)}
+                     </button>
                   );
                 })}
               </div>
@@ -301,7 +304,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
 
             <div>
               <label htmlFor="issue-desc" className={ffLabel}>
-                What&apos;s the problem?{" "}
+                {t("labelDescription")}{" "}
                 <span className="font-normal text-muted-foreground">
                   {selectedIssue ? "(optional)" : ""}
                 </span>
@@ -310,7 +313,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                 id="issue-desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g. Water leaking under the kitchen sink, getting worse."
+                placeholder={t("placeholderDescription")}
                 maxLength={300}
                 rows={4}
                 required={!selectedIssue}
@@ -323,8 +326,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
 
             <div>
               <span className={ffLabel}>
-                Photo{" "}
-                <span className="font-normal text-muted-foreground">(optional)</span>
+                {t("labelPhoto")}
               </span>
               {photoPreview ? (
                 <div className="mt-1.5 overflow-hidden rounded-xl border border-border">
@@ -342,7 +344,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                       onClick={clearPhoto}
                       className="shrink-0 text-xs font-semibold text-destructive hover:underline"
                     >
-                      Remove
+                      {t("btnRemove")}
                     </button>
                   </div>
                 </div>
@@ -352,10 +354,10 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                   className="mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/40 px-4 py-6 text-center transition hover:border-primary/40 hover:bg-muted"
                 >
                   <span className="text-sm font-medium text-foreground/90">
-                    Add a photo
+                    {t("addPhotoTitle")}
                   </span>
                   <span className="mt-1 text-xs text-muted-foreground">
-                    Helps us classify the issue faster
+                    {t("addPhotoSubtitle")}
                   </span>
                   <input
                     id="issue-photo"
@@ -386,7 +388,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                 }}
                 className={`${ffBtnSecondary} sm:flex-1`}
               >
-                Back
+                {t("btnBack")}
               </button>
               <button
                 type="submit"
@@ -397,7 +399,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
                 }
                 className={`${ffBtnPrimary} sm:flex-1`}
               >
-                {submitting ? "Submitting…" : "Submit issue"}
+                {submitting ? t("submitting") : t("btnSubmit")}
               </button>
             </div>
           </form>
