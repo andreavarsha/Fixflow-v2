@@ -2,33 +2,83 @@ import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const SUPPLIERS = [
-  ["Nimal Perera", "Plumbing", "kadana"],
-  ["Ranjith Fernando", "Plumbing", "kadana"],
-  ["Kamal Silva", "Electrical", "kadana"],
-  ["Dinesh Wickrama", "Electrical", "kadana"],
-  ["Susantha Bandara", "Roofing", "kadana"],
-  ["Rohan Jayawardena", "Carpentry", "kadana"],
-  ["Saman Kumarasinghe", "Painting", "kadana"],
-  ["Chaminda Senanayake", "Garden / Landscaping", "kadana"],
-  ["Selvakumar Nadar", "General Maintenance", "kadana"],
-  ["Priya Subramaniam", "Plumbing", "rajagiriya"],
-  ["Arjun Selvam", "Electrical", "rajagiriya"],
-  ["Mahesh Rathnayake", "Roofing", "rajagiriya"],
-  ["Thilak Dissanayake", "Carpentry", "rajagiriya"],
-  ["Lalith Weerasinghe", "Painting", "rajagiriya"],
-  ["Anura Gunasekara", "Garden / Landscaping", "rajagiriya"],
-  ["Ishara Mendis", "General Maintenance", "rajagiriya"],
-  ["Farook Ismail", "Plumbing", "rajagiriya"],
-  ["Kumaran Pillai", "Roofing", "nawala"],
-  ["Muthu Krishnan", "Painting", "nawala"],
-  ["Janaka Perera", "Plumbing", "nawala"],
-  ["Sandun Fernando", "Electrical", "nawala"],
-  ["Gayan Silva", "Carpentry", "nawala"],
-  ["Ruwan Bandara", "Garden / Landscaping", "nawala"],
-  ["Heshan Jayasuriya", "General Maintenance", "nawala"],
-  ["Nadeesha Wijesinghe", "Electrical", "nawala"],
+/** Keep in sync with convex/seed.ts — 5 per category across 3 towns (2/2/1). */
+const CATEGORIES = [
+  [
+    "Plumbing",
+    [
+      ["Nimal Perera", "kadana"],
+      ["Ranjith Fernando", "kadana"],
+      ["Priya Subramaniam", "rajagiriya"],
+      ["Farook Ismail", "rajagiriya"],
+      ["Janaka Perera", "nawala"],
+    ],
+  ],
+  [
+    "Electrical",
+    [
+      ["Kamal Silva", "kadana"],
+      ["Dinesh Wickrama", "kadana"],
+      ["Arjun Selvam", "rajagiriya"],
+      ["Sandun Fernando", "rajagiriya"],
+      ["Nadeesha Wijesinghe", "nawala"],
+    ],
+  ],
+  [
+    "Roofing",
+    [
+      ["Susantha Bandara", "kadana"],
+      ["Asanka Peiris", "kadana"],
+      ["Mahesh Rathnayake", "rajagiriya"],
+      ["Nuwan Herath", "rajagiriya"],
+      ["Kumaran Pillai", "nawala"],
+    ],
+  ],
+  [
+    "Carpentry",
+    [
+      ["Rohan Jayawardena", "kadana"],
+      ["Kasun Amarasinghe", "kadana"],
+      ["Thilak Dissanayake", "rajagiriya"],
+      ["Pradeep Fonseka", "rajagiriya"],
+      ["Gayan Silva", "nawala"],
+    ],
+  ],
+  [
+    "Painting",
+    [
+      ["Saman Kumarasinghe", "kadana"],
+      ["Buddika Pathirana", "kadana"],
+      ["Lalith Weerasinghe", "rajagiriya"],
+      ["Chathura Ekanayake", "rajagiriya"],
+      ["Muthu Krishnan", "nawala"],
+    ],
+  ],
+  [
+    "Garden / Landscaping",
+    [
+      ["Chaminda Senanayake", "kadana"],
+      ["Lahiru Abeysekara", "kadana"],
+      ["Anura Gunasekara", "rajagiriya"],
+      ["Dilshan Karunaratne", "rajagiriya"],
+      ["Ruwan Bandara", "nawala"],
+    ],
+  ],
+  [
+    "General Maintenance",
+    [
+      ["Selvakumar Nadar", "kadana"],
+      ["Amila Ratnayake", "kadana"],
+      ["Ishara Mendis", "rajagiriya"],
+      ["Tharindu Jayasinghe", "rajagiriya"],
+      ["Heshan Jayasuriya", "nawala"],
+    ],
+  ],
 ];
+
+const SUPPLIERS = CATEGORIES.flatMap(([category, people]) =>
+  people.map(([name, zone]) => [name, category, zone]),
+);
 
 function supplierEmail(name, index) {
   const slug = name
@@ -80,4 +130,4 @@ for (let i = 0; i < SUPPLIERS.length; i++) {
 const csv = rows.map((row) => row.map(escapeCsv).join(",")).join("\n");
 const outPath = join(dirname(fileURLToPath(import.meta.url)), "..", "demo-logins.csv");
 writeFileSync(outPath, csv);
-console.log(`Wrote ${rows.length} rows to ${outPath}`);
+console.log(`Wrote ${SUPPLIERS.length} suppliers (${rows.length} rows) to ${outPath}`);

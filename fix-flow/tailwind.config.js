@@ -67,6 +67,14 @@ export default {
           900: "#124d48",
           950: "#052e2b",
         },
+        yellow: {
+          DEFAULT: "hsl(var(--yellow))",
+          foreground: "hsl(var(--yellow-foreground))",
+        },
+        highlight: {
+          DEFAULT: "hsl(var(--highlight))",
+          foreground: "hsl(var(--highlight-foreground))",
+        },
         brand: {
           50: "#fff3ee",
           100: "#ffe3d6",

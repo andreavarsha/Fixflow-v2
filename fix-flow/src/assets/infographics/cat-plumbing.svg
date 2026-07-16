@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Plumbing">
+  <circle cx="48" cy="48" r="44" fill="#151F36"/>
+  <rect x="36" y="22" width="20" height="5" rx="2.5" fill="#2FD0C0"/>
+  <rect x="43" y="26" width="6" height="9" fill="#1E9C90"/>
+  <rect x="28" y="33" width="7" height="10" rx="2" fill="#1E9C90"/>
+  <path d="M34 34h20a12 12 0 0 1 12 12v6H56v-4a6 6 0 0 0-6-6H34Z" fill="#2FD0C0"/>
+  <path d="M61 58c2.5 4 5 7.2 5 10.4a5 5 0 0 1-10 0c0-3.2 2.5-6.4 5-10.4Z" fill="#FBD641"/>
+  <ellipse cx="61" cy="79" rx="11" ry="3" fill="none" stroke="#1E9C90" stroke-width="2"/>
+  <ellipse cx="61" cy="79" rx="4.5" ry="1.4" fill="none" stroke="#1E9C90" stroke-width="1.5" opacity=".6"/>
+</svg>

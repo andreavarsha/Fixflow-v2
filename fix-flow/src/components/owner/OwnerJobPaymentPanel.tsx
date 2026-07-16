@@ -2,8 +2,11 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { ffBtnPrimary, ffCard, ffInput, ffLabel } from "../../lib/fixflowUi";
+import { IconStar } from "../icons";
+import { downloadJobInvoice } from "./JobInvoice";
+import { ffBtnPrimary, ffBtnSecondary, ffCard, ffInput, ffLabel } from "../../lib/fixflowUi";
 import { toUserFacingError } from "../../lib/userFacingError";
+import { zoneByIdName } from "../../lib/zones";
 
 type AcceptedQuote = {
   priceLKR?: number;
@@ -15,6 +18,10 @@ type OwnerJobPaymentPanelProps = {
   jobId: Id<"jobs">;
   status: string;
   acceptedQuote: AcceptedQuote | null;
+  description?: string;
+  category?: string;
+  zoneId?: string;
+  paidAt?: number;
 };
 
 function RatingPrompt({
@@ -27,6 +34,7 @@ function RatingPrompt({
   const existing = useQuery(api.reviews.getReviewForJob, { jobId });
   const submitReview = useMutation(api.reviews.submitReview);
   const [rating, setRating] = useState(5);
+  const [hover, setHover] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [skipped, setSkipped] = useState(false);
@@ -64,6 +72,8 @@ function RatingPrompt({
     }
   }
 
+  const display = hover ?? rating;
+
   return (
     <form
       onSubmit={(e) => void handleSubmit(e)}
@@ -73,22 +83,32 @@ function RatingPrompt({
         Rate {supplierName ?? "your tradesperson"}
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Optional — helps other homeowners.
+        Optional. Helps other homeowners.
       </p>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div
+        className="mt-3 flex gap-1"
+        role="radiogroup"
+        aria-label="Star rating"
+        onMouseLeave={() => setHover(null)}
+      >
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
             type="button"
+            role="radio"
+            aria-checked={rating === n}
+            aria-label={`${n} star${n === 1 ? "" : "s"}`}
             onClick={() => setRating(n)}
-            className={`min-h-[40px] min-w-[40px] rounded-full text-sm font-semibold ${
-              rating === n
-                ? "bg-primary text-primary-foreground"
-                : "bg-card text-foreground ring-1 ring-border"
-            }`}
-            aria-label={`${n} stars`}
+            onMouseEnter={() => setHover(n)}
+            className="rounded-lg p-1.5 transition hover:bg-accent"
           >
-            {n}★
+            <IconStar
+              size={28}
+              filled={n <= display}
+              className={
+                n <= display ? "text-amber-500" : "text-muted-foreground/40"
+              }
+            />
           </button>
         ))}
       </div>
@@ -132,6 +152,10 @@ export function OwnerJobPaymentPanel({
   jobId,
   status,
   acceptedQuote,
+  description = "",
+  category,
+  zoneId,
+  paidAt,
 }: OwnerJobPaymentPanelProps) {
   const confirmPayment = useMutation(api.jobs.ownerConfirmPayment);
   const [paying, setPaying] = useState(false);
@@ -165,7 +189,7 @@ export function OwnerJobPaymentPanel({
           Payment complete
         </p>
         <p className="mt-1 text-sm leading-relaxed text-teal-800 dark:text-teal-300">
-          Thank you — this job is closed.
+          Thank you. This job is closed.
           {acceptedQuote?.priceLKR !== undefined && (
             <>
               {" "}
@@ -180,6 +204,24 @@ export function OwnerJobPaymentPanel({
             </>
           )}
         </p>
+        <button
+          type="button"
+          className={`${ffBtnSecondary} mt-4 sm:max-w-xs`}
+          onClick={() =>
+            downloadJobInvoice({
+              jobId,
+              category,
+              zoneName: zoneByIdName(zoneId),
+              description,
+              supplierName: acceptedQuote?.supplierName,
+              priceLKR: acceptedQuote?.priceLKR,
+              duration: acceptedQuote?.duration,
+              paidAt,
+            })
+          }
+        >
+          Download invoice
+        </button>
         <RatingPrompt
           jobId={jobId}
           supplierName={acceptedQuote?.supplierName}
@@ -236,7 +278,7 @@ export function OwnerJobPaymentPanel({
       )}
 
       <p className="mt-3 text-xs text-muted-foreground">
-        Demo only — this records payment in FixFlow; no card is charged.
+        Demo only. This records payment in Better Call; no card is charged.
       </p>
 
       {error && (

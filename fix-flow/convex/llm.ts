@@ -245,7 +245,7 @@ function unwrapJsonText(text: string): string {
   return fenced ? fenced[1].trim() : trimmed;
 }
 
-const TRANSLATE_SYSTEM = (lang: "si" | "ta") => `You are a professional translator working for FixFlow AI in Sri Lanka.
+const TRANSLATE_SYSTEM = (lang: "si" | "ta") => `You are a professional translator working for Better Call in Sri Lanka.
 Translate the following home repair issue summary from English to ${lang === "si" ? "colloquial Sinhala" : "colloquial Tamil"}.
 Translate for a homeowner audience. Keep the phrasing extremely natural and colloquial, not formal, literary, or academic. Keep trade terms simple (e.g. use standard local terms for plumbing, electrical, etc. that a normal homeowner uses).
 Return JSON only with a single key "translated": "your translation here".`;

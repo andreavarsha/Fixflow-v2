@@ -173,12 +173,12 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
       </div>
 
       {suggestions.length > 0 && (
-        <ul className="overflow-hidden rounded-xl border border-border bg-card text-sm shadow-sm">
+        <ul className="overflow-hidden rounded-xl border border-border bg-card text-sm shadow-sm divide-y divide-border">
           {suggestions.map((hit) => (
             <li key={`${hit.lat},${hit.lng},${hit.label}`}>
               <button
                 type="button"
-                className="w-full px-3 py-2.5 text-left text-foreground/90 hover:bg-accent"
+                className="w-full px-3 py-2.5 text-left text-foreground/90 transition-colors hover:bg-white/10 hover:text-foreground focus-visible:bg-white/10 focus-visible:outline-none active:bg-white/15 dark:hover:bg-white/15 dark:focus-visible:bg-white/15 dark:active:bg-white/20"
                 onClick={() => applyHit(hit)}
               >
                 {hit.label}
@@ -201,7 +201,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
             key={z.id}
             type="button"
             onClick={() => jumpToZone(z.id)}
-            className="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground ring-1 ring-border hover:bg-accent"
+            className="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground ring-1 ring-border transition-colors hover:bg-white/10 hover:text-foreground dark:hover:bg-white/15"
           >
             {z.name}
           </button>
@@ -248,7 +248,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
 
       {!hasPin && (
         <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground ring-1 ring-border">
-          Set a job location to continue. FixFlow is live in{" "}
+          Set a job location to continue. Better Call is live in{" "}
           <strong>Kadana</strong>, <strong>Rajagiriya</strong>, and{" "}
           <strong>Nawala</strong>.
         </p>
@@ -256,7 +256,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
 
       {hasPin && zone && (
         <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-200 dark:ring-teal-900/50">
-          ✓ You&apos;re in <strong>{zone.name}</strong> — FixFlow is live here.
+          You&apos;re in <strong>{zone.name}</strong>. Better Call is live here.
         </p>
       )}
 

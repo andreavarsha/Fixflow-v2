@@ -53,6 +53,8 @@ export const submitJob = mutation({
     lat: v.number(),
     lng: v.number(),
     addressNote: v.optional(v.string()),
+    /** Owner-selected quick category hint (AI may refine). */
+    preferredCategory: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const ownerId = await getAuthUserId(ctx);
@@ -78,13 +80,14 @@ export const submitJob = mutation({
     const zone = resolveZone(args.lat, args.lng);
     if (!zone) {
       throw new Error(
-        "OUT_OF_COVERAGE: FixFlow is not live at this pin yet. Join the waitlist.",
+        "OUT_OF_COVERAGE: Better Call is not live at this pin yet. Join the waitlist.",
       );
     }
 
     await enforceRateLimit(ctx, "submitJob", { key: userRateKey(ownerId) });
 
     const trimmedAddressNote = args.addressNote?.trim().slice(0, 200) || undefined;
+    const preferred = args.preferredCategory?.trim() || undefined;
 
     const jobId = await ctx.db.insert("jobs", {
       ownerId,
@@ -95,6 +98,7 @@ export const submitJob = mutation({
       zoneId: zone.id,
       status: "classifying",
       addressNote: trimmedAddressNote,
+      category: preferred,
     });
 
     await ctx.scheduler.runAfter(0, internal.jobs.classifyIssue, {
@@ -152,7 +156,13 @@ export const getJob = query({
       ? await acceptedQuoteForJob(ctx, jobId, job.acceptedSupplierId)
       : null;
 
-    return { ...job, photoUrl, acceptedQuote };
+    const quoteRows = await ctx.db
+      .query("quoteRequests")
+      .withIndex("by_job", (q) => q.eq("jobId", jobId))
+      .collect();
+    const invitedCount = quoteRows.length;
+
+    return { ...job, photoUrl, acceptedQuote, invitedCount };
   },
 });
 
@@ -509,7 +519,7 @@ function inferCategoryFromText(text: string): string | null {
   return null;
 }
 
-const CLASSIFY_SYSTEM = `You classify home repair issues for FixFlow AI in Gampaha, Sri Lanka.
+const CLASSIFY_SYSTEM = `You classify home repair issues for Better Call in Gampaha, Sri Lanka.
 Return JSON only with keys: category, subcategory, urgency, summary.
 
 category must be exactly one of: ${JOB_CATEGORIES.join(", ")}.

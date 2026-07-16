@@ -122,8 +122,8 @@ export default function Signup() {
           </button>
 
           <p className="text-center text-xs text-muted-foreground">
-            Tradespeople are pre-vetted by FixFlow. Supplier accounts are not
-            created through public sign-up — use a demo login if you were given
+            Tradespeople are pre-vetted by Better Call. Supplier accounts are not
+            created through public sign-up. Use a demo login if you were given
             one.
           </p>
 

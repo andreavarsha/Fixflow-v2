@@ -183,7 +183,7 @@ function Panel({
           )}
         </div>
         <p className={`mt-1 text-sm text-muted-foreground ${isSidebar ? "" : "max-w-xl"}`}>
-          Tap to continue where you left off — quotes update live.
+          Tap to continue where you left off. Quotes update live.
         </p>
       </header>
       {isSidebar ? children : <div className="mt-4">{children}</div>}

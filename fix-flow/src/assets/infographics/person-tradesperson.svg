@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Tradesperson person">
+  <circle cx="48" cy="48" r="44" fill="#151F36"/>
+  <rect x="43" y="50" width="10" height="14" rx="4" fill="#D9A06B"/>
+  <path d="M26 82c0-12 10-19 22-19s22 7 22 19v1H26Z" fill="#2FD0C0"/>
+  <rect x="39.5" y="63.5" width="4.5" height="11" rx="2" fill="#1E9C90"/>
+  <rect x="52" y="63.5" width="4.5" height="11" rx="2" fill="#1E9C90"/>
+  <circle cx="48" cy="44" r="12.5" fill="#ECB98F"/>
+  <path d="M36 36a12.5 12.5 0 0 1 25 0Z" fill="#F8C630"/>
+  <rect x="45.5" y="26.5" width="6" height="9.5" rx="2.5" fill="#FBD641"/>
+  <rect x="32" y="35.5" width="33" height="5" rx="2.5" fill="#C29010"/>
+  <circle cx="70" cy="68" r="10" fill="#F8C630"/>
+  <circle cx="70" cy="68" r="4.5" fill="none" stroke="#33230A" stroke-width="3" stroke-dasharray="2.3 2.2"/>
+  <circle cx="70" cy="68" r="1.6" fill="#33230A"/>
+</svg>

@@ -49,8 +49,8 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
           {already ? "You're already on the list" : "You're on the waitlist"}
         </p>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          We&apos;ll reach out when FixFlow expands to your area. Thanks for the
-          interest — it helps us show investors where demand is.
+          We&apos;ll reach out when Better Call expands to your area. Thanks for the
+          interest. It helps us show investors where demand is.
         </p>
         <button type="button" onClick={onBack} className={ffBtnPrimary}>
           Adjust pin and try again
@@ -66,7 +66,7 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
           Not in our demo zones yet
         </p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          FixFlow is live in Kadana, Rajagiriya, and Nawala. Leave your email and
+          Better Call is live in Kadana, Rajagiriya, and Nawala. Leave your email and
           we&apos;ll notify you when we expand.
         </p>
       </div>

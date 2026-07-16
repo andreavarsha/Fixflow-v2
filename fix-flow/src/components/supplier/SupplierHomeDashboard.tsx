@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { IconClipboard, IconStar } from "../icons";
 import { NotificationFeed } from "../layout/NotificationFeed";
 import {
   IncomingQuoteCard,
@@ -42,11 +43,13 @@ function matchesFilter(request: IncomingQuoteRequest, filter: FilterId): boolean
 export function SupplierHomeDashboard() {
   const [filter, setFilter] = useState<FilterId>("all");
   const [openChatJobId, setOpenChatJobId] = useState<Id<"jobs"> | null>(null);
+  const [expandedJobId, setExpandedJobId] = useState<Id<"jobs"> | null>(null);
   const me = useQuery(api.users.getUser);
   const quoteRequests = useQuery(api.quoteRequests.listForSupplier);
 
   useEffect(() => {
     if (!openChatJobId) return;
+    setExpandedJobId(openChatJobId);
     const el = document.getElementById(`supplier-job-${openChatJobId}`);
     el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [openChatJobId]);
@@ -72,7 +75,7 @@ export function SupplierHomeDashboard() {
     <div className="mx-auto w-full max-w-6xl">
       <header className="mb-6 flex items-start justify-between gap-3 pr-12 sm:pr-14">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
             {t.roleLabel}
           </p>
           <h1 className={ffScreenTitle}>{t.dashboardTitle}</h1>
@@ -82,7 +85,8 @@ export function SupplierHomeDashboard() {
           <span className="mt-1 inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
             {me.reviewCount ? (
               <>
-                <span className="text-amber-500">★</span> {(me.rating ?? 0).toFixed(1)}
+                <IconStar size={14} filled className="text-amber-500" />{" "}
+                {(me.rating ?? 0).toFixed(1)}
                 <span className="font-normal text-muted-foreground">
                   ({me.reviewCount})
                 </span>
@@ -97,7 +101,7 @@ export function SupplierHomeDashboard() {
       <div className="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:items-start lg:gap-8 xl:gap-10">
         <section className="min-w-0 lg:col-span-8 xl:col-span-8">
           <div className={`${ffCard} overflow-hidden p-0`}>
-            <div className="border-b border-border bg-gradient-to-br from-muted/50 to-card px-5 py-4 sm:px-6 sm:py-5">
+            <div className="border-b border-border bg-gradient-to-br from-yellow/10 to-card px-5 py-4 sm:px-6 sm:py-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="text-lg font-semibold text-foreground sm:text-xl">
                   {t.incomingRequests}
@@ -108,7 +112,9 @@ export function SupplierHomeDashboard() {
                   </span>
                 )}
               </div>
-              <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t.incomingHint}</p>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                {t.incomingHint} Tap a request to expand.
+              </p>
 
               {total > 0 && (
                 <div
@@ -148,9 +154,10 @@ export function SupplierHomeDashboard() {
 
               {quoteRequests !== undefined && total === 0 && (
                 <div className="px-5 py-12 text-center sm:px-8">
-                  <p className="text-3xl" aria-hidden>
-                    📋
-                  </p>
+                  <IconClipboard
+                    size={36}
+                    className="mx-auto text-muted-foreground"
+                  />
                   <p className="mt-3 text-sm font-semibold text-foreground">
                     {t.emptyTitle}
                   </p>
@@ -160,11 +167,13 @@ export function SupplierHomeDashboard() {
                 </div>
               )}
 
-              {quoteRequests !== undefined && total > 0 && filtered.length === 0 && (
-                <p className="px-5 py-10 text-center text-sm text-muted-foreground sm:px-6">
-                  {t.emptyFiltered}
-                </p>
-              )}
+              {quoteRequests !== undefined &&
+                total > 0 &&
+                filtered.length === 0 && (
+                  <p className="px-5 py-10 text-center text-sm text-muted-foreground sm:px-6">
+                    {t.emptyFiltered}
+                  </p>
+                )}
 
               {filtered.length > 0 && (
                 <ul className="divide-y divide-border">
@@ -172,6 +181,10 @@ export function SupplierHomeDashboard() {
                     <IncomingQuoteCard
                       key={request._id}
                       request={request}
+                      expanded={expandedJobId === request.jobId}
+                      onExpandedChange={(open) =>
+                        setExpandedJobId(open ? request.jobId : null)
+                      }
                       chatOpen={openChatJobId === request.jobId}
                       onChatOpenChange={(open) =>
                         setOpenChatJobId(open ? request.jobId : null)
@@ -187,11 +200,21 @@ export function SupplierHomeDashboard() {
         <aside className="flex flex-col gap-6 lg:col-span-4 xl:col-span-4">
           <section className={`${ffCard} overflow-hidden p-0`}>
             <header className="border-b border-border bg-muted/50 px-5 py-4 sm:px-6">
-              <h2 className="text-base font-semibold text-foreground">At a glance</h2>
+              <h2 className="text-base font-semibold text-foreground">
+                At a glance
+              </h2>
             </header>
             <ul className="divide-y divide-border">
-              <StatRow label={t.statAwaiting} value={stats.pending} accent="amber" />
-              <StatRow label={t.statSubmitted} value={stats.quoted} accent="brand" />
+              <StatRow
+                label={t.statAwaiting}
+                value={stats.pending}
+                accent="amber"
+              />
+              <StatRow
+                label={t.statSubmitted}
+                value={stats.quoted}
+                accent="brand"
+              />
               <StatRow label={t.statWon} value={stats.accepted} accent="green" />
               <StatRow label={t.statLost} value={stats.rejected} accent="gray" />
             </ul>
@@ -236,7 +259,9 @@ function StatRow({
         <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} aria-hidden />
         {label}
       </span>
-      <span className="text-lg font-semibold tabular-nums text-foreground">{value}</span>
+      <span className="text-lg font-semibold tabular-nums text-foreground">
+        {value}
+      </span>
     </li>
   );
 }

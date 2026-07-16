@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { OwnerStepHint } from "../layout/OwnerStepHint";
 import { ChatPanel } from "../messaging/ChatPanel";
+import { IconStar } from "../icons";
 import { SupplierDiscoveryMap } from "./SupplierDiscoveryMap";
 import {
   ffBtnGhost,
@@ -117,7 +118,7 @@ export function LiveQuotesDashboard({
           <h1 className={ffScreenTitle}>Quote inbox</h1>
           <p className={ffScreenSubtitle}>
             Compare offers side by side. Distance is from your job pin. Accept
-            when ready — chat if you need to negotiate.
+            when ready. Chat if you need to negotiate.
           </p>
         </div>
         <div
@@ -188,9 +189,9 @@ export function LiveQuotesDashboard({
           <p>
             <span className="font-medium text-foreground">Job status:</span>{" "}
             {job.status === "in_progress"
-              ? "Quote accepted — the tradesperson is working on site."
+              ? "Quote accepted. The tradesperson is working on site."
               : job.status === "awaiting_payment"
-                ? "Work marked complete — confirm payment on the job page."
+                ? "Work marked complete. Confirm payment on the job page."
                 : job.status === "completed"
                   ? "Paid and closed."
                   : job.status}
@@ -342,19 +343,26 @@ function QuoteCompareCard({
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs text-foreground/80">
         <div>
           <dt className="text-muted-foreground">Duration</dt>
-          <dd>{hasQuote ? (q.duration ?? "—") : "—"}</dd>
+          <dd>{hasQuote ? (q.duration ?? "-") : "-"}</dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Distance</dt>
-          <dd>{q.distanceKm !== undefined ? `${q.distanceKm.toFixed(1)} km` : "—"}</dd>
+          <dd>{q.distanceKm !== undefined ? `${q.distanceKm.toFixed(1)} km` : "-"}</dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Rating</dt>
           <dd>
             {q.supplierRating !== undefined ? (
               <>
-                <span className="text-amber-500">★</span> {q.supplierRating.toFixed(1)}
-                {q.supplierReviewCount !== undefined ? ` (${q.supplierReviewCount})` : ""}
+                <IconStar
+                  size={12}
+                  filled
+                  className="mr-0.5 inline-block align-[-1px] text-amber-500"
+                />{" "}
+                {q.supplierRating.toFixed(1)}
+                {q.supplierReviewCount !== undefined
+                  ? ` (${q.supplierReviewCount})`
+                  : ""}
               </>
             ) : (
               "New"
@@ -366,7 +374,7 @@ function QuoteCompareCard({
           <dd>
             {q.avgResponseMinutes !== undefined
               ? formatResponseMinutes(q.avgResponseMinutes)
-              : "—"}
+              : "-"}
           </dd>
         </div>
         <div>

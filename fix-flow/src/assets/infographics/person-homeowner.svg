@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Homeowner person">
+  <circle cx="48" cy="48" r="44" fill="#151F36"/>
+  <rect x="43" y="46" width="10" height="14" rx="4" fill="#D9A06B"/>
+  <path d="M26 80c0-12 10-19 22-19s22 7 22 19v1H26Z" fill="#2FD0C0"/>
+  <path d="M42 61h12l-6 8Z" fill="#1E9C90"/>
+  <circle cx="48" cy="40" r="13" fill="#ECB98F"/>
+  <path d="M35 41c0-10 6-14 13-14s13 4 13 14c-3-5-8-6-13-6s-10 1-13 6Z" fill="#33425F"/>
+  <circle cx="70" cy="68" r="10" fill="#F8C630"/>
+  <path d="M64.5 67.5 70 63l5.5 4.5" stroke="#33230A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M66.5 68v4.5h7V68" stroke="#33230A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

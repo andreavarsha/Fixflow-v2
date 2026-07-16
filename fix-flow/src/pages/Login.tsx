@@ -3,6 +3,11 @@ import { useConvexAuth } from "convex/react";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
+  IconClipboard,
+  IconPersonHomeowner,
+  IconPersonTradesperson,
+} from "../components/icons";
+import {
   ffBtnPrimary,
   ffCard,
   ffInput,
@@ -22,10 +27,6 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // `signIn()` resolving doesn't mean the client's reactive auth state has
-  // caught up yet — navigating immediately can land on "/" while it's still
-  // transiently unauthenticated, bouncing back to /login. Wait for the real
-  // auth state instead of racing it.
   useEffect(() => {
     if (isAuthenticated) void navigate("/");
   }, [isAuthenticated, navigate]);
@@ -44,10 +45,41 @@ export default function Login() {
   }
 
   return (
-    <div className={`${ffPage} flex min-h-dvh flex-col justify-center pt-8`}>
-      <div className={`${ffCard} mx-auto w-full max-w-md xl:max-w-xl 2xl:max-w-2xl`}>
-        <h1 className={ffScreenTitle}>FixFlow AI</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Sign in to continue</p>
+    <div
+      className={`${ffPage} relative flex min-h-dvh flex-col justify-center overflow-hidden pt-8`}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(var(--primary)/0.14),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_hsl(var(--yellow)/0.08),_transparent_45%)]"
+        aria-hidden
+      />
+
+      <div
+        className={`${ffCard} relative z-10 mx-auto w-full max-w-md border-border/80 xl:max-w-xl 2xl:max-w-2xl`}
+      >
+        <div className="text-center">
+          <h1 className={`${ffScreenTitle} text-3xl sm:text-4xl`}>Better Call</h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Home repairs, matched to nearby tradespeople. Report an issue, compare
+            quotes, and pay when the work is done.
+          </p>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+          <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
+            <IconPersonHomeowner size={36} className="mb-2" />
+            <p className="text-sm font-semibold text-foreground">Homeowners</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Pin the issue, invite pros, accept a quote.
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
+            <IconPersonTradesperson size={36} className="mb-2" />
+            <p className="text-sm font-semibold text-foreground">Tradespeople</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Get requests, send quotes, complete jobs.
+            </p>
+          </div>
+        </div>
 
         <form
           onSubmit={(e) => {
@@ -55,6 +87,8 @@ export default function Login() {
           }}
           className="mt-8 flex flex-col gap-5"
         >
+          <p className="text-sm font-medium text-foreground">Sign in to continue</p>
+
           {error && (
             <p
               className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
@@ -98,7 +132,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-2 top-1/2 min-h-[40px] min-w-[48px] -translate-y-1/2 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-accent"
+                className="absolute right-2 top-1/2 min-h-[40px] min-w-[48px] -translate-y-1/2 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-white/10"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -113,10 +147,10 @@ export default function Login() {
             to="/signup"
             className="text-center text-sm font-medium text-foreground/80 underline underline-offset-4 hover:text-foreground"
           >
-            Need an account? Sign up
+            Need an account? Sign up as a homeowner
           </Link>
 
-          <div className="mt-6 border-t border-border pt-6">
+          <div className="mt-2 border-t border-border pt-6">
             <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground/85">
               Quick-fill demo accounts
             </p>
@@ -127,12 +161,12 @@ export default function Login() {
                   setEmail("demo.owner@fixflow.lk");
                   setPassword("FixFlowDemo1");
                 }}
-                className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-2 text-center transition hover:border-primary hover:bg-accent"
+                className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-2.5 text-center transition hover:border-primary hover:bg-white/10"
               >
-                <span className="text-lg" aria-hidden>
-                  🏠
+                <IconPersonHomeowner size={40} />
+                <span className="mt-1.5 text-[10px] font-semibold text-foreground">
+                  Homeowner
                 </span>
-                <span className="mt-1 text-[10px] font-semibold text-foreground">Homeowner</span>
               </button>
               <button
                 type="button"
@@ -140,12 +174,12 @@ export default function Login() {
                   setEmail("nimal.perera.1@fixflow.lk");
                   setPassword("FixFlowDemo1");
                 }}
-                className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-2 text-center transition hover:border-primary hover:bg-accent"
+                className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-2.5 text-center transition hover:border-yellow hover:bg-white/10"
               >
-                <span className="text-lg" aria-hidden>
-                  🛠️
+                <IconPersonTradesperson size={40} />
+                <span className="mt-1.5 text-[10px] font-semibold text-foreground">
+                  Tradesperson
                 </span>
-                <span className="mt-1 text-[10px] font-semibold text-foreground">Tradesperson</span>
               </button>
               <button
                 type="button"
@@ -153,17 +187,19 @@ export default function Login() {
                   setEmail("admin@fixflow.lk");
                   setPassword("FixFlowDemo1");
                 }}
-                className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-2 text-center transition hover:border-primary hover:bg-accent"
+                className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-2.5 text-center transition hover:border-border hover:bg-white/10"
               >
-                <span className="text-lg" aria-hidden>
-                  💼
+                <IconClipboard size={40} />
+                <span className="mt-1.5 text-[10px] font-semibold text-foreground">
+                  Admin
                 </span>
-                <span className="mt-1 text-[10px] font-semibold text-foreground">Admin</span>
               </button>
             </div>
             <p className="mt-2.5 text-center text-[10px] text-muted-foreground/75">
               Pre-fills fields. Password for all:{" "}
-              <span className="font-mono font-semibold text-foreground">FixFlowDemo1</span>
+              <span className="font-mono font-semibold text-foreground">
+                FixFlowDemo1
+              </span>
             </p>
           </div>
         </form>

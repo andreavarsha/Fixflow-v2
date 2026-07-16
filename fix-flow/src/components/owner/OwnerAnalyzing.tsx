@@ -1,3 +1,4 @@
+import { IconCheckBadge } from "../icons";
 import { zoneByIdName } from "../../lib/zones";
 import { ffCard, ffScreenSubtitle, ffScreenTitle } from "../../lib/fixflowUi";
 
@@ -38,18 +39,20 @@ export function OwnerAnalyzing({ hasPhoto, zoneId, onBack }: OwnerAnalyzingProps
 
         <ul className="mt-8 w-full max-w-xs space-y-3 text-left text-sm">
           <li className="flex items-start gap-2 text-foreground">
-            <span className="font-semibold text-teal-600 dark:text-teal-400" aria-hidden>
-              ✓
-            </span>
+            <IconCheckBadge
+              size={18}
+              className="mt-0.5 shrink-0 text-teal-600 dark:text-teal-400"
+            />
             <span>{hasPhoto ? "Photo received" : "No photo attached"}</span>
           </li>
           <li className="flex items-start gap-2 text-foreground">
-            <span className="font-semibold text-teal-600 dark:text-teal-400" aria-hidden>
-              ✓
-            </span>
+            <IconCheckBadge
+              size={18}
+              className="mt-0.5 shrink-0 text-teal-600 dark:text-teal-400"
+            />
             <span>
               Location confirmed
-              {zoneName ? ` — ${zoneName}` : ""}
+              {zoneName ? ` (${zoneName})` : ""}
             </span>
           </li>
           <li className="flex items-start gap-2 text-muted-foreground/60">

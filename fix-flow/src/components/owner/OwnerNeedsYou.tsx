@@ -48,9 +48,22 @@ export function OwnerNeedsYou({
 
       {actionable.length === 0 ? (
         <div className={`${ffCard} text-center`}>
-          <p className="text-2xl" aria-hidden>
-            ✓
-          </p>
+          <div className="mx-auto flex justify-center text-teal-600 dark:text-teal-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-10 w-10"
+              aria-hidden
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="m8.5 12.5 2.5 2.5 4.5-5" />
+            </svg>
+          </div>
           <p className="mt-3 font-medium text-foreground">You&apos;re all caught up</p>
           <p className="mt-2 text-sm text-muted-foreground">
             New quotes and payment requests will show up here.

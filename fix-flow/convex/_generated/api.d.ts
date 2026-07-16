@@ -10,7 +10,9 @@
 
 import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
+import type * as crons from "../crons.js";
 import type * as demoAuth from "../demoAuth.js";
+import type * as followUps from "../followUps.js";
 import type * as geocode from "../geocode.js";
 import type * as http from "../http.js";
 import type * as jobCategories from "../jobCategories.js";
@@ -37,7 +39,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   auth: typeof auth;
+  crons: typeof crons;
   demoAuth: typeof demoAuth;
+  followUps: typeof followUps;
   geocode: typeof geocode;
   http: typeof http;
   jobCategories: typeof jobCategories;

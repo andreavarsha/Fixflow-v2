@@ -7,9 +7,9 @@
 @layer base {
   /*
    * FixFlow brand palette.
-   * Light mode primary = friendly corporate blue (#2563eb)
-   * Dark mode primary = custom teal blue (#56c3b7) preferred by Annie & Ashika
-   * Dark mode primary foreground = dark navy (#0e172a) for readability/contrast
+   * Owner (default): teal primary in dark, blue in light.
+   * Supplier (.supplier-theme): yellow/amber primary for side-by-side demos.
+   * --highlight: soft yellow used for selected chips / attention accents.
    */
   :root {
     --background: 0 0% 100%;
@@ -42,6 +42,12 @@
 
     --teal: 174 63% 50%;
     --teal-foreground: 190 60% 10%;
+
+    --yellow: 43 96% 56%;
+    --yellow-foreground: 36 80% 12%;
+
+    --highlight: 45 93% 58%;
+    --highlight-foreground: 36 80% 12%;
 
     --radius: 0.75rem;
   }
@@ -77,6 +83,29 @@
 
     --teal: 174 63% 50%;
     --teal-foreground: 190 60% 10%;
+
+    --yellow: 45 93% 58%;
+    --yellow-foreground: 36 80% 12%;
+
+    --highlight: 48 96% 62%;
+    --highlight-foreground: 36 80% 12%;
+  }
+
+  /* Supplier routes: yellow primary so owner (teal) vs supplier is obvious side-by-side. */
+  .supplier-theme {
+    --primary: 43 96% 46%;
+    --primary-foreground: 36 80% 10%;
+    --ring: 43 96% 46%;
+    --teal: 43 96% 46%;
+    --teal-foreground: 36 80% 10%;
+  }
+
+  .dark .supplier-theme {
+    --primary: 45 93% 58%;
+    --primary-foreground: 36 80% 12%;
+    --ring: 45 93% 58%;
+    --teal: 45 93% 58%;
+    --teal-foreground: 36 80% 12%;
   }
 }
 

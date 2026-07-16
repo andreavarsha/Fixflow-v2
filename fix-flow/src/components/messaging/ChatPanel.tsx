@@ -85,7 +85,7 @@ export function ChatPanel({
           Chat with {peerLabel}
         </p>
         <p className="text-xs text-muted-foreground">
-          Identities are masked — no names or numbers shared.
+          Identities are masked. No names or numbers shared.
         </p>
       </header>
 

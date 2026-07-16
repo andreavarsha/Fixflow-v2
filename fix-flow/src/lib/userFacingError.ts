@@ -44,7 +44,7 @@ const EXACT: Record<string, string> = {
   "You are not the accepted tradesperson for this job":
     "Only the hired tradesperson can mark this job complete.",
   "Payment is not due for this job yet":
-    "Payment is not ready yet — wait until the tradesperson marks the job complete.",
+    "Payment is not ready yet. Wait until the tradesperson marks the job complete.",
   "No accepted supplier on this job": "No tradesperson is assigned to this job.",
   "Job must be classified before requesting quotes":
     "Wait until we finish sorting your request, then try again.",
@@ -101,11 +101,11 @@ function matchPartial(
   }
 
   if (lower.includes("out_of_coverage") || lower.includes("not live at this pin")) {
-    return "FixFlow is not live at this pin yet. Join the waitlist with your email.";
+    return "Better Call is not live at this pin yet. Join the waitlist with your email.";
   }
 
   if (lower.includes("supplier accounts are not created")) {
-    return "Supplier accounts are invited by FixFlow — sign up as a homeowner, or use a demo supplier login.";
+    return "Supplier accounts are invited by Better Call. Sign up as a homeowner, or use a demo supplier login.";
   }
 
   if (lower.includes("already rated")) {

@@ -43,7 +43,7 @@ export const joinWaitlist = mutation({
     const zone = resolveZone(lat, lng);
     if (zone) {
       throw new Error(
-        `You're already in ${zone.name} — FixFlow is live there. Pin your job and submit.`,
+        `You're already in ${zone.name}. Better Call is live there. Pin your job and submit.`,
       );
     }
 

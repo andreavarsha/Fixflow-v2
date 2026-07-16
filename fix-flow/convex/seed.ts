@@ -30,238 +30,91 @@ function near(
   };
 }
 
-const SUPPLIERS: SeedSupplier[] = [
-  // Kadana — all trades (2 each for key trades)
-  {
-    name: "Nimal Perera",
-    category: "Plumbing",
-    ...near("kadana", 0.008, 0.006),
-    rating: 4.7,
-    reviewCount: 18,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Ranjith Fernando",
-    category: "Plumbing",
-    ...near("kadana", -0.01, 0.012),
-    rating: 4.4,
-    reviewCount: 11,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Kamal Silva",
-    category: "Electrical",
-    ...near("kadana", 0.006, -0.008),
-    rating: 4.8,
-    reviewCount: 22,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Dinesh Wickrama",
-    category: "Electrical",
-    ...near("kadana", -0.012, -0.005),
-    rating: 4.3,
-    reviewCount: 9,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Susantha Bandara",
-    category: "Roofing",
-    ...near("kadana", 0.014, 0.004),
-    rating: 4.5,
-    reviewCount: 14,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Rohan Jayawardena",
-    category: "Carpentry",
-    ...near("kadana", 0.004, 0.015),
-    rating: 4.6,
-    reviewCount: 16,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Saman Kumarasinghe",
-    category: "Painting",
-    ...near("kadana", -0.006, 0.009),
-    rating: 4.5,
-    reviewCount: 13,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Chaminda Senanayake",
-    category: "Garden / Landscaping",
-    ...near("kadana", 0.01, -0.012),
-    rating: 4.6,
-    reviewCount: 20,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Selvakumar Nadar",
-    category: "General Maintenance",
-    ...near("kadana", -0.008, -0.01),
-    rating: 4.4,
-    reviewCount: 12,
-    available: true,
-    suspended: false,
-  },
-
-  // Rajagiriya
-  {
-    name: "Priya Subramaniam",
-    category: "Plumbing",
-    ...near("rajagiriya", 0.006, 0.005),
-    rating: 4.6,
-    reviewCount: 15,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Arjun Selvam",
-    category: "Electrical",
-    ...near("rajagiriya", -0.008, 0.007),
-    rating: 4.5,
-    reviewCount: 10,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Mahesh Rathnayake",
-    category: "Roofing",
-    ...near("rajagiriya", 0.01, -0.006),
-    rating: 4.2,
-    reviewCount: 8,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Thilak Dissanayake",
-    category: "Carpentry",
-    ...near("rajagiriya", -0.005, -0.009),
-    rating: 4.4,
-    reviewCount: 11,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Lalith Weerasinghe",
-    category: "Painting",
-    ...near("rajagiriya", 0.007, 0.011),
-    rating: 4.3,
-    reviewCount: 7,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Anura Gunasekara",
-    category: "Garden / Landscaping",
-    ...near("rajagiriya", -0.011, 0.004),
-    rating: 4.1,
-    reviewCount: 6,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Ishara Mendis",
-    category: "General Maintenance",
-    ...near("rajagiriya", 0.004, -0.012),
-    rating: 4.7,
-    reviewCount: 19,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Farook Ismail",
-    category: "Plumbing",
-    ...near("rajagiriya", 0.012, -0.004),
-    rating: 4.5,
-    reviewCount: 14,
-    available: true,
-    suspended: false,
-  },
-
-  // Nawala
-  {
-    name: "Kumaran Pillai",
-    category: "Roofing",
-    ...near("nawala", 0.005, 0.006),
-    rating: 4.3,
-    reviewCount: 9,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Muthu Krishnan",
-    category: "Painting",
-    ...near("nawala", -0.007, 0.008),
-    rating: 4.4,
-    reviewCount: 12,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Janaka Perera",
-    category: "Plumbing",
-    ...near("nawala", 0.009, -0.005),
-    rating: 4.6,
-    reviewCount: 17,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Sandun Fernando",
-    category: "Electrical",
-    ...near("nawala", -0.006, -0.01),
-    rating: 4.5,
-    reviewCount: 13,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Gayan Silva",
-    category: "Carpentry",
-    ...near("nawala", 0.011, 0.003),
-    rating: 4.2,
-    reviewCount: 8,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Ruwan Bandara",
-    category: "Garden / Landscaping",
-    ...near("nawala", -0.01, 0.007),
-    rating: 4.4,
-    reviewCount: 10,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Heshan Jayasuriya",
-    category: "General Maintenance",
-    ...near("nawala", 0.003, -0.008),
-    rating: 4.8,
-    reviewCount: 21,
-    available: true,
-    suspended: false,
-  },
-  {
-    name: "Nadeesha Wijesinghe",
-    category: "Electrical",
-    ...near("nawala", 0.008, 0.01),
-    rating: 4.6,
-    reviewCount: 15,
-    available: true,
-    suspended: false,
-  },
+/**
+ * At least 5 suppliers per category, spread across all three towns
+ * (2 Kadana, 2 Rajagiriya, 1 Nawala).
+ */
+const ZONE_SLOTS: { zoneId: ZoneId; dLat: number; dLng: number }[] = [
+  { zoneId: "kadana", dLat: 0.008, dLng: 0.006 },
+  { zoneId: "kadana", dLat: -0.01, dLng: 0.012 },
+  { zoneId: "rajagiriya", dLat: 0.006, dLng: 0.005 },
+  { zoneId: "rajagiriya", dLat: -0.008, dLng: 0.007 },
+  { zoneId: "nawala", dLat: 0.005, dLng: 0.006 },
 ];
+
+/** Slight per-category jitter so pins don't stack. */
+function slotOffset(categoryIndex: number, slotIndex: number) {
+  const base = ZONE_SLOTS[slotIndex];
+  const jitter = (categoryIndex - 3) * 0.0015;
+  return near(base.zoneId, base.dLat + jitter, base.dLng - jitter * 0.7);
+}
+
+const NAMES_BY_CATEGORY: Record<(typeof JOB_CATEGORIES)[number], string[]> = {
+  Plumbing: [
+    "Nimal Perera",
+    "Ranjith Fernando",
+    "Priya Subramaniam",
+    "Farook Ismail",
+    "Janaka Perera",
+  ],
+  Electrical: [
+    "Kamal Silva",
+    "Dinesh Wickrama",
+    "Arjun Selvam",
+    "Sandun Fernando",
+    "Nadeesha Wijesinghe",
+  ],
+  Roofing: [
+    "Susantha Bandara",
+    "Asanka Peiris",
+    "Mahesh Rathnayake",
+    "Nuwan Herath",
+    "Kumaran Pillai",
+  ],
+  Carpentry: [
+    "Rohan Jayawardena",
+    "Kasun Amarasinghe",
+    "Thilak Dissanayake",
+    "Pradeep Fonseka",
+    "Gayan Silva",
+  ],
+  Painting: [
+    "Saman Kumarasinghe",
+    "Buddika Pathirana",
+    "Lalith Weerasinghe",
+    "Chathura Ekanayake",
+    "Muthu Krishnan",
+  ],
+  "Garden / Landscaping": [
+    "Chaminda Senanayake",
+    "Lahiru Abeysekara",
+    "Anura Gunasekara",
+    "Dilshan Karunaratne",
+    "Ruwan Bandara",
+  ],
+  "General Maintenance": [
+    "Selvakumar Nadar",
+    "Amila Ratnayake",
+    "Ishara Mendis",
+    "Tharindu Jayasinghe",
+    "Heshan Jayasuriya",
+  ],
+};
+
+const RATING_BASE = [4.7, 4.4, 4.6, 4.3, 4.5];
+const REVIEW_BASE = [18, 11, 15, 9, 14];
+
+const SUPPLIERS: SeedSupplier[] = JOB_CATEGORIES.flatMap((category, catIdx) =>
+  NAMES_BY_CATEGORY[category].map((name, slotIdx) => ({
+    name,
+    category,
+    ...slotOffset(catIdx, slotIdx),
+    rating: Math.min(4.9, RATING_BASE[slotIdx] + (catIdx % 3) * 0.05),
+    reviewCount: REVIEW_BASE[slotIdx] + catIdx,
+    available: true,
+    suspended: false,
+  })),
+);
 
 function supplierEmail(name: string, index: number) {
   const slug = name

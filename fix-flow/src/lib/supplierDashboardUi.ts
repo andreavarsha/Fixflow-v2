@@ -3,9 +3,9 @@ export type SupplierLang = "en" | "si" | "ta";
 const copy = {
   en: {
     roleLabel: "Tradesperson",
-    dashboardTitle: "FixFlow",
+    dashboardTitle: "Better Call",
     dashboardSubtitle:
-      "Review homeowner requests, send quotes, and chat — all in one place.",
+      "Review homeowner requests, send quotes, and chat in one place.",
     incomingRequests: "Incoming requests",
     incomingHint: "New jobs appear when a homeowner invites you to quote.",
     filterAll: "All",
@@ -20,13 +20,13 @@ const copy = {
     notificationsTitle: "Notifications",
     notificationsHint: "Messages and updates from homeowners.",
     notificationsHintOpenChat:
-      "Tap a message to open the chat on that job. Messages are not emailed — check here or open Message homeowner.",
+      "Tap a message to open the chat on that job. Messages are not emailed; check here or open Message homeowner.",
     notificationsEmpty: "You're all caught up.",
     loading: "Loading…",
     emptyTitle: "No requests yet",
     emptyBody:
       "When a homeowner picks you for a quote, the job will show up here. Your notification bell updates live.",
-    emptyFiltered: "Nothing in this view — try another filter.",
+    emptyFiltered: "Nothing in this view. Try another filter.",
     statusPending: "Awaiting your quote",
     statusQuoted: "Quote submitted",
     statusAccepted: "Quote accepted",
@@ -40,8 +40,8 @@ const copy = {
     quoteSubmittedPrice: (price: string) => `Price: LKR ${price}`,
     quoteSubmittedDays: (days: number) =>
       days === 1 ? `Duration: ${days} day` : `Duration: ${days} days`,
-    quoteSubmittedFinal: "Marked as final — homeowner can accept",
-    quoteSubmittedDraft: "Not final yet — check the box below when ready",
+    quoteSubmittedFinal: "Marked as final; homeowner can accept",
+    quoteSubmittedDraft: "Not final yet; check the box below when ready",
     sendQuote: "Send your quote",
     sendQuoteHint:
       "Homeowners see updates instantly. Check \"Final quote\" when you're happy for them to accept it.",
@@ -59,16 +59,16 @@ const copy = {
     noAction: "No further action needed on this request.",
     awaitingPayment:
       "Waiting for the homeowner to pay. You will be notified when payment is confirmed.",
-    jobPaidComplete: "Payment received — this job is complete. Thank you!",
+    jobPaidComplete: "Payment received. This job is complete. Thank you!",
     notSelected: "The homeowner chose another tradesperson for this job.",
     invalidPrice: "Enter a valid price in Sri Lankan Rupees (LKR).",
     invalidDays: "Enter how many days the job will take (whole number, at least 1).",
   },
   si: {
     roleLabel: "වෘත්තික",
-    dashboardTitle: "FixFlow",
+    dashboardTitle: "Better Call",
     dashboardSubtitle:
-      "ගෘහස්ථ ඉල්ලීම්, මිල ගණන් යැවීම සහ කතාබහ — එකම ස්ථානයකින්.",
+      "ගෘහස්ථ ඉල්ලීම්, මිල ගණන් යැවීම සහ කතාබහ. එකම ස්ථානයකින්.",
     incomingRequests: "ලැබෙන ඉල්ලීම්",
     incomingHint: "ගෘහස්ථයෙක් ඔබට මිල ගණන් ඉල්ලූ විට නව රැකියා දිස්වේ.",
     filterAll: "සියල්ල",
@@ -83,13 +83,13 @@ const copy = {
     notificationsTitle: "දැනුම්දීම්",
     notificationsHint: "ගෘහස්ථයින්ගෙන් පණිවිඩ සහ යාවත්කාලීන.",
     notificationsHintOpenChat:
-      "පණිවිඩයක් තට්ටු කරන්න — එම රැකියාවේ කතාබහ විවෘත වේ.",
+      "පණිවිඩයක් තට්ටු කරන්න. එම රැකියාවේ කතාබහ විවෘත වේ.",
     notificationsEmpty: "සියල්ල නිමයි.",
     loading: "පූරණය වෙමින්…",
     emptyTitle: "තවම ඉල්ලීම් නැත",
     emptyBody:
       "ගෘහස්ථයෙක් ඔබට මිල ගණන් ඉල්ලූ විට රැකියා මෙහි දිස්වේ.",
-    emptyFiltered: "මෙම දර්ශනයේ කිසිවක් නැත — වෙනත් පෙරහනක් උත්සාහ කරන්න.",
+    emptyFiltered: "මෙම දර්ශනයේ කිසිවක් නැත. වෙනත් පෙරහනක් උත්සාහ කරන්න.",
     statusPending: "ඔබේ මිල ගණන් බලාපොරොත්තුවෙන්",
     statusQuoted: "මිල ගණන් යැව්වා",
     statusAccepted: "මිල ගණන් පිළිගත්තා",
@@ -103,8 +103,8 @@ const copy = {
     quoteSubmittedPrice: (price: string) => `මිල: LKR ${price}`,
     quoteSubmittedDays: (days: number) =>
       days === 1 ? `කාලය: දින ${days}` : `කාලය: දින ${days}`,
-    quoteSubmittedFinal: "අවසාන ලෙස සලකුණු කළා — ගෘහස්ථයාට පිළිගත හැක",
-    quoteSubmittedDraft: "තව අවසාන නොවේ — සූදානම් වූ විට පහළින් සලකුණු කරන්න",
+    quoteSubmittedFinal: "අවසාන ලෙස සලකුණු කළා. ගෘහස්ථයාට පිළිගත හැක",
+    quoteSubmittedDraft: "තව අවසාන නොවේ. සූදානම් වූ විට පහළින් සලකුණු කරන්න",
     sendQuote: "ඔබේ මිල ගණන් යවන්න",
     sendQuoteHint:
       "ගෘහස්ථයින් වහාම යාවත්කාලීන දකිති. පිළිගැනීමට සූදානම් වූ විට \"අවසාන මිල ගණන්\" සලකුණු කරන්න.",
@@ -121,16 +121,16 @@ const copy = {
     jobClosed: "ගෘහස්ථයා මේ වේලාවට මිල ගණන් වසා ඇත.",
     noAction: "මෙම ඉල්ලීමට තව ක්‍රියාවක් අවශ්‍ය නොවේ.",
     awaitingPayment: "ගෘහස්ථයාගේ ගෙවීම බලාපොරොත්තුවෙන්.",
-    jobPaidComplete: "ගෙවීම ලැබුණා — රැකියාව නිමයි.",
+    jobPaidComplete: "ගෙවීම ලැබුණා. රැකියාව නිමයි.",
     notSelected: "ගෘහස්ථයා වෙනත් වෘත්තිකයෙකු තෝරා ගත්තා.",
     invalidPrice: "ශ්‍රී ලංකා රුපියල් (LKR) වල වලංගු මිලක් ඇතුළත් කරන්න.",
     invalidDays: "රැකියාවට දින කීයක් ගතවේද යන්න සංඛ්‍යාවක් ලෙස ඇතුළත් කරන්න (අවම වශයෙන් 1).",
   },
   ta: {
     roleLabel: "தொழில்முறை",
-    dashboardTitle: "FixFlow",
+    dashboardTitle: "Better Call",
     dashboardSubtitle:
-      "வீட்டு உரிமையாளர் கோரிக்கைகள், மதிப்பீடு, அரட்டை — ஒரே இடத்தில்.",
+      "வீட்டு உரிமையாளர் கோரிக்கைகள், மதிப்பீடு, அரட்டை. ஒரே இடத்தில்.",
     incomingRequests: "வரும் கோரிக்கைகள்",
     incomingHint: "வீட்டு உரிமையாளர் உங்களை அழைக்கும்போது புதிய வேலைகள் தோன்றும்.",
     filterAll: "அனைத்தும்",
@@ -145,13 +145,13 @@ const copy = {
     notificationsTitle: "அறிவிப்புகள்",
     notificationsHint: "வீட்டு உரிமையாளர்களிடமிருந்து செய்திகள்.",
     notificationsHintOpenChat:
-      "செய்தியைத் தட்டவும் — அந்த வேலையின் அரட்டை திறக்கும்.",
+      "செய்தியைத் தட்டவும். அந்த வேலையின் அரட்டை திறக்கும்.",
     notificationsEmpty: "அனைத்தும் பார்க்கப்பட்டது.",
     loading: "ஏற்றுகிறது…",
     emptyTitle: "இன்னும் கோரிக்கைகள் இல்லை",
     emptyBody:
       "வீட்டு உரிமையாளர் உங்களைத் தேர்ந்தெடுத்தால் வேலை இங்கே தோன்றும்.",
-    emptyFiltered: "இந்த காட்சியில் எதுவும் இல்லை — வேறு வடிகட்டியை முயற்சிக்கவும்.",
+    emptyFiltered: "இந்த காட்சியில் எதுவும் இல்லை. வேறு வடிகட்டியை முயற்சிக்கவும்.",
     statusPending: "உங்கள் மதிப்பீட்டை காத்திருக்கிறது",
     statusQuoted: "மதிப்பீடு அனுப்பப்பட்டது",
     statusAccepted: "மதிப்பீடு ஏற்கப்பட்டது",
@@ -165,8 +165,8 @@ const copy = {
     quoteSubmittedPrice: (price: string) => `விலை: LKR ${price}`,
     quoteSubmittedDays: (days: number) =>
       days === 1 ? `காலம்: ${days} நாள்` : `காலம்: ${days} நாட்கள்`,
-    quoteSubmittedFinal: "இறுதி என குறிக்கப்பட்டது — வீட்டு உரிமையாளர் ஏற்கலாம்",
-    quoteSubmittedDraft: "இன்னும் இறுதி அல்ல — தயாரான பிறகு கீழே குறியிடுங்கள்",
+    quoteSubmittedFinal: "இறுதி என குறிக்கப்பட்டது. வீட்டு உரிமையாளர் ஏற்கலாம்",
+    quoteSubmittedDraft: "இன்னும் இறுதி அல்ல. தயாரான பிறகு கீழே குறியிடுங்கள்",
     sendQuote: "உங்கள் மதிப்பீட்டை அனுப்புங்கள்",
     sendQuoteHint:
       "வீட்டு உரிமையாளர்கள் உடனடியாக புதுப்பிப்புகளைக் காண்கிறார்கள். ஏற்கத் தயாரானபோது \"இறுதி மதிப்பீடு\" என்பதைத் தேர்ந்தெடுக்கவும்.",
@@ -183,7 +183,7 @@ const copy = {
     jobClosed: "வீட்டு உரிமையாளர் இப்போது மதிப்பீட்டை மூடியுள்ளார்.",
     noAction: "இந்த கோரிக்கைக்கு மேலும் நடவடிக்கை தேவையில்லை.",
     awaitingPayment: "வீட்டு உரிமையாளரின் பணம் காத்திருக்கிறது.",
-    jobPaidComplete: "பணம் உறுதி — வேலை முடிந்தது.",
+    jobPaidComplete: "பணம் உறுதி. வேலை முடிந்தது.",
     notSelected: "வீட்டு உரிமையாளர் வேறு தொழில்முறையாளரைத் தேர்ந்தெடுத்தார்.",
     invalidPrice: "இலங்கை ரூபாய் (LKR) இல் செல்லுபடியான விலையை உள்ளிடவும்.",
     invalidDays: "வேலைக்கு எத்தனை நாட்கள் எடுக்கும் என்பதை எண்ணாக உள்ளிடவும் (குறைந்தது 1).",
@@ -208,7 +208,7 @@ export function formatDurationDays(days: number): string {
   return n === 1 ? "1 day" : `${n} days`;
 }
 
-/** "~15 min" / "~2 hr" — average time-to-first-quote, rounded for display. */
+/** "~15 min" / "~2 hr". average time-to-first-quote, rounded for display. */
 export function formatResponseMinutes(minutes: number): string {
   if (minutes < 60) return `~${Math.max(1, Math.round(minutes))} min`;
   const hours = minutes / 60;

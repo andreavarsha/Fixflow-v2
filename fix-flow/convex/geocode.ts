@@ -26,7 +26,7 @@ export const searchAddress = action({
     const response = await fetch(url.toString(), {
       headers: {
         Accept: "application/json",
-        "User-Agent": "FixFlowAI/1.0 (convex-action; property-maintenance-demo)",
+        "User-Agent": "BetterCall/1.0 (convex-action; property-maintenance-demo)",
       },
     });
 

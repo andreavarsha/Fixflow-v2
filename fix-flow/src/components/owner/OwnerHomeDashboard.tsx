@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import {
+  IconGarden,
+  IconLockDoor,
+  IconPlumbing,
+  IconRoof,
+} from "../icons";
 import {
   JobLocationPicker,
   type LatLng,
@@ -10,6 +16,7 @@ import { WaitlistCapture } from "./WaitlistCapture";
 import { resolveZone } from "../../lib/zones";
 import {
   ffBtnPrimary,
+  ffBtnSecondary,
   ffCard,
   ffInput,
   ffLabel,
@@ -17,27 +24,37 @@ import {
   ffScreenTitle,
 } from "../../lib/fixflowUi";
 import { toUserFacingError } from "../../lib/userFacingError";
+import type { JobCategory } from "../../lib/jobCategories";
 
-const COMMON_ISSUES: { label: string; description: string }[] = [
+const COMMON_ISSUES: {
+  label: string;
+  category: JobCategory;
+  description: string;
+  Icon: typeof IconRoof;
+}[] = [
   {
-    label: "Leak",
-    description: "Water leaking — need a plumber to inspect and fix.",
-  },
-  {
-    label: "No power",
-    description: "No power or electrical issue — need an electrician.",
-  },
-  {
-    label: "Lock/door",
-    description: "Door or lock problem — need a locksmith or carpenter.",
+    label: "Roof",
+    category: "Roofing",
+    description: "Roof leak or damage. Need a roofing professional to inspect and fix.",
+    Icon: IconRoof,
   },
   {
     label: "Garden",
+    category: "Garden / Landscaping",
     description: "Garden or outdoor maintenance needed.",
+    Icon: IconGarden,
   },
   {
-    label: "Painting",
-    description: "Need painting or wall touch-up work.",
+    label: "Plumbing",
+    category: "Plumbing",
+    description: "Water leak or plumbing issue. Need a plumber to inspect and fix.",
+    Icon: IconPlumbing,
+  },
+  {
+    label: "Lock/Door",
+    category: "Carpentry",
+    description: "Door or lock problem. Need a locksmith or carpenter.",
+    Icon: IconLockDoor,
   },
 ];
 
@@ -46,8 +63,14 @@ type OwnerHomeDashboardProps = {
 };
 
 export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
+  const [step, setStep] = useState<1 | 2>(1);
   const [description, setDescription] = useState("");
+  const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
+  const [preferredCategory, setPreferredCategory] = useState<JobCategory | null>(
+    null,
+  );
   const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [location, setLocation] = useState<LatLng | null>(null);
   const [addressNote, setAddressNote] = useState("");
   const [showWaitlist, setShowWaitlist] = useState(false);
@@ -56,6 +79,16 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
 
   const generateUploadUrl = useMutation(api.jobs.generateUploadUrl);
   const submitJob = useMutation(api.jobs.submitJob);
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(photo);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
 
   async function uploadPhoto(file: File): Promise<Id<"_storage">> {
     const uploadUrl = await generateUploadUrl();
@@ -69,11 +102,43 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
     return storageId;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!description.trim()) return;
+  function handleSelectIssue(issue: (typeof COMMON_ISSUES)[number]) {
+    setSelectedIssue(issue.label);
+    setPreferredCategory(issue.category);
+    setDescription(issue.description);
+  }
+
+  function clearPhoto() {
+    setPhoto(null);
+  }
+
+  function goToStep2() {
+    setError("");
     if (!location) {
       setError("Set the job location on the map before continuing.");
+      return;
+    }
+    const zone = resolveZone(location.lat, location.lng);
+    if (!zone) {
+      setShowWaitlist(true);
+      return;
+    }
+    setStep(2);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = description.trim();
+    const fallback =
+      COMMON_ISSUES.find((i) => i.label === selectedIssue)?.description ?? "";
+    const finalDescription = trimmed || fallback;
+    if (!finalDescription) {
+      setError("Pick an issue type or describe the problem.");
+      return;
+    }
+    if (!location) {
+      setError("Set the job location on the map before continuing.");
+      setStep(1);
       return;
     }
 
@@ -88,11 +153,12 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
     try {
       const photoId = photo ? await uploadPhoto(photo) : undefined;
       const id = await submitJob({
-        description: description.trim(),
+        description: finalDescription,
         photoId,
         lat: location.lat,
         lng: location.lng,
         addressNote: addressNote.trim() || undefined,
+        preferredCategory: preferredCategory ?? undefined,
       });
       onJobCreated(id);
     } catch (err: unknown) {
@@ -123,124 +189,219 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
 
   return (
     <div className="mx-auto w-full max-w-xl lg:max-w-2xl">
-      <header className="mb-6 flex flex-col items-center text-center pr-0 sm:pr-0">
-        <div
-          className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-3xl font-light text-primary-foreground shadow-md"
-          aria-hidden
-        >
-          +
-        </div>
+      <header className="mb-6 text-center">
+        {step === 2 && (
+          <button
+            type="button"
+            onClick={() => {
+              setError("");
+              setStep(1);
+            }}
+            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card"
+              aria-hidden
+            >
+              ←
+            </span>
+            Back to location
+          </button>
+        )}
         <h1 className={ffScreenTitle}>Report an issue</h1>
         <p className={ffScreenSubtitle}>
-          Pin the location, describe it, add a photo.
+          {step === 1
+            ? "Step 1 of 2: find the location and add details"
+            : "Step 2 of 2: describe the issue and add a photo"}
         </p>
+        <div className="mt-4 flex justify-center gap-2" aria-hidden>
+          <span
+            className={`h-1.5 w-10 rounded-full ${step >= 1 ? "bg-highlight" : "bg-muted"}`}
+          />
+          <span
+            className={`h-1.5 w-10 rounded-full ${step === 2 ? "bg-highlight" : "bg-muted"}`}
+          />
+        </div>
       </header>
 
       <div className={`${ffCard} overflow-hidden p-0`}>
-        <form
-          onSubmit={(e) => {
-            void handleSubmit(e);
-          }}
-          className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7"
-        >
-          <JobLocationPicker value={location} onChange={setLocation} />
+        {step === 1 ? (
+          <div className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7">
+            <JobLocationPicker value={location} onChange={setLocation} />
 
-          <div>
-            <label htmlFor="address-note" className={ffLabel}>
-              Address / Location details <span className="font-normal text-muted-foreground">(optional)</span>
-            </label>
-            <input
-              id="address-note"
-              type="text"
-              value={addressNote}
-              onChange={(e) => setAddressNote(e.target.value)}
-              placeholder="e.g. Gate 2, blue house behind the pharmacy"
-              maxLength={200}
-              className={ffInput}
-            />
-            <p className="mt-1 text-xs text-muted-foreground/70">
-              Only shared with the professional you accept to hire.
-            </p>
-          </div>
-
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Or start from a common issue
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {COMMON_ISSUES.map((issue) => (
-                <button
-                  key={issue.label}
-                  type="button"
-                  onClick={() => setDescription(issue.description)}
-                  className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground/90 transition hover:border-primary hover:bg-accent"
-                >
-                  {issue.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="issue-desc" className={ffLabel}>
-              What&apos;s the problem?
-            </label>
-            <textarea
-              id="issue-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Water leaking under the kitchen sink, getting worse."
-              maxLength={300}
-              rows={4}
-              required
-              className={`${ffInput} resize-none`}
-            />
-            <p className="mt-1.5 text-right text-xs text-muted-foreground/70">
-              {description.length}/300
-            </p>
-          </div>
-
-          <div>
-            <span className={ffLabel}>
-              Photo <span className="font-normal text-muted-foreground">(optional)</span>
-            </span>
-            <label
-              htmlFor="issue-photo"
-              className="mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/40 px-4 py-6 text-center transition hover:border-primary/40 hover:bg-muted"
-            >
-              <span className="text-sm font-medium text-foreground/90">
-                {photo ? photo.name : "Add a photo"}
-              </span>
-              <span className="mt-1 text-xs text-muted-foreground">
-                Helps us classify the issue faster
-              </span>
+            <div>
+              <label htmlFor="address-note" className={ffLabel}>
+                Address / Location details{" "}
+                <span className="font-normal text-muted-foreground">(optional)</span>
+              </label>
               <input
-                id="issue-photo"
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                id="address-note"
+                type="text"
+                value={addressNote}
+                onChange={(e) => setAddressNote(e.target.value)}
+                placeholder="e.g. Gate 2, blue house behind the pharmacy"
+                maxLength={200}
+                className={ffInput}
               />
-            </label>
-          </div>
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                Only shared with the professional you accept to hire.
+              </p>
+            </div>
 
-          {error && (
-            <p
-              className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
-              role="alert"
+            {error && (
+              <p
+                className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={goToStep2}
+              disabled={!location}
+              className={ffBtnPrimary}
             >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting || !description.trim() || !location}
-            className={ffBtnPrimary}
+              Continue
+            </button>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              void handleSubmit(e);
+            }}
+            className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7"
           >
-            {submitting ? "Submitting…" : "Continue"}
-          </button>
-        </form>
+            <div>
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                What type of issue?
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {COMMON_ISSUES.map((issue) => {
+                  const selected = selectedIssue === issue.label;
+                  return (
+                    <button
+                      key={issue.label}
+                      type="button"
+                      onClick={() => handleSelectIssue(issue)}
+                      className={`flex flex-col items-center gap-2 rounded-xl border px-2 py-4 text-sm font-medium transition ${
+                        selected
+                          ? "border-highlight bg-highlight/20 text-highlight-foreground ring-2 ring-highlight/50"
+                          : "border-border bg-card text-foreground/90 hover:border-highlight/60 hover:bg-white/10"
+                      }`}
+                    >
+                      <issue.Icon size={44} />
+                      {issue.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="issue-desc" className={ffLabel}>
+                What&apos;s the problem?{" "}
+                <span className="font-normal text-muted-foreground">
+                  {selectedIssue ? "(optional)" : ""}
+                </span>
+              </label>
+              <textarea
+                id="issue-desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Water leaking under the kitchen sink, getting worse."
+                maxLength={300}
+                rows={4}
+                required={!selectedIssue}
+                className={`${ffInput} resize-none`}
+              />
+              <p className="mt-1.5 text-right text-xs text-muted-foreground/70">
+                {description.length}/300
+              </p>
+            </div>
+
+            <div>
+              <span className={ffLabel}>
+                Photo{" "}
+                <span className="font-normal text-muted-foreground">(optional)</span>
+              </span>
+              {photoPreview ? (
+                <div className="mt-1.5 overflow-hidden rounded-xl border border-border">
+                  <img
+                    src={photoPreview}
+                    alt="Selected issue photo"
+                    className="max-h-48 w-full object-cover"
+                  />
+                  <div className="flex items-center justify-between gap-2 border-t border-border bg-muted/40 px-3 py-2">
+                    <span className="truncate text-xs text-muted-foreground">
+                      {photo?.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearPhoto}
+                      className="shrink-0 text-xs font-semibold text-destructive hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  htmlFor="issue-photo"
+                  className="mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/40 px-4 py-6 text-center transition hover:border-primary/40 hover:bg-muted"
+                >
+                  <span className="text-sm font-medium text-foreground/90">
+                    Add a photo
+                  </span>
+                  <span className="mt-1 text-xs text-muted-foreground">
+                    Helps us classify the issue faster
+                  </span>
+                  <input
+                    id="issue-photo"
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+              )}
+            </div>
+
+            {error && (
+              <p
+                className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
+                {error}
+              </p>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => {
+                  setError("");
+                  setStep(1);
+                }}
+                className={`${ffBtnSecondary} sm:flex-1`}
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                disabled={
+                  submitting ||
+                  (!description.trim() && !selectedIssue) ||
+                  !location
+                }
+                className={`${ffBtnPrimary} sm:flex-1`}
+              >
+                {submitting ? "Submitting…" : "Submit issue"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

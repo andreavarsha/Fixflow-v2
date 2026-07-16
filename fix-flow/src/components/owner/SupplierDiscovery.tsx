@@ -86,7 +86,7 @@ export function SupplierDiscovery({
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Showing <strong>{category}</strong> pros near your job pin
-          (distance from the pin). Tap a pin or card to select — up to{" "}
+          (distance from the pin). Tap a pin or card to select, up to{" "}
           <strong>{MAX_SELECT}</strong>. Quotes update live on the map.
         </p>
       </div>

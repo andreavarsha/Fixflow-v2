@@ -1,4 +1,5 @@
 import type { Id } from "../../../convex/_generated/dataModel";
+import { IconStar } from "../icons";
 import { initials } from "../../lib/initials";
 import { formatResponseMinutes } from "../../lib/supplierDashboardUi";
 
@@ -75,7 +76,8 @@ export function SupplierCard({
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
         {supplier.rating !== undefined && (
           <span className="text-xs text-muted-foreground">
-            <span className="text-amber-500">★</span> {supplier.rating.toFixed(1)}
+            <IconStar size={12} filled className="mr-0.5 inline-block align-[-1px] text-amber-500" />
+            {supplier.rating.toFixed(1)}
             {supplier.reviewCount !== undefined ? ` (${supplier.reviewCount})` : ""}
           </span>
         )}

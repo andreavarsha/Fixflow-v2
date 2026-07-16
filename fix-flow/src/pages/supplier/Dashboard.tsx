@@ -3,7 +3,7 @@ import { ffPage } from "../../lib/fixflowUi";
 
 export default function SupplierDashboard() {
   return (
-    <div className={ffPage}>
+    <div className={`supplier-theme ${ffPage}`}>
       <SupplierHomeDashboard />
     </div>
   );

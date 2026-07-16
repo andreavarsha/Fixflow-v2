@@ -173,6 +173,16 @@ function ClassificationResult({
   const [summaryDraft, setSummaryDraft] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
+  useEffect(() => {
+    if (job === undefined || job === null || job.status === "classifying") return;
+    // Open jobs: surface details so owners can edit without hunting for a toggle.
+    if (job.status === "open") {
+      setShowDetails(true);
+    }
+  }, [job?.status]);
+
 
   useEffect(() => {
     if (job === undefined || job === null || job.status === "classifying") return;
@@ -337,45 +347,61 @@ function ClassificationResult({
     );
   }
 
-  const understandStep =
-    job.status === "open"
-      ? "analyzed"
-      : job.status === "in_progress"
-        ? "quoted"
-        : "analyzed";
+  const invitedCount = job.invitedCount ?? 0;
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={onClose}
-        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <span
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card"
-          aria-hidden
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
-          ←
-        </span>
-        {job.status === "open" ? "Edit details" : "Activity"}
-      </button>
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card"
+            aria-hidden
+          >
+            ←
+          </span>
+          Activity
+        </button>
+        {!jobLocked && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowDetails(true);
+              setShowCategoryEdit(true);
+              setSummaryDraft(job.aiSummary ?? job.description);
+              setEditingSummary(true);
+            }}
+            className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-white/10"
+          >
+            Edit details
+          </button>
+        )}
+      </div>
 
-      {job.status === "open" && (
+      {job.status === "open" ? (
         <OwnerStepHint
           active={1}
           onStepClick={goToOwnerStep}
           canGoToStep={canGoToOwnerStep}
         />
+      ) : (
+        <JobStatusTracker jobId={jobId} />
       )}
 
-      <UnderstandTracker active={understandStep} />
-
-      <JobStatusTracker jobId={jobId} />
-
-      <header className="mb-6 pr-12 sm:pr-14">
-        <h1 className={ffScreenTitle}>Here&apos;s what we understood</h1>
+      <header className="mb-5">
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+          Issue logged
+        </p>
+        <h1 className={ffScreenTitle}>
+          {job.category ?? "Your repair request"}
+        </h1>
         <p className={ffScreenSubtitle}>
-          One tracker, then find nearby suppliers when you&apos;re ready.
+          {jobLocked
+            ? "Status updates appear below. Edits are locked after work starts."
+            : "Review the details, then find nearby professionals."}
         </p>
       </header>
 
@@ -383,254 +409,275 @@ function ClassificationResult({
         jobId={jobId}
         status={job.status}
         acceptedQuote={job.acceptedQuote ?? null}
+        description={job.description}
+        category={job.category}
+        zoneId={job.zoneId}
+        paidAt={job.paidAt}
       />
 
-      <div className={`${ffCard} flex flex-col gap-6 xl:gap-8`}>
-        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:gap-10">
-          <div className="flex flex-col gap-4">
-            {job.photoUrl ? (
-              <img
-                src={job.photoUrl}
-                alt="Photo you attached"
-                className="max-h-64 w-full rounded-xl border border-border object-cover"
-              />
-            ) : (
-              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground">
-                No photo
-              </div>
-            )}
+      <div className={`${ffCard} overflow-hidden p-0`}>
+        {job.photoUrl ? (
+          <img
+            src={job.photoUrl}
+            alt="Issue photo"
+            className="max-h-72 w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-36 items-center justify-center bg-muted/50 text-sm text-muted-foreground">
+            No photo attached
+          </div>
+        )}
 
-            {hasJobLocation && job.status === "open" && (
-              <SupplierDiscoveryMap
-                jobLat={job.lat!}
-                jobLng={job.lng!}
-                suppliers={nearbySuppliers ?? []}
-                selected={[]}
-                onToggle={() => undefined}
-                heightClassName="h-48 sm:h-56"
-                compact
-              />
-            )}
-
-            <div className="flex flex-wrap gap-2">
-              {job.category && (
-                <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                  {job.category}
-                </span>
-              )}
-              <span
-                className={`rounded-full px-3 py-1 text-sm font-semibold ${urgencyStyle[urgency]}`}
-              >
-                {urgency} urgency
+        <div className="flex flex-col gap-4 p-5 sm:p-6">
+          <div className="flex flex-wrap gap-2">
+            {job.category && (
+              <span className="rounded-full bg-highlight/25 px-3 py-1 text-sm font-semibold text-highlight-foreground ring-1 ring-highlight/40">
+                {job.category}
               </span>
-              {zoneName && (
-                <span className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground ring-1 ring-border">
-                  {zoneName}
-                </span>
-              )}
-            </div>
-
-            {job.classificationFailed && (
-              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50">
-                We couldn&apos;t reach the AI classifier — please check the category
-                below before finding suppliers.
-              </p>
             )}
+            <span
+              className={`rounded-full px-3 py-1 text-sm font-semibold ${urgencyStyle[urgency]}`}
+            >
+              {urgency} urgency
+            </span>
+            {zoneName && (
+              <span className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground ring-1 ring-border">
+                {zoneName}
+              </span>
+            )}
+          </div>
 
-            {!showCategoryEdit ? (
+          <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Professionals requested
+              </p>
+              <p className="mt-0.5 text-lg font-bold text-foreground">
+                {invitedCount === 0
+                  ? "None yet"
+                  : `${invitedCount} invited`}
+              </p>
+            </div>
+            {invitedCount > 0 && (
               <button
                 type="button"
-                onClick={() => setShowCategoryEdit(true)}
-                className={`${ffBtnGhost} w-fit text-sm`}
+                onClick={() => setJobView("quotes")}
+                className="text-sm font-semibold text-primary hover:underline"
               >
-                Adjust category & urgency
+                View quotes
               </button>
-            ) : (
-              <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <div className="min-w-[200px] flex-1">
-                    <label htmlFor="job-category" className={ffLabel}>
-                      Trade category
-                    </label>
-                    <select
-                      id="job-category"
-                      value={categoryDraft}
-                      onChange={(e) => setCategoryDraft(e.target.value as JobCategory)}
-                      className={ffInput}
-                    >
-                      {JOB_CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="min-w-[140px] sm:w-40">
-                    <label htmlFor="job-urgency" className={ffLabel}>
-                      Urgency
-                    </label>
-                    <select
-                      id="job-urgency"
-                      value={urgencyDraft}
-                      onChange={(e) => setUrgencyDraft(e.target.value as JobUrgency)}
-                      className={ffInput}
-                    >
-                      {JOB_URGENCIES.map((u) => (
-                        <option key={u} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                {categorySaveError && (
-                  <p className="text-sm text-destructive">{categorySaveError}</p>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void handleSaveCategory()}
-                    disabled={savingCategory}
-                    className={`${ffBtnPrimary} ${ffBtnInRow}`}
-                  >
-                    {savingCategory ? "Saving…" : "Save"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCategoryEdit(false);
-                      setCategorySaveError("");
-                    }}
-                    className={`${ffBtnSecondary} ${ffBtnInRow}`}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
             )}
           </div>
 
-          <div className="flex flex-col border-t border-border pt-6 lg:border-t-0 lg:pt-0">
-            <p className={ffLabel}>Summary</p>
-            {editingSummary ? (
-              <div className="mt-2 flex flex-col gap-3">
-                <textarea
-                  value={summaryDraft}
-                  onChange={(e) => setSummaryDraft(e.target.value)}
-                  rows={5}
-                  className={`${ffInput} resize-none`}
-                />
-                {saveError && <p className="text-sm text-destructive">{saveError}</p>}
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => void handleSaveSummary()}
-                    disabled={saving || !summaryDraft.trim()}
-                    className={`${ffBtnPrimary} ${ffBtnInRow}`}
-                  >
-                    {saving ? "Saving…" : "Save summary"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingSummary(false);
-                      setSaveError("");
-                    }}
-                    className={`${ffBtnSecondary} ${ffBtnInRow}`}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <p className="flex-1 text-base leading-relaxed text-foreground/90">
-                  {summary}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSummaryDraft(summary);
-                    setEditingSummary(true);
-                  }}
-                  className={`${ffBtnGhost} shrink-0 sm:w-auto`}
-                >
-                  Edit text
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+          {hasJobLocation && job.status === "open" && (
+            <SupplierDiscoveryMap
+              jobLat={job.lat!}
+              jobLng={job.lng!}
+              suppliers={nearbySuppliers ?? []}
+              selected={[]}
+              onToggle={() => undefined}
+              heightClassName="h-40 sm:h-48"
+              compact
+            />
+          )}
 
-        {!jobLocked && (
-          <div className="border-t border-border pt-6">
+          {job.classificationFailed && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50">
+              We couldn&apos;t reach the AI classifier. Please check the category
+              below before finding suppliers.
+            </p>
+          )}
+
+          <div>
             <button
               type="button"
-              onClick={() => setJobView("discovery")}
-              disabled={!job.category}
-              className={ffBtnPrimary}
+              onClick={() => setShowDetails((v) => !v)}
+              className="text-sm font-semibold text-primary hover:underline"
+              aria-expanded={showDetails}
             >
-              Find nearby suppliers
+              {showDetails ? "Hide details" : "See details"}
             </button>
+            {showDetails && (
+              <div className="mt-3 space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+                <div>
+                  <p className={ffLabel}>Your description</p>
+                  <p className="text-sm leading-relaxed text-foreground/90">
+                    {job.description}
+                  </p>
+                </div>
+                {summary && (
+                  <div>
+                    <p className={ffLabel}>AI summary</p>
+                    {editingSummary && !jobLocked ? (
+                      <div className="mt-2 flex flex-col gap-3">
+                        <textarea
+                          value={summaryDraft}
+                          onChange={(e) => setSummaryDraft(e.target.value)}
+                          rows={4}
+                          className={`${ffInput} resize-none`}
+                        />
+                        {saveError && (
+                          <p className="text-sm text-destructive">{saveError}</p>
+                        )}
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <button
+                            type="button"
+                            onClick={() => void handleSaveSummary()}
+                            disabled={saving || !summaryDraft.trim()}
+                            className={`${ffBtnPrimary} ${ffBtnInRow}`}
+                          >
+                            {saving ? "Saving…" : "Save summary"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingSummary(false);
+                              setSaveError("");
+                            }}
+                            className={`${ffBtnSecondary} ${ffBtnInRow}`}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <p className="flex-1 text-sm leading-relaxed text-foreground/90">
+                          {summary}
+                        </p>
+                        {!jobLocked && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSummaryDraft(summary);
+                              setEditingSummary(true);
+                            }}
+                            className={`${ffBtnGhost} shrink-0 sm:w-auto`}
+                          >
+                            Edit text
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {!jobLocked && (
+            <>
+              {!showCategoryEdit ? (
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryEdit(true)}
+                  className={`${ffBtnGhost} w-fit text-sm`}
+                >
+                  Adjust category & urgency
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <div className="min-w-[200px] flex-1">
+                      <label htmlFor="job-category" className={ffLabel}>
+                        Trade category
+                      </label>
+                      <select
+                        id="job-category"
+                        value={categoryDraft}
+                        onChange={(e) =>
+                          setCategoryDraft(e.target.value as JobCategory)
+                        }
+                        className={ffInput}
+                      >
+                        {JOB_CATEGORIES.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="min-w-[140px] sm:w-40">
+                      <label htmlFor="job-urgency" className={ffLabel}>
+                        Urgency
+                      </label>
+                      <select
+                        id="job-urgency"
+                        value={urgencyDraft}
+                        onChange={(e) =>
+                          setUrgencyDraft(e.target.value as JobUrgency)
+                        }
+                        className={ffInput}
+                      >
+                        {JOB_URGENCIES.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {categorySaveError && (
+                    <p className="text-sm text-destructive">{categorySaveError}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleSaveCategory()}
+                      disabled={savingCategory}
+                      className={`${ffBtnPrimary} ${ffBtnInRow}`}
+                    >
+                      {savingCategory ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCategoryEdit(false);
+                        setCategorySaveError("");
+                      }}
+                      className={`${ffBtnSecondary} ${ffBtnInRow}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {!jobLocked && (
+            <div className="border-t border-border pt-4">
+              <button
+                type="button"
+                onClick={() => setJobView("discovery")}
+                disabled={!job.category}
+                className={ffBtnPrimary}
+              >
+                Find nearby suppliers
+              </button>
+              <button
+                type="button"
+                onClick={() => setJobView("quotes")}
+                className={`${ffBtnGhost} mt-3`}
+              >
+                Open quote inbox →
+              </button>
+            </div>
+          )}
+
+          {(job.status === "in_progress" ||
+            job.status === "awaiting_payment" ||
+            job.status === "completed") && (
             <button
               type="button"
               onClick={() => setJobView("quotes")}
-              className={`${ffBtnGhost} mt-3`}
+              className={`${ffBtnSecondary} mt-1`}
             >
-              Open quote inbox →
+              View quotes
             </button>
-          </div>
-        )}
-
-        {(job.status === "in_progress" ||
-          job.status === "awaiting_payment" ||
-          job.status === "completed") && (
-          <button
-            type="button"
-            onClick={() => setJobView("quotes")}
-            className={`${ffBtnSecondary} mt-2`}
-          >
-            View quotes
-          </button>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
-
-function UnderstandTracker({
-  active,
-}: {
-  active: "submitted" | "analyzed" | "finding" | "quoted";
-}) {
-  const steps: { id: typeof active; label: string }[] = [
-    { id: "submitted", label: "Submitted" },
-    { id: "analyzed", label: "Analyzed" },
-    { id: "finding", label: "Finding pros" },
-    { id: "quoted", label: "Quoted" },
-  ];
-  const activeIdx = steps.findIndex((s) => s.id === active);
-
-  return (
-    <div className="mb-6 flex flex-wrap gap-2">
-      {steps.map((step, i) => {
-        const isActive = i === activeIdx;
-        const done = i < activeIdx;
-        return (
-          <span
-            key={step.id}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              isActive
-                ? "border-2 border-primary bg-card text-primary"
-                : done
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {step.label}
-          </span>
-        );
-      })}
     </div>
   );
 }

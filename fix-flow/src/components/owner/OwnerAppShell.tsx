@@ -43,7 +43,7 @@ export function OwnerAppShell({
                   <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                FixFlow
+                Better Call
               </span>
             </div>
 
@@ -122,7 +122,7 @@ export function OwnerAppShell({
       <div
         className={`${ffPage} ${
           showNav
-            ? "pb-[max(7.5rem,calc(env(safe-area-inset-bottom)+5.5rem))] lg:pb-10"
+            ? "pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.25rem))] lg:pb-10"
             : ""
         }`}
       >
@@ -135,7 +135,7 @@ export function OwnerAppShell({
           className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
           aria-label="Owner navigation"
         >
-          <div className="mx-auto flex max-w-lg items-end justify-around px-4 pt-2.5 pb-2.5">
+          <div className="mx-auto flex max-w-lg items-center justify-around px-4 py-2.5">
             <MobileTab
               active={tab === "needs"}
               onClick={() => onTabChange("needs")}
@@ -158,27 +158,26 @@ export function OwnerAppShell({
                 </svg>
               }
             />
-            <button
-              type="button"
+            <MobileTab
+              active={tab === "report"}
               onClick={() => onTabChange("report")}
-              className="-mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 active:scale-95"
-              aria-label="Request Repair"
-              aria-current={tab === "report" ? "page" : undefined}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6"
-              >
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            </button>
+              label="Report"
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              }
+            />
             <MobileTab
               active={tab === "activity"}
               onClick={() => onTabChange("activity")}

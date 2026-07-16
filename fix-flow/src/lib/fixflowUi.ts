@@ -5,7 +5,7 @@
 /** Fluid content width: full width on phones, progressively wider caps on tablet/desktop */
 export const ffPage =
   "min-h-dvh w-full max-w-full mx-auto bg-background text-foreground antialiased " +
-  "px-4 pt-5 pb-[max(6rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 " +
+  "px-4 pt-5 pb-6 sm:px-6 sm:pt-8 " +
   "md:max-w-3xl md:mx-auto lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[88rem] " +
   "xl:px-10 2xl:px-12";
 

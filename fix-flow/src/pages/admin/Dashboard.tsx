@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                                 day: "numeric",
                                 year: "numeric",
                               })
-                            : "—"}
+                            : "-"}
                         </td>
                         <td className="py-3.5">
                           <span className="font-semibold text-foreground block">{job.ownerName ?? "Unknown"}</span>
@@ -528,7 +528,7 @@ export default function AdminDashboard() {
                           <span className="text-xs text-muted-foreground block">{job.hiredSupplierEmail}</span>
                         </td>
                         <td className="py-3.5 font-bold text-foreground whitespace-nowrap">
-                          {job.priceLKR !== undefined ? `LKR ${job.priceLKR.toLocaleString("en-LK")}` : "—"}
+                          {job.priceLKR !== undefined ? `LKR ${job.priceLKR.toLocaleString("en-LK")}` : "-"}
                         </td>
                         <td className="py-3.5 whitespace-nowrap">
                           <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
@@ -571,7 +571,7 @@ export default function AdminDashboard() {
             <div className={ffCard}>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Overall Customer Satisfaction</h4>
               <p className="mt-2 text-2xl font-bold text-amber-500">
-                {averageRating > 0 ? `★ ${averageRating.toFixed(1)}` : "★ —"}
+                {averageRating > 0 ? `★ ${averageRating.toFixed(1)}` : "★ -"}
               </p>
               <span className="text-[10px] text-muted-foreground block mt-1">Hired tradesperson feedback avg</span>
             </div>
@@ -786,9 +786,9 @@ export default function AdminDashboard() {
                                 </span>
                               </td>
                               <td className="py-2 font-semibold text-foreground">
-                                {q.priceLKR !== undefined ? `LKR ${q.priceLKR.toLocaleString("en-LK")}` : "—"}
+                                {q.priceLKR !== undefined ? `LKR ${q.priceLKR.toLocaleString("en-LK")}` : "-"}
                               </td>
-                              <td className="py-2 text-muted-foreground">{q.duration ?? "—"}</td>
+                              <td className="py-2 text-muted-foreground">{q.duration ?? "-"}</td>
                             </tr>
                           ))}
                         </tbody>

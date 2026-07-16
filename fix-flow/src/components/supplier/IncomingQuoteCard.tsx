@@ -22,7 +22,7 @@ const urgencyStyle = {
   High: "text-primary bg-primary/10 ring-primary/20 dark:bg-primary/15",
   Medium:
     "text-amber-900 bg-amber-50 ring-amber-100 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900/50",
-  Low: "text-teal-900 bg-teal-50 ring-teal-100 dark:bg-teal-950/50 dark:text-teal-300 dark:ring-teal-900/50",
+  Low: "text-yellow-foreground bg-yellow/15 ring-yellow/30",
 };
 
 export type IncomingQuoteRequest = {
@@ -55,17 +55,24 @@ const STATUS_ACCENT: Record<IncomingQuoteRequest["status"], string> = {
 
 type IncomingQuoteCardProps = {
   request: IncomingQuoteRequest;
+  expanded?: boolean;
+  onExpandedChange?: (open: boolean) => void;
   chatOpen?: boolean;
   onChatOpenChange?: (open: boolean) => void;
 };
 
 export function IncomingQuoteCard({
   request,
+  expanded: expandedControlled,
+  onExpandedChange,
   chatOpen: chatOpenControlled,
   onChatOpenChange,
 }: IncomingQuoteCardProps) {
+  const [expandedLocal, setExpandedLocal] = useState(false);
   const [chatOpenLocal, setChatOpenLocal] = useState(false);
 
+  const expanded = expandedControlled ?? expandedLocal;
+  const setExpanded = onExpandedChange ?? setExpandedLocal;
   const chatOpen = chatOpenControlled ?? chatOpenLocal;
   const setChatOpen = onChatOpenChange ?? setChatOpenLocal;
 
@@ -76,14 +83,8 @@ export function IncomingQuoteCard({
       : "skip",
   );
 
-  const [selectedLang, setSelectedLang] = useState<"en" | "si" | "ta">("en");
-
   const summaryText =
-    selectedLang === "si"
-      ? (request.jobSummary_si ?? request.jobSummary ?? request.jobDescription)
-      : selectedLang === "ta"
-        ? (request.jobSummary_ta ?? request.jobSummary ?? request.jobDescription)
-        : (request.jobSummary ?? request.jobDescription);
+    request.jobSummary ?? request.jobDescription ?? "No summary available.";
 
   const statusLabel =
     request.status === "pending"
@@ -102,7 +103,6 @@ export function IncomingQuoteCard({
       : "";
 
   const accent = STATUS_ACCENT[request.status];
-
   const unread = unreadCount ?? 0;
 
   return (
@@ -110,8 +110,13 @@ export function IncomingQuoteCard({
       id={`supplier-job-${request.jobId}`}
       className={`border-l-4 ${accent}`}
     >
-      <article className="px-4 py-5 sm:px-6 sm:py-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <article className="px-4 py-4 sm:px-6">
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex w-full items-start justify-between gap-3 text-left"
+          aria-expanded={expanded}
+        >
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span
@@ -127,125 +132,109 @@ export function IncomingQuoteCard({
                 </span>
               )}
             </div>
-            {request.jobCategory && (
-              <h3 className="mt-2 text-base font-semibold text-foreground sm:text-lg">
-                {request.jobCategory}
-              </h3>
+            <h3 className="mt-2 text-base font-semibold text-foreground sm:text-lg">
+              {request.jobCategory ?? "Repair request"}
+            </h3>
+            {!expanded && (
+              <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                {summaryText}
+              </p>
             )}
           </div>
+          <span
+            className={`mt-1 shrink-0 text-muted-foreground transition ${expanded ? "rotate-180" : ""}`}
+            aria-hidden
+          >
+            ▾
+          </span>
+        </button>
 
-          {request.ownerId && (
-            <button
-              type="button"
-              onClick={() => setChatOpen(!chatOpen)}
-              className={`${ffBtnSecondary} relative shrink-0 text-sm sm:max-w-[12rem]`}
-              aria-expanded={chatOpen}
-            >
-              {chatOpen ? "Close chat" : "Message homeowner"}
-              {!chatOpen && unread > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                  {unread > 9 ? "9+" : unread}
-                </span>
+        {expanded && (
+          <div className="mt-4 border-t border-border pt-4">
+            <div className="mb-3 flex flex-wrap gap-2">
+              {request.ownerId && (
+                <button
+                  type="button"
+                  onClick={() => setChatOpen(!chatOpen)}
+                  className={`${ffBtnSecondary} relative shrink-0 text-sm sm:max-w-[12rem]`}
+                  aria-expanded={chatOpen}
+                >
+                  {chatOpen ? "Close chat" : "Message homeowner"}
+                  {!chatOpen && unread > 0 && (
+                    <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
+                </button>
               )}
-            </button>
-          )}
-        </div>
-
-        <JobIssuePhoto jobId={request.jobId} />
-
-        {request.status === "quoted" &&
-          request.priceLKR !== undefined &&
-          request.priceLKR > 0 && (
-            <div
-              className="mt-4 rounded-xl bg-teal-50 px-4 py-3 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:ring-teal-900/50"
-              role="status"
-            >
-              <p className="text-sm font-semibold text-teal-900 dark:text-teal-200">
-                {t.quoteSubmittedTitle}
-              </p>
-              <p className="mt-1 text-sm text-teal-800 dark:text-teal-300">
-                {t.quoteSubmittedPrice(request.priceLKR.toLocaleString("en-LK"))}
-                {submittedDays
-                  ? ` · ${t.quoteSubmittedDays(Number(submittedDays))}`
-                  : request.duration
-                    ? ` · ${request.duration}`
-                    : ""}
-              </p>
-              <p className="mt-1 text-xs text-teal-700 dark:text-teal-400">
-                {request.isFinal ? t.quoteSubmittedFinal : t.quoteSubmittedDraft}
-              </p>
             </div>
-          )}
 
-        {/* Translation tabs */}
-        <div className="mt-4 flex gap-1.5 border-b border-border text-xs">
-          <button
-            type="button"
-            onClick={() => setSelectedLang("en")}
-            className={`px-3 py-1.5 font-semibold transition-colors border-b-2 ${
-              selectedLang === "en"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            English
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedLang("si")}
-            className={`px-3 py-1.5 font-semibold transition-colors border-b-2 ${
-              selectedLang === "si"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            සිංහල
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedLang("ta")}
-            className={`px-3 py-1.5 font-semibold transition-colors border-b-2 ${
-              selectedLang === "ta"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            தமிழ்
-          </button>
-        </div>
+            <JobIssuePhoto jobId={request.jobId} />
 
-        <p className="mt-3 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
-          {summaryText}
-        </p>
+            {request.status === "quoted" &&
+              request.priceLKR !== undefined &&
+              request.priceLKR > 0 && (
+                <div
+                  className="mt-4 rounded-xl bg-yellow/15 px-4 py-3 ring-1 ring-yellow/30"
+                  role="status"
+                >
+                  <p className="text-sm font-semibold text-yellow-foreground">
+                    {t.quoteSubmittedTitle}
+                  </p>
+                  <p className="mt-1 text-sm text-foreground/80">
+                    {t.quoteSubmittedPrice(
+                      request.priceLKR.toLocaleString("en-LK"),
+                    )}
+                    {submittedDays
+                      ? ` · ${t.quoteSubmittedDays(Number(submittedDays))}`
+                      : request.duration
+                        ? ` · ${request.duration}`
+                        : ""}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {request.isFinal
+                      ? t.quoteSubmittedFinal
+                      : t.quoteSubmittedDraft}
+                  </p>
+                </div>
+              )}
 
-        {request.status === "accepted" && request.addressNote && (
-          <div className="mt-4 rounded-xl bg-teal-50/50 p-4 text-sm text-teal-900 border border-teal-100/80 dark:bg-teal-950/20 dark:text-teal-200 dark:border-teal-900/50">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-teal-800 dark:text-teal-400">
-              📍 Job Address / Location details
-            </h4>
-            <p className="mt-1.5 font-medium leading-relaxed">{request.addressNote}</p>
-          </div>
-        )}
+            <p className="mt-3 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+              {summaryText}
+            </p>
 
-        {chatOpen && request.ownerId && (
-          <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
-            <ChatPanel
+            {request.status === "accepted" && request.addressNote && (
+              <div className="mt-4 rounded-xl border border-yellow/30 bg-yellow/10 p-4 text-sm text-foreground">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-yellow-foreground">
+                  Job address / location details
+                </h4>
+                <p className="mt-1.5 font-medium leading-relaxed">
+                  {request.addressNote}
+                </p>
+              </div>
+            )}
+
+            {chatOpen && request.ownerId && (
+              <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
+                <ChatPanel
+                  jobId={request.jobId}
+                  peerId={request.ownerId}
+                  peerLabel="Homeowner"
+                />
+              </div>
+            )}
+
+            <JobActionsSection
               jobId={request.jobId}
-              peerId={request.ownerId}
-              peerLabel="Homeowner"
+              quoteStatus={request.status}
+              jobStatus={request.jobStatus}
+              initialPrice={request.priceLKR}
+              initialDuration={request.duration}
+              initialNotes={request.notes}
+              initialIsFinal={request.isFinal}
             />
           </div>
         )}
-
-        <JobActionsSection
-          jobId={request.jobId}
-          quoteStatus={request.status}
-          jobStatus={request.jobStatus}
-          initialPrice={request.priceLKR}
-          initialDuration={request.duration}
-          initialNotes={request.notes}
-          initialIsFinal={request.isFinal}
-        />
       </article>
     </li>
   );
@@ -319,13 +308,12 @@ function JobActionsSection({
   }
 
   if (quoteStatus === "accepted" && lifecycle === "in_progress") {
-
     return (
-      <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50/80 p-4 dark:border-blue-900/40 dark:bg-blue-950/30 sm:p-5">
-        <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+      <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/40 dark:bg-amber-950/30 sm:p-5">
+        <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
           Job in progress
         </p>
-        <p className="mt-1 text-sm leading-relaxed text-blue-800 dark:text-blue-300">
+        <p className="mt-1 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
           When the repair is finished on site, confirm below. The homeowner will
           be asked to pay the agreed quote amount.
         </p>
@@ -359,7 +347,7 @@ function JobActionsSection({
 
   if (quoteStatus === "accepted" && lifecycle === "completed") {
     return (
-      <p className="mt-5 rounded-lg bg-teal-50 px-3 py-2.5 text-sm text-teal-900 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-200 dark:ring-teal-900/50">
+      <p className="mt-5 rounded-lg bg-yellow/15 px-3 py-2.5 text-sm text-yellow-foreground ring-1 ring-yellow/30">
         {t.jobPaidComplete}
       </p>
     );
@@ -476,7 +464,9 @@ function JobActionsSection({
       <div className="mt-4">
         <label htmlFor={`notes-${jobId}`} className={ffLabel}>
           {t.notesLabel}{" "}
-          <span className="font-normal text-muted-foreground">{t.notesOptional}</span>
+          <span className="font-normal text-muted-foreground">
+            {t.notesOptional}
+          </span>
         </label>
         <textarea
           id={`notes-${jobId}`}
