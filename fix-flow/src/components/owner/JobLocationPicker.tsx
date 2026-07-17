@@ -19,6 +19,7 @@ import {
   ffLabel,
 } from "../../lib/fixflowUi";
 import { toUserFacingError } from "../../lib/userFacingError";
+import { useLanguage } from "../../lib/LanguageContext";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -61,6 +62,7 @@ function DragHandler({ onChange }: { onChange: (pos: LatLng) => void }) {
 
 export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
   const searchAddressAction = useAction(api.geocode.searchAddress);
+  const { t, language } = useLanguage();
   const [geoError, setGeoError] = useState("");
   const [locating, setLocating] = useState(false);
   const [address, setAddress] = useState("");
@@ -80,7 +82,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
     setGeoError("");
     setSuggestions([]);
     if (!navigator.geolocation) {
-      setGeoError("Geolocation is not supported in this browser.");
+      setGeoError(t("locGeoNotSupported"));
       return;
     }
     setLocating(true);
@@ -90,9 +92,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
         setLocating(false);
       },
       () => {
-        setGeoError(
-          "Couldn’t read your location. Enter an address or drag the pin instead.",
-        );
+        setGeoError(t("locGeoError"));
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 12000 },
@@ -103,16 +103,14 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
     setGeoError("");
     setSuggestions([]);
     if (!address.trim()) {
-      setGeoError("Enter an address, e.g. Rajagiriya, Budgamuwa Rd.");
+      setGeoError(t("locEmptyAddressError"));
       return;
     }
     setSearching(true);
     try {
       const hits = await searchAddressAction({ query: address.trim() });
       if (hits.length === 0) {
-        setGeoError(
-          "No matches found. Try “Rajagiriya” or “Nawala”, then fine-tune the pin.",
-        );
+        setGeoError(t("locNoMatchesError"));
         return;
       }
       if (hits.length === 1) {
@@ -143,9 +141,29 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
     setGeoError("");
   }
 
+  const getZoneName = (zoneId: string, defaultName: string) => {
+    if (language === "si") {
+      switch (zoneId) {
+        case "kadana": return "කඩවත";
+        case "rajagiriya": return "රාජගිරිය";
+        case "nawala": return "නාවල";
+        default: return defaultName;
+      }
+    }
+    if (language === "ta") {
+      switch (zoneId) {
+        case "kadana": return "கடவத்தை";
+        case "rajagiriya": return "இராஜகிரிய";
+        case "nawala": return "நாவல";
+        default: return defaultName;
+      }
+    }
+    return defaultName;
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      <span className={ffLabel}>Job location</span>
+      <span className={ffLabel}>{t("locJobLocation")}</span>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
         <input
@@ -158,7 +176,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
               void searchAddress();
             }
           }}
-          placeholder="e.g. Rajagiriya, Budgamuwa Rd"
+          placeholder={t("locPlaceholder")}
           className={`${ffInput} sm:flex-1`}
           aria-label="Street or area address"
         />
@@ -168,7 +186,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
           disabled={searching}
           className={`${ffBtnPrimary} sm:max-w-[8rem]`}
         >
-          {searching ? "Searching…" : "Find"}
+          {searching ? t("locSearching") : t("locFind")}
         </button>
       </div>
 
@@ -178,7 +196,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
             <li key={`${hit.lat},${hit.lng},${hit.label}`}>
               <button
                 type="button"
-                className="w-full px-3 py-2.5 text-left text-foreground/90 transition-colors hover:bg-white/10 hover:text-foreground focus-visible:bg-white/10 focus-visible:outline-none active:bg-white/15 dark:hover:bg-white/15 dark:focus-visible:bg-white/15 dark:active:bg-white/20"
+                className="w-full px-3 py-2.5 text-left text-foreground/90 transition-colors hover:bg-white/10 hover:text-foreground focus-visible:bg-white/10 focus-visible:outline-none active:bg-white/15 dark:hover:bg-white/10 focus-visible:outline-none dark:hover:bg-white/15 dark:focus-visible:bg-white/15 dark:active:bg-white/20"
                 onClick={() => applyHit(hit)}
               >
                 {hit.label}
@@ -194,7 +212,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
           onClick={useMyLocation}
           className={`${ffBtnSecondary} text-sm sm:max-w-none`}
         >
-          {locating ? "Locating…" : "Use my current location"}
+          {locating ? t("locLocating") : t("locUseMyLocation")}
         </button>
         {DEMO_ZONES.map((z) => (
           <button
@@ -203,7 +221,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
             onClick={() => jumpToZone(z.id)}
             className="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground ring-1 ring-border transition-colors hover:bg-white/10 hover:text-foreground dark:hover:bg-white/15"
           >
-            {z.name}
+            {getZoneName(z.id, z.name)}
           </button>
         ))}
       </div>
@@ -233,7 +251,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
                   },
                 }}
               >
-                <Popup>Drag me to the job site</Popup>
+                <Popup>{t("locDragPopup")}</Popup>
               </Marker>
             </>
           )}
@@ -242,28 +260,24 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Type an address and tap Find, use GPS, pick a demo area, or tap the map
-        to drop a pin. Drag the pin to fine-tune.
+        {t("locInstructions")}
       </p>
 
       {!hasPin && (
         <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground ring-1 ring-border">
-          Set a job location to continue. Better Call is live in{" "}
-          <strong>Kadana</strong>, <strong>Rajagiriya</strong>, and{" "}
-          <strong>Nawala</strong>.
+          {t("locSetLocationHint")}
         </p>
       )}
 
       {hasPin && zone && (
         <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-200 dark:ring-teal-900/50">
-          You&apos;re in <strong>{zone.name}</strong>. Better Call is live here.
+          {t("locInZonePrefix")}<strong>{getZoneName(zone.id, zone.name)}</strong>{t("locInZoneSuffix")}
         </p>
       )}
 
       {hasPin && !zone && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-100 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50">
-          This pin is outside our demo zones (Kadana, Rajagiriya, Nawala). You
-          can join the waitlist after trying to submit.
+          {t("locOutsideZone")}
         </p>
       )}
 

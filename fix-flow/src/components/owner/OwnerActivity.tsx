@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useLanguage } from "../../lib/LanguageContext";
 import {
   formatOwnerJobMeta,
   isNeedsYouJob,
@@ -20,6 +21,7 @@ type ActivityFilter = "all" | "in_progress" | "complete";
 export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
   const jobs = useQuery(api.jobs.listMyJobs);
   const [filter, setFilter] = useState<ActivityFilter>("all");
+  const { t } = useLanguage();
 
   const filtered = useMemo(() => {
     if (!jobs) return [];
@@ -40,21 +42,21 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
     return jobs;
   }, [jobs, filter]);
 
+  const filters = useMemo(() => [
+    { id: "all" as ActivityFilter, label: t("filterAll") },
+    { id: "in_progress" as ActivityFilter, label: t("filterInProgress") },
+    { id: "complete" as ActivityFilter, label: t("filterComplete") },
+  ], [t]);
+
   if (jobs === undefined) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
-  const filters: { id: ActivityFilter; label: string }[] = [
-    { id: "all", label: "All" },
-    { id: "in_progress", label: "In progress" },
-    { id: "complete", label: "Complete" },
-  ];
-
   return (
     <div className="mx-auto w-full max-w-xl lg:max-w-2xl">
       <header className="mb-4 pr-12 sm:pr-14">
-        <h1 className={ffScreenTitle}>Activity</h1>
-        <p className={ffScreenSubtitle}>Track requests from start to finish</p>
+        <h1 className={ffScreenTitle}>{t("activityTitle")}</h1>
+        <p className={ffScreenSubtitle}>{t("activitySubtitle")}</p>
       </header>
 
       <div
@@ -85,15 +87,15 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
 
       {jobs.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card px-5 py-12 text-center">
-          <p className="font-medium text-foreground">No requests yet</p>
+          <p className="font-medium text-foreground">{t("activityNoRequests")}</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Use Report to submit your first repair.
+            {t("activityReportTip")}
           </p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card px-5 py-10 text-center">
           <p className="text-sm text-muted-foreground">
-            No {filter === "complete" ? "completed" : "in-progress"} jobs here.
+            {t("activityNoJobsMatch")}
           </p>
         </div>
       ) : (
@@ -126,7 +128,7 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
                 ? "border-amber-200 dark:border-amber-900/50"
                 : "border-border";
 
-            const meta = activityMeta(job);
+            const meta = activityMeta(job, t);
 
             return (
               <li key={job._id}>
@@ -157,16 +159,16 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
                           }`}
                         >
                           {completed
-                            ? "Complete"
+                            ? t("activityCompleted")
                             : inProgress
                               ? job.workflowStatus === "pay_supplier"
-                                ? "Awaiting payment"
-                                : "In progress"
+                                ? t("activityAwaitingPayment")
+                                : t("activityInProgress")
                               : quotesIn
-                                ? `${job.quotedCount} quotes in`
+                                ? `${job.quotedCount} ${t("activityQuotesInCount")}`
                                 : job.workflowStatus === "pending_quotes"
-                                  ? "Finding pros"
-                                  : "Just submitted"}
+                                  ? t("activityFindingPros")
+                                  : t("activityJustSubmitted")}
                         </span>
                       )}
                     </div>
@@ -184,9 +186,9 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
 
       <div className="mt-8">
         <NotificationFeed
-          title="Updates"
-          hint="Automatic reminders and job updates appear here."
-          emptyLabel="No updates yet"
+          title={t("activityUpdates")}
+          hint={t("activityUpdatesHint")}
+          emptyLabel={t("activityUpdatesEmpty")}
           onOpenJobChat={(jobId) => onOpenJob(jobId)}
         />
       </div>
@@ -194,21 +196,24 @@ export function OwnerActivity({ onOpenJob, onOpenQuotes }: OwnerActivityProps) {
   );
 }
 
-function activityMeta(job: {
-  workflowStatus: string;
-  zoneId?: string;
-  quotedCount?: number;
-  nearestDistanceKm?: number;
-  category?: string;
-  _creationTime: number;
-  description: string;
-  aiSummary?: string;
-}): string {
-  const statusLine = workflowStatusLine(job.workflowStatus);
+function activityMeta(
+  job: {
+    workflowStatus: string;
+    zoneId?: string;
+    quotedCount?: number;
+    nearestDistanceKm?: number;
+    category?: string;
+    _creationTime: number;
+    description: string;
+    aiSummary?: string;
+  },
+  t: any,
+): string {
+  const statusLine = workflowStatusLine(job.workflowStatus, t);
   const detail = formatOwnerJobMeta(job);
   const when = formatRelative(job._creationTime);
   if (job.workflowStatus === "select_supplier") {
-    return detail ? `Compare and accept · ${detail}` : "Compare and accept";
+    return detail ? `${t("activityQuotesReady")} · ${detail}` : t("activityQuotesReady");
   }
   if (job.workflowStatus === "pending_quotes" || job.workflowStatus === "find_suppliers") {
     return [statusLine, detail].filter(Boolean).join(" · ");
@@ -216,22 +221,22 @@ function activityMeta(job: {
   return [statusLine, when, detail].filter(Boolean).join(" · ");
 }
 
-function workflowStatusLine(status: string): string {
+function workflowStatusLine(status: string, t: any): string {
   switch (status) {
     case "classifying":
-      return "Analyzing";
+      return t("activityAnalyzing");
     case "find_suppliers":
-      return "Finding pros";
+      return t("activityFindingPros");
     case "pending_quotes":
-      return "Awaiting quotes";
+      return t("activityAwaitingQuotes");
     case "select_supplier":
-      return "Quotes ready";
+      return t("activityQuotesReady");
     case "work_in_progress":
-      return "In progress";
+      return t("activityInProgress");
     case "pay_supplier":
-      return "Awaiting payment";
+      return t("activityAwaitingPayment");
     case "completed":
-      return "Completed";
+      return t("activityCompleted");
     default:
       return status;
   }

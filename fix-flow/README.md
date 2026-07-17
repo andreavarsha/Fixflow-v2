@@ -66,6 +66,13 @@ Printable QR: see [`public/demo-qr.png`](./public/demo-qr.png) (points at the li
   * **Completed Archives**: Hosts completed tasks showing cost values, tradesperson assignments, rating stars, and feedback comments.
   * **Marketplace Analytics**: Integrated custom monthly horizontal SVG bar charts, top tradesperson leaderboards, and homeowner requests logs.
 * **Consistent Sign Out Wording**: Standardized all references to use `"Sign out"`.
+* **Sri Lankan Localization (Sinhala & Tamil)**:
+  * Implemented upfront absolute-positioned language selector pills on both Login and SignUp cards.
+  * Added a persistent, user-friendly language switcher dropdown across all user menus to toggle instantly between English, Sinhala (`සිං`), and Tamil (`தமிழ்`).
+  * Localized all homeowner activity steps, job histories, supplier cards, quotation actions, and admin moderation fields.
+  * Integrated Sri Lanka-specific coverages: translated map search suggestions, current GPS buttons, marker labels, and dynamic demo zone warning descriptions (Kadana, Rajagiriya, Nawala) in their corresponding transliterations (`කඩවත`, `රාජගිරිය`, `නාවල`, etc.).
+* **Dynamic Notification Localization**: Localized the notifications feed, resolving backend translation templates on the fly to prevent English/Sinhala/Tamil text mismatch depending on the user's active interface language.
+* **Default Theme & Hover Tooltips**: Enforced system default theme settings and added clear hover label tooltips to all dark/light/system theme selector controls across all user profile menus.
 
 ## Stack
 

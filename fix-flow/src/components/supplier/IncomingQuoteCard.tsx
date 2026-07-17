@@ -288,7 +288,7 @@ function JobActionsSection({
   const [isFinal, setIsFinal] = useState(initialIsFinal ?? false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { language } = useLanguage();
+  const { language, t: tGlobal } = useLanguage();
   const t = useMemo(() => supplierUi(language), [language]);
 
   const lifecycle = jobStatus as JobLifecycleStatus;
@@ -322,11 +322,10 @@ function JobActionsSection({
     return (
       <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/40 dark:bg-amber-950/30 sm:p-5">
         <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-          Job in progress
+          {tGlobal("supplierJobInProgress")}
         </p>
         <p className="mt-1 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
-          When the repair is finished on site, confirm below. The homeowner will
-          be asked to pay the agreed quote amount.
+          {tGlobal("supplierJobInProgressHint")}
         </p>
         {completeError && (
           <p
@@ -342,7 +341,7 @@ function JobActionsSection({
           disabled={completing}
           className={`${ffBtnPrimary} mt-4 sm:max-w-xs`}
         >
-          {completing ? "Submitting…" : "Mark job complete"}
+          {completing ? tGlobal("supplierSubmitting") : tGlobal("supplierMarkComplete")}
         </button>
       </div>
     );

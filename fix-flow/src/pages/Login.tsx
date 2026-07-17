@@ -2,6 +2,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useLanguage } from "../lib/LanguageContext";
 import {
   IconClipboard,
   IconPersonHomeowner,
@@ -21,6 +22,7 @@ export default function Login() {
   const { signIn } = useAuthActions();
   const { isAuthenticated } = useConvexAuth();
   const navigate = useNavigate();
+  const { t, language, setLanguage } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -56,27 +58,45 @@ export default function Login() {
       <div
         className={`${ffCard} relative z-10 mx-auto w-full max-w-md border-border/80 xl:max-w-xl 2xl:max-w-2xl`}
       >
+        <div className="absolute right-4 top-4 z-20">
+          <div className="flex items-center gap-1.5 rounded-lg bg-muted p-1">
+            {(["en", "si", "ta"] as const).map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setLanguage(lang)}
+                className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase transition ${
+                  language === lang
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {lang === "en" ? "EN" : lang === "si" ? "සිං" : "தமிழ்"}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center">
           <h1 className={`${ffScreenTitle} text-3xl sm:text-4xl`}>Better Call</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Home repairs, matched to nearby tradespeople. Report an issue, compare
-            quotes, and pay when the work is done.
+            {t("loginSubtitle")}
           </p>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 text-left">
           <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
             <IconPersonHomeowner size={36} className="mb-2" />
-            <p className="text-sm font-semibold text-foreground">Homeowners</p>
+            <p className="text-sm font-semibold text-foreground">{t("loginHomeownersTitle")}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Pin the issue, invite pros, accept a quote.
+              {t("loginHomeownersDesc")}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
             <IconPersonTradesperson size={36} className="mb-2" />
-            <p className="text-sm font-semibold text-foreground">Tradespeople</p>
+            <p className="text-sm font-semibold text-foreground">{t("loginTradespeopleTitle")}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Get requests, send quotes, complete jobs.
+              {t("loginTradespeopleDesc")}
             </p>
           </div>
         </div>
@@ -87,7 +107,7 @@ export default function Login() {
           }}
           className="mt-8 flex flex-col gap-5"
         >
-          <p className="text-sm font-medium text-foreground">Sign in to continue</p>
+          <p className="text-sm font-medium text-foreground">{t("loginSignInTitle")}</p>
 
           {error && (
             <p
@@ -100,7 +120,7 @@ export default function Login() {
 
           <div>
             <label htmlFor="login-email" className={ffLabel}>
-              Email
+              {t("loginEmailLabel")}
             </label>
             <input
               id="login-email"
@@ -116,7 +136,7 @@ export default function Login() {
 
           <div>
             <label htmlFor="login-password" className={ffLabel}>
-              Password
+              {t("loginPasswordLabel")}
             </label>
             <div className="relative">
               <input
@@ -134,25 +154,25 @@ export default function Login() {
                 onClick={() => setShowPassword((p) => !p)}
                 className="absolute right-2 top-1/2 min-h-[40px] min-w-[48px] -translate-y-1/2 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-white/10"
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? t("loginHide") : t("loginShow")}
               </button>
             </div>
           </div>
 
           <button type="submit" disabled={loading} className={ffBtnPrimary}>
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? t("loginSigningIn") : t("loginSignInBtn")}
           </button>
 
           <Link
             to="/signup"
             className="text-center text-sm font-medium text-foreground/80 underline underline-offset-4 hover:text-foreground"
           >
-            Need an account? Sign up as a homeowner
+            {t("loginSignUpLink")}
           </Link>
 
           <div className="mt-2 border-t border-border pt-6">
             <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground/85">
-              Quick-fill demo accounts
+              {t("loginQuickFillTitle")}
             </p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               <button
@@ -165,7 +185,7 @@ export default function Login() {
               >
                 <IconPersonHomeowner size={40} />
                 <span className="mt-1.5 text-[10px] font-semibold text-foreground">
-                  Homeowner
+                  {t("roleOwner")}
                 </span>
               </button>
               <button
@@ -178,7 +198,7 @@ export default function Login() {
               >
                 <IconPersonTradesperson size={40} />
                 <span className="mt-1.5 text-[10px] font-semibold text-foreground">
-                  Tradesperson
+                  {t("roleSupplier")}
                 </span>
               </button>
               <button
@@ -191,12 +211,12 @@ export default function Login() {
               >
                 <IconClipboard size={40} />
                 <span className="mt-1.5 text-[10px] font-semibold text-foreground">
-                  Admin
+                  {t("roleAdmin")}
                 </span>
               </button>
             </div>
             <p className="mt-2.5 text-center text-[10px] text-muted-foreground/75">
-              Pre-fills fields. Password for all:{" "}
+              {t("loginPreFillDesc")}{" "}
               <span className="font-mono font-semibold text-foreground">
                 FixFlowDemo1
               </span>

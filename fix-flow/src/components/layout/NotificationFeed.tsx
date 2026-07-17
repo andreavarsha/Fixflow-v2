@@ -1,6 +1,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type NotificationFeedProps = {
   title: string;
@@ -18,6 +19,7 @@ export function NotificationFeed({
 }: NotificationFeedProps) {
   const unreadCount = useQuery(api.notifications.getUnreadCount);
   const items = useQuery(api.notifications.listRecent, { limit: 12 });
+  const { language } = useLanguage();
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -47,6 +49,17 @@ export function NotificationFeed({
             const isMessage = n.type === "new_message";
             const canOpen = isMessage && n.jobId && onOpenJobChat;
 
+            const nDyn = n as any;
+            const displayMessage =
+              language === "si" ? (nDyn.message_si || n.message) :
+              language === "ta" ? (nDyn.message_ta || n.message) :
+              (nDyn.message_en || n.message);
+
+            const openChatLabel =
+              language === "si" ? "සංවාදය විවෘත කරන්න →" :
+              language === "ta" ? "உரையாடலைத் திறக்கவும் →" :
+              "Open chat →";
+
             return (
               <li key={n._id}>
                 {canOpen ? (
@@ -58,10 +71,10 @@ export function NotificationFeed({
                     }`}
                   >
                     <NotificationRow
-                      message={n.message}
+                      message={displayMessage}
                       read={n.read}
                       isMessage={isMessage}
-                      actionLabel="Open chat →"
+                      actionLabel={openChatLabel}
                     />
                   </button>
                 ) : (
@@ -69,7 +82,7 @@ export function NotificationFeed({
                     className={`px-5 py-3.5 sm:px-6 ${!n.read ? "bg-muted/60" : ""}`}
                   >
                     <NotificationRow
-                      message={n.message}
+                      message={displayMessage}
                       read={n.read}
                       isMessage={isMessage}
                     />

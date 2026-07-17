@@ -221,6 +221,8 @@ export const listMyJobs = query({
           urgency: job.urgency,
           description: job.description,
           aiSummary: job.aiSummary,
+          aiSummary_si: job.aiSummary_si,
+          aiSummary_ta: job.aiSummary_ta,
           zoneId: job.zoneId,
           quotedCount,
           pendingInviteCount,

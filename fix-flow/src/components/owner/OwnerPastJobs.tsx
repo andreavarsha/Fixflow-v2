@@ -2,6 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ffCard } from "../../lib/fixflowUi";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type WorkflowStatus =
   | "classifying"
@@ -11,16 +12,6 @@ type WorkflowStatus =
   | "work_in_progress"
   | "pay_supplier"
   | "completed";
-
-const WORKFLOW_LABEL: Record<WorkflowStatus, string> = {
-  classifying: "Classifying",
-  find_suppliers: "Find suppliers",
-  pending_quotes: "Pending quotes",
-  select_supplier: "Select supplier",
-  work_in_progress: "Work in progress",
-  pay_supplier: "Pay supplier",
-  completed: "Completed",
-};
 
 const WORKFLOW_STYLE: Record<WorkflowStatus, string> = {
   classifying: "bg-muted text-muted-foreground",
@@ -55,11 +46,14 @@ export function OwnerPastJobs({
   variant = "stacked",
 }: OwnerPastJobsProps) {
   const jobs = useQuery(api.jobs.listMyJobs);
+  const { t, language } = useLanguage();
 
   if (jobs === undefined) {
     return (
-      <Panel variant={variant} count={0}>
-        <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading…</p>
+      <Panel variant={variant} count={0} t={t}>
+        <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+          {language === "si" ? "පූරණය වෙමින්…" : language === "ta" ? "ஏற்றுகிறது..." : "Loading..."}
+        </p>
       </Panel>
     );
   }
@@ -71,17 +65,17 @@ export function OwnerPastJobs({
   const isSidebar = variant === "sidebar";
 
   return (
-    <Panel variant={variant} count={jobs.length}>
+    <Panel variant={variant} count={jobs.length} t={t}>
       {jobs.length === 0 ? (
         <div className="px-5 py-10 text-center sm:px-6">
-          <p className="text-sm font-medium text-foreground">No requests yet</p>
+          <p className="text-sm font-medium text-foreground">{t("activityNoRequests")}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Your repair history will show up here after you submit one.
+            {t("pastJobsEmptyDesc")}
           </p>
         </div>
       ) : visible.length === 0 ? (
         <p className="px-5 py-6 text-center text-sm text-muted-foreground sm:px-6">
-          Only viewing the current request.
+          {t("pastJobsOnlyViewingCurrent")}
         </p>
       ) : (
         <ul
@@ -93,10 +87,48 @@ export function OwnerPastJobs({
         >
           {visible.map((job) => {
             const preview =
+              (language === "si" && job.aiSummary_si?.trim()) ||
+              (language === "ta" && job.aiSummary_ta?.trim()) ||
               job.aiSummary?.trim() ||
               job.description.trim() ||
-              "Repair request";
+              t("repairRequestFallback");
             const workflow = (job.workflowStatus ?? "find_suppliers") as WorkflowStatus;
+
+            const categoryLabel = job.category ? (
+              job.category === "Roof" ? t("roofCard") :
+              job.category === "Garden" ? t("gardenCard") :
+              job.category === "Plumbing" ? t("plumbingCard") :
+              job.category === "Lock/Door" ? t("lockDoorCard") : job.category
+            ) : null;
+
+            const urgencyLabel = job.urgency ? (
+              language === "si"
+                ? `${job.urgency === "High" ? "ඉහළ" : job.urgency === "Medium" ? "මධ්‍යම" : "පහළ"} ප්‍රමුඛතාවය`
+                : language === "ta"
+                  ? `${job.urgency === "High" ? "அதிக" : job.urgency === "Medium" ? "நடுத்தர" : "குறைந்த"} அவசரம்`
+                  : `${job.urgency} urgency`
+            ) : null;
+
+            const getWorkflowLabel = (status: WorkflowStatus) => {
+              switch (status) {
+                case "classifying":
+                  return t("activityAnalyzing");
+                case "find_suppliers":
+                  return t("activityFindingPros");
+                case "pending_quotes":
+                  return t("activityAwaitingQuotes");
+                case "select_supplier":
+                  return t("activityQuotesReady");
+                case "work_in_progress":
+                  return t("activityInProgress");
+                case "pay_supplier":
+                  return t("activityAwaitingPayment");
+                case "completed":
+                  return t("activityCompleted");
+                default:
+                  return status;
+              }
+            };
 
             return (
               <li key={job._id}>
@@ -110,17 +142,17 @@ export function OwnerPastJobs({
                       <span
                         className={`rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${WORKFLOW_STYLE[workflow]}`}
                       >
-                        {WORKFLOW_LABEL[workflow]}
+                        {getWorkflowLabel(workflow)}
                       </span>
                     </div>
                     <p className="mt-2 line-clamp-2 text-sm leading-snug text-foreground">
                       {preview}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {[job.category, job.urgency ? `${job.urgency} urgency` : null]
+                      {[categoryLabel, urgencyLabel]
                         .filter(Boolean)
                         .join(" · ")}
-                      {job.category || job.urgency ? " · " : ""}
+                      {categoryLabel || urgencyLabel ? " · " : ""}
                       {formatSubmitted(job._creationTime)}
                     </p>
                   </div>
@@ -144,10 +176,12 @@ function Panel({
   variant,
   count,
   children,
+  t,
 }: {
   variant: "sidebar" | "stacked";
   count: number;
   children: React.ReactNode;
+  t: any;
 }) {
   const isSidebar = variant === "sidebar";
 
@@ -174,7 +208,7 @@ function Panel({
                 : "text-sm font-semibold uppercase tracking-wide text-muted-foreground"
             }
           >
-            Your requests
+            {t("pastJobsTitle")}
           </h2>
           {count > 0 && (
             <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
@@ -183,7 +217,7 @@ function Panel({
           )}
         </div>
         <p className={`mt-1 text-sm text-muted-foreground ${isSidebar ? "" : "max-w-xl"}`}>
-          Tap to continue where you left off. Quotes update live.
+          {t("pastJobsSubtitle")}
         </p>
       </header>
       {isSidebar ? children : <div className="mt-4">{children}</div>}
