@@ -1,7 +1,7 @@
 import { haversineKm } from "./supplierGeospatial";
 
 /** Demo coverage zones for Improvement PRD v2.0. */
-export type ZoneId = "kadana" | "rajagiriya" | "nawala";
+export type ZoneId = "kadana" | "rajagiriya" | "nawala" | "kadawatha" | "ratmalana";
 
 export type DemoZone = {
   id: ZoneId;
@@ -10,6 +10,7 @@ export type DemoZone = {
   lng: number;
   /** Approximate coverage radius in km. */
   radiusKm: number;
+  isLive?: boolean;
 };
 
 export const DEMO_ZONES: DemoZone[] = [
@@ -34,9 +35,25 @@ export const DEMO_ZONES: DemoZone[] = [
     lng: 79.8886,
     radiusKm: 2.0,
   },
+  {
+    id: "kadawatha",
+    name: "Kadawatha",
+    lat: 7.0021,
+    lng: 79.9512,
+    radiusKm: 2.5,
+    isLive: false,
+  },
+  {
+    id: "ratmalana",
+    name: "Ratmalana",
+    lat: 6.8197,
+    lng: 79.8683,
+    radiusKm: 2.5,
+    isLive: false,
+  },
 ];
 
-/** Default map center when GPS is unavailable (Kadana). */
+/** Default map center when GPS is unavailable (Kandana). */
 export const DEFAULT_MAP_CENTER = {
   lat: DEMO_ZONES[0].lat,
   lng: DEMO_ZONES[0].lng,
@@ -54,6 +71,7 @@ export function resolveZone(
 ): DemoZone | null {
   let best: { zone: DemoZone; distanceKm: number } | null = null;
   for (const zone of DEMO_ZONES) {
+    if (zone.isLive === false) continue;
     const distanceKm = haversineKm(lat, lng, zone.lat, zone.lng);
     if (distanceKm <= zone.radiusKm) {
       if (!best || distanceKm < best.distanceKm) {

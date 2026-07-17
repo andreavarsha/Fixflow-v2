@@ -1,5 +1,5 @@
 /** Client-safe zone metadata (mirrors convex/zones.ts centers). */
-export type ZoneId = "kadana" | "rajagiriya" | "nawala";
+export type ZoneId = "kadana" | "rajagiriya" | "nawala" | "kadawatha" | "ratmalana";
 
 export type DemoZone = {
   id: ZoneId;
@@ -7,6 +7,7 @@ export type DemoZone = {
   lat: number;
   lng: number;
   radiusKm: number;
+  isLive?: boolean;
 };
 
 export const DEMO_ZONES: DemoZone[] = [
@@ -19,6 +20,22 @@ export const DEMO_ZONES: DemoZone[] = [
     radiusKm: 2.2,
   },
   { id: "nawala", name: "Nawala", lat: 6.8997, lng: 79.8886, radiusKm: 2.0 },
+  {
+    id: "kadawatha",
+    name: "Kadawatha",
+    lat: 7.0021,
+    lng: 79.9512,
+    radiusKm: 2.5,
+    isLive: false,
+  },
+  {
+    id: "ratmalana",
+    name: "Ratmalana",
+    lat: 6.8197,
+    lng: 79.8683,
+    radiusKm: 2.5,
+    isLive: false,
+  },
 ];
 
 export const DEFAULT_MAP_CENTER = {
@@ -44,6 +61,7 @@ function haversineKm(
 export function resolveZone(lat: number, lng: number): DemoZone | null {
   let best: { zone: DemoZone; distanceKm: number } | null = null;
   for (const zone of DEMO_ZONES) {
+    if (zone.isLive === false) continue;
     const distanceKm = haversineKm(lat, lng, zone.lat, zone.lng);
     if (distanceKm <= zone.radiusKm) {
       if (!best || distanceKm < best.distanceKm) {

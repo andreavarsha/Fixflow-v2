@@ -18,7 +18,9 @@ const TRANSLITERATIONS: Record<string, string> = {
   "நாவல": "Nawala",
   "කඩවත": "Kadawatha",
   "කඳාන": "Kandana",
+  "රත්මලාන": "Ratmalana",
   "கந்தானை": "Kandana",
+  "ரத்மலானை": "Ratmalana",
   "கடவத்தை": "Kadawatha",
   // Suffixes
   "පාර": "Road",

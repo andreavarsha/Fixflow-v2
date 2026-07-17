@@ -58,6 +58,7 @@ function translateAddressLabel(label: string, lang: string): string {
     "Kandana": { si: "කඳාන", ta: "கந்தானை" },
     "Rajagiriya": { si: "රාජගිරිය", ta: "இராஜகிரிய" },
     "Nawala": { si: "නාවල", ta: "நாவல" },
+    "Ratmalana": { si: "රත්මලාන", ta: "ரத்மலானை" },
 
     // Surrounding administrative divisions / sub-areas
     "Sri Jayewardenepura Kotte": { si: "ශ්‍රී ජයවර්ධනපුර කෝට්ටේ", ta: "ஸ்ரீ ஜயவர்தனபுர கோட்டே" },
@@ -194,6 +195,8 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
         case "kadana": return "කඳාන";
         case "rajagiriya": return "රාජගිරිය";
         case "nawala": return "නාවල";
+        case "kadawatha": return "කඩවත";
+        case "ratmalana": return "රත්මලාන";
         default: return defaultName;
       }
     }
@@ -202,6 +205,8 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
         case "kadana": return "கந்தானை";
         case "rajagiriya": return "இராஜகிரிய";
         case "nawala": return "நாவல";
+        case "kadawatha": return "கடவத்தை";
+        case "ratmalana": return "ரத்மலானை";
         default: return defaultName;
       }
     }
