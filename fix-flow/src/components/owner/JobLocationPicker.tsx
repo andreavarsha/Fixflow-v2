@@ -41,6 +41,32 @@ type JobLocationPickerProps = {
 
 type AddressHit = { lat: number; lng: number; label: string };
 
+function translateAddressLabel(label: string, lang: string): string {
+  if (lang === "en") return label;
+
+  const dictionary: Record<string, { si: string; ta: string }> = {
+    // Cities/Zones
+    "Kadawatha": { si: "කඩවත", ta: "கடவத்தை" },
+    "Kadana": { si: "කඩවත", ta: "கடவத்தை" },
+    "Rajagiriya": { si: "රාජගිරිය", ta: "இராஜகிரிய" },
+    "Nawala": { si: "නාවල", ta: "நாவல" },
+    // Districts
+    "Colombo District": { si: "කොළඹ දිස්ත්‍රික්කය", ta: "கொழும்பு மாவட்டம்" },
+    "Gampaha District": { si: "ගම්පහ දිස්ත්‍රික්කය", ta: "கம்பஹா மாவட்டம்" },
+    // Provinces
+    "Western Province": { si: "බස්නාහිර පළාත", ta: "மேல் மாகாணம்" },
+    // Country
+    "Sri Lanka": { si: "ශ්‍රී ලංකාව", ta: "இலங்கை" },
+  };
+
+  let translated = label;
+  for (const [key, translations] of Object.entries(dictionary)) {
+    const regex = new RegExp(key, "gi");
+    translated = translated.replace(regex, translations[lang === "si" ? "si" : "ta"]);
+  }
+  return translated;
+}
+
 function Recenter({ position }: { position: LatLng }) {
   const map = useMap();
   useEffect(() => {
@@ -127,7 +153,8 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
 
   function applyHit(hit: AddressHit) {
     onChange({ lat: hit.lat, lng: hit.lng });
-    setAddress(hit.label.split(",").slice(0, 3).join(",").trim());
+    const translatedLabel = translateAddressLabel(hit.label, language);
+    setAddress(translatedLabel.split(",").slice(0, 3).join(",").trim());
     setSuggestions([]);
     setGeoError("");
   }
@@ -136,7 +163,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
     const z = DEMO_ZONES.find((d) => d.id === zoneId);
     if (!z) return;
     onChange({ lat: z.lat, lng: z.lng });
-    setAddress(z.name);
+    setAddress(getZoneName(z.id, z.name));
     setSuggestions([]);
     setGeoError("");
   }
@@ -199,7 +226,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
                 className="w-full px-3 py-2.5 text-left text-foreground/90 transition-colors hover:bg-white/10 hover:text-foreground focus-visible:bg-white/10 focus-visible:outline-none active:bg-white/15 dark:hover:bg-white/10 focus-visible:outline-none dark:hover:bg-white/15 dark:focus-visible:bg-white/15 dark:active:bg-white/20"
                 onClick={() => applyHit(hit)}
               >
-                {hit.label}
+                {translateAddressLabel(hit.label, language)}
               </button>
             </li>
           ))}
