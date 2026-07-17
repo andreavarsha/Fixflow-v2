@@ -9,12 +9,40 @@ type NominatimHit = {
   display_name: string;
 };
 
+const TRANSLITERATIONS: Record<string, string> = {
+  // Zones
+  "රාජගිරිය": "Rajagiriya",
+  "இராஜகிரிய": "Rajagiriya",
+  "ராஜகிரிய": "Rajagiriya",
+  "නාවල": "Nawala",
+  "நாவல": "Nawala",
+  "කඩවත": "Kadawatha",
+  "කඩන": "Kadana",
+  "கடவத்தை": "Kadawatha",
+  // Suffixes
+  "පාර": "Road",
+  "වීදිය": "Road",
+  "පටුමග": "Lane",
+  "වත්ත": "Watta",
+  "හන්දිය": "Junction",
+  "வீதி": "Road",
+  "தெரு": "Street",
+  "சந்தி": "Junction",
+  "வத்தை": "Watta",
+};
+
 /** Geocode a Sri Lanka address via OpenStreetMap Nominatim (server-side). */
 export const searchAddress = action({
   args: { query: v.string() },
   handler: async (_ctx, { query }) => {
-    const q = query.trim();
+    let q = query.trim();
     if (!q) return [] as Array<{ lat: number; lng: number; label: string }>;
+
+    // Map Sinhala/Tamil address terms to English equivalents for OSM search stability
+    for (const [key, val] of Object.entries(TRANSLITERATIONS)) {
+      const regex = new RegExp(key, "gi");
+      q = q.replace(regex, val);
+    }
 
     const withCountry = /sri\s*lanka/i.test(q) ? q : `${q}, Sri Lanka`;
     const url = new URL("https://nominatim.openstreetmap.org/search");
