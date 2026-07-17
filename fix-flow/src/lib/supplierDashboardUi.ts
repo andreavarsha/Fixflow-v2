@@ -10,9 +10,19 @@ const copy = {
     incomingHint: "New jobs appear when a homeowner invites you to quote.",
     filterAll: "All",
     filterAction: "Needs quote",
-    filterSubmitted: "Submitted",
-    filterActive: "Active jobs",
-    filterClosed: "Closed",
+    filterSubmitted: "Quoted",
+    filterActive: "Active",
+    filterClosed: "Done",
+    yourQuoteHeader: "Your quote",
+    quotedLineLabel: "Your quote:",
+    awaitingHomeowner: "awaiting homeowner",
+    kmFromYou: (km: string) => `${km} km from you`,
+    tapForMap: "tap for map",
+    timeJustNow: "just now",
+    timeMinAgo: (n: number) => `${n} min ago`,
+    timeHrAgo: (n: number) => (n === 1 ? "1 h ago" : `${n} h ago`),
+    timeYesterday: "Yesterday",
+    timeDaysAgo: (n: number) => `${n} days ago`,
     statAwaiting: "Awaiting quote",
     statSubmitted: "Quotes sent",
     statWon: "Accepted",
@@ -74,8 +84,18 @@ const copy = {
     filterAll: "සියල්ල",
     filterAction: "මිල ගණන් අවශ්‍ය",
     filterSubmitted: "යැව්වා",
-    filterActive: "සක්‍රිය රැකියා",
-    filterClosed: "වසා ඇත",
+    filterActive: "සක්‍රිය",
+    filterClosed: "නිමයි",
+    yourQuoteHeader: "ඔබේ මිල ගණන්",
+    quotedLineLabel: "ඔබේ මිල ගණන්:",
+    awaitingHomeowner: "ගෘහස්ථයා බලාපොරොත්තුවෙන්",
+    kmFromYou: (km: string) => `ඔබෙන් කි.මී. ${km}`,
+    tapForMap: "සිතියම සඳහා තට්ටු කරන්න",
+    timeJustNow: "දැන්",
+    timeMinAgo: (n: number) => `මිනිත්තු ${n} කට පෙර`,
+    timeHrAgo: (n: number) => `පැය ${n} කට පෙර`,
+    timeYesterday: "ඊයේ",
+    timeDaysAgo: (n: number) => `දින ${n} කට පෙර`,
     statAwaiting: "මිල ගණන් බලාපොරොත්තු",
     statSubmitted: "යැවූ මිල ගණන්",
     statWon: "පිළිගත්",
@@ -136,8 +156,18 @@ const copy = {
     filterAll: "அனைத்தும்",
     filterAction: "மதிப்பீடு தேவை",
     filterSubmitted: "அனுப்பப்பட்டது",
-    filterActive: "செயலில் உள்ள வேலைகள்",
-    filterClosed: "மூடப்பட்டது",
+    filterActive: "செயலில்",
+    filterClosed: "முடிந்தது",
+    yourQuoteHeader: "உங்கள் மதிப்பீடு",
+    quotedLineLabel: "உங்கள் மதிப்பீடு:",
+    awaitingHomeowner: "வீட்டு உரிமையாளர் காத்திருக்கிறார்",
+    kmFromYou: (km: string) => `உங்களிடமிருந்து ${km} கி.மீ`,
+    tapForMap: "வரைபடத்திற்கு தட்டவும்",
+    timeJustNow: "இப்போது",
+    timeMinAgo: (n: number) => `${n} நிமிடங்களுக்கு முன்`,
+    timeHrAgo: (n: number) => `${n} மணி நேரத்திற்கு முன்`,
+    timeYesterday: "நேற்று",
+    timeDaysAgo: (n: number) => `${n} நாட்களுக்கு முன்`,
     statAwaiting: "காத்திருக்கிறது",
     statSubmitted: "அனுப்பிய மதிப்பீடுகள்",
     statWon: "ஏற்கப்பட்டது",
@@ -192,6 +222,23 @@ const copy = {
 
 export function supplierUi(lang: SupplierLang) {
   return copy[lang];
+}
+
+/** Compact "12 min ago" / "1 h ago" / "Yesterday" relative time, localized. */
+export function formatTimeAgo(
+  createdAtMs: number,
+  t: ReturnType<typeof supplierUi>,
+  nowMs: number = Date.now(),
+): string {
+  const diffMs = Math.max(0, nowMs - createdAtMs);
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return t.timeJustNow;
+  if (minutes < 60) return t.timeMinAgo(minutes);
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return t.timeHrAgo(hours);
+  const days = Math.floor(hours / 24);
+  if (days === 1) return t.timeYesterday;
+  return t.timeDaysAgo(days);
 }
 
 export function parseDurationDays(duration: string | undefined): string {

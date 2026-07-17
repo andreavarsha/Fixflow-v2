@@ -5,6 +5,7 @@ import type { Id } from "./_generated/dataModel";
 import { enforceRateLimit, userRateKey } from "./rateLimits";
 import { haversineKm } from "./supplierGeospatial";
 import { getSupplierStats } from "./suppliers";
+import { zoneById } from "./zones";
 
 export type LiveQuote = {
   _id: Id<"quoteRequests">;
@@ -274,6 +275,24 @@ export const listForSupplier = query({
     return Promise.all(
       requests.map(async (request) => {
         const job = await ctx.db.get(request.jobId);
+
+        let distanceKm: number | undefined;
+        if (
+          job?.lat !== undefined &&
+          job?.lng !== undefined &&
+          user.lat !== undefined &&
+          user.lng !== undefined
+        ) {
+          distanceKm =
+            Math.round(
+              haversineKm(user.lat, user.lng, job.lat, job.lng) * 10,
+            ) / 10;
+        }
+
+        const jobPhotoUrl = job?.photoId
+          ? (await ctx.storage.getUrl(job.photoId)) ?? undefined
+          : undefined;
+
         return {
           ...request,
           jobDescription: job?.description,
@@ -284,6 +303,9 @@ export const listForSupplier = query({
           jobSummary_ta: job?.aiSummary_ta,
           jobStatus: job?.status,
           jobHasPhoto: Boolean(job?.photoId),
+          jobPhotoUrl,
+          distanceKm,
+          zoneName: zoneById(job?.zoneId)?.name,
           // Exposed so the supplier UI can open a masked chat with the homeowner (Exp R4).
           ownerId: job?.ownerId,
           addressNote: request.status === "accepted" ? job?.addressNote : undefined,

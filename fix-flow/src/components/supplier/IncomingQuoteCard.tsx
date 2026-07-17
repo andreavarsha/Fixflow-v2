@@ -3,17 +3,16 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ChatPanel } from "../messaging/ChatPanel";
-import { JobIssuePhoto } from "./JobIssuePhoto";
+import { IconFinding } from "../icons";
 import {
   ffBtnPrimary,
-  ffBtnSecondary,
   ffInput,
   ffLabel,
 } from "../../lib/fixflowUi";
 import {
   formatDurationDays,
+  formatTimeAgo,
   parseDurationDays,
-  statusBadgeClass,
   supplierUi,
 } from "../../lib/supplierDashboardUi";
 import { toUserFacingError } from "../../lib/userFacingError";
@@ -26,8 +25,14 @@ const urgencyStyle = {
   Low: "text-yellow-foreground bg-yellow/15 ring-yellow/30",
 };
 
+/** Distance/zone uses a fixed teal (not the theme `teal` token, which is
+ * remapped to yellow on supplier routes) so "place" stays visually distinct. */
+const DIST_PILL =
+  "text-teal-700 bg-teal-500/10 ring-teal-500/20 dark:text-teal-300 dark:ring-teal-500/30";
+
 export type IncomingQuoteRequest = {
   _id: Id<"quoteRequests">;
+  _creationTime: number;
   jobId: Id<"jobs">;
   status: "pending" | "quoted" | "accepted" | "rejected";
   priceLKR?: number;
@@ -41,12 +46,16 @@ export type IncomingQuoteRequest = {
   jobSummary_si?: string;
   jobSummary_ta?: string;
   jobStatus?: string;
+  jobHasPhoto?: boolean;
+  jobPhotoUrl?: string;
+  distanceKm?: number;
+  zoneName?: string;
   ownerId?: Id<"users">;
   addressNote?: string;
 };
 
 const STATUS_ACCENT: Record<IncomingQuoteRequest["status"], string> = {
-  pending: "border-l-amber-500",
+  pending: "border-l-yellow",
   quoted: "border-l-primary",
   accepted: "border-l-[#4CAF50]",
   rejected: "border-l-muted-foreground/40",
@@ -95,24 +104,31 @@ export function IncomingQuoteCard({
     return request.jobSummary ?? request.jobDescription ?? "No summary available.";
   }, [language, request.jobSummary, request.jobSummary_si, request.jobSummary_ta, request.jobDescription]);
 
-  const statusLabel =
-    request.status === "pending"
-      ? t.statusPending
-      : request.status === "quoted"
-        ? t.statusQuoted
-        : request.status === "accepted"
-          ? t.statusAccepted
-          : request.status === "rejected"
-            ? t.statusRejected
-            : request.status;
-
+  const timeAgo = formatTimeAgo(request._creationTime, t);
   const submittedDays =
-    request.status === "quoted" && request.duration
-      ? parseDurationDays(request.duration)
+    request.duration ? parseDurationDays(request.duration) : "";
+  const priceText =
+    request.priceLKR !== undefined && request.priceLKR > 0
+      ? request.priceLKR.toLocaleString("en-LK")
       : "";
 
-  const accent = STATUS_ACCENT[request.status];
+  const accent = expanded ? "border-l-teal-500" : STATUS_ACCENT[request.status];
   const unread = unreadCount ?? 0;
+
+  const distZoneText = [
+    request.distanceKm !== undefined ? `${request.distanceKm} km` : null,
+    request.zoneName ?? null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const locationLine = [
+    request.distanceKm !== undefined ? t.kmFromYou(String(request.distanceKm)) : null,
+    request.zoneName ?? null,
+    t.tapForMap,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <li
@@ -120,35 +136,39 @@ export function IncomingQuoteCard({
       className={`border-l-4 ${accent}`}
     >
       <article className="px-4 py-4 sm:px-6">
+        {/* Triage header — tap to expand (accordion) */}
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-start justify-between gap-3 text-left"
+          className="flex w-full items-start gap-3 text-left"
           aria-expanded={expanded}
         >
+          <Thumb photoUrl={request.jobPhotoUrl} />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ${statusBadgeClass(request.status)}`}
-              >
-                {statusLabel}
+            <div className="flex items-baseline justify-between gap-2">
+              <h3 className="truncate text-base font-semibold text-foreground sm:text-lg">
+                {request.jobCategory ?? "Repair request"}
+              </h3>
+              <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
+                {timeAgo}
               </span>
+            </div>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {distZoneText && (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${DIST_PILL}`}
+                >
+                  {distZoneText}
+                </span>
+              )}
               {request.jobUrgency && (
                 <span
-                  className={`rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ${urgencyStyle[request.jobUrgency]}`}
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ${urgencyStyle[request.jobUrgency]}`}
                 >
-                  {request.jobUrgency}
+                  {t.urgency(request.jobUrgency)}
                 </span>
               )}
             </div>
-            <h3 className="mt-2 text-base font-semibold text-foreground sm:text-lg">
-              {request.jobCategory ?? "Repair request"}
-            </h3>
-            {!expanded && (
-              <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-                {summaryText}
-              </p>
-            )}
           </div>
           <span
             className={`mt-1 shrink-0 text-muted-foreground transition ${expanded ? "rotate-180" : ""}`}
@@ -158,59 +178,52 @@ export function IncomingQuoteCard({
           </span>
         </button>
 
+        {/* Collapsed footer: on-card action / quoted state */}
+        {!expanded && request.status === "pending" && (
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-105 active:scale-[0.99]"
+            >
+              {t.submitQuote}
+            </button>
+          </div>
+        )}
+
+        {!expanded && request.status === "quoted" && priceText && (
+          <p className="mt-3 text-[13px] text-muted-foreground">
+            <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-yellow align-middle" />
+            {t.quotedLineLabel}{" "}
+            <b className="font-semibold text-foreground">
+              LKR {priceText}
+              {submittedDays ? ` · ${submittedDays} ${submittedDays === "1" ? "day" : "days"}` : ""}
+            </b>{" "}
+            · {t.awaitingHomeowner}
+          </p>
+        )}
+
         {expanded && (
           <div className="mt-4 border-t border-border pt-4">
-            <div className="mb-3 flex flex-wrap gap-2">
-              {request.ownerId && (
-                <button
-                  type="button"
-                  onClick={() => setChatOpen(!chatOpen)}
-                  className={`${ffBtnSecondary} relative shrink-0 text-sm sm:max-w-[12rem]`}
-                  aria-expanded={chatOpen}
-                >
-                  {chatOpen ? "Close chat" : "Message homeowner"}
-                  {!chatOpen && unread > 0 && (
-                    <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                      {unread > 9 ? "9+" : unread}
-                    </span>
-                  )}
-                </button>
-              )}
-            </div>
+            {/* 1. Photo */}
+            <ExpandedPhoto
+              jobId={request.jobId}
+              photoUrl={request.jobPhotoUrl}
+              hasPhoto={request.jobHasPhoto}
+            />
 
-            <JobIssuePhoto jobId={request.jobId} />
-
-            {request.status === "quoted" &&
-              request.priceLKR !== undefined &&
-              request.priceLKR > 0 && (
-                <div
-                  className="mt-4 rounded-xl bg-yellow/15 px-4 py-3 ring-1 ring-yellow/30"
-                  role="status"
-                >
-                  <p className="text-sm font-semibold text-yellow-foreground">
-                    {t.quoteSubmittedTitle}
-                  </p>
-                  <p className="mt-1 text-sm text-foreground/80">
-                    {t.quoteSubmittedPrice(
-                      request.priceLKR.toLocaleString("en-LK"),
-                    )}
-                    {submittedDays
-                      ? ` · ${t.quoteSubmittedDays(Number(submittedDays))}`
-                      : request.duration
-                        ? ` · ${request.duration}`
-                        : ""}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {request.isFinal
-                      ? t.quoteSubmittedFinal
-                      : t.quoteSubmittedDraft}
-                  </p>
-                </div>
-              )}
-
-            <p className="mt-3 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+            {/* 2. Description */}
+            <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">
               {summaryText}
             </p>
+
+            {/* 3. Location / distance */}
+            {locationLine && (
+              <div className="mt-3 flex items-center gap-2 text-[13px] text-muted-foreground">
+                <IconFinding size={22} className="shrink-0" />
+                <span>{locationLine}</span>
+              </div>
+            )}
 
             {request.status === "accepted" && request.addressNote && (
               <div className="mt-4 rounded-xl border border-yellow/30 bg-yellow/10 p-4 text-sm text-foreground">
@@ -223,16 +236,7 @@ export function IncomingQuoteCard({
               </div>
             )}
 
-            {chatOpen && request.ownerId && (
-              <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
-                <ChatPanel
-                  jobId={request.jobId}
-                  peerId={request.ownerId}
-                  peerLabel="Homeowner"
-                />
-              </div>
-            )}
-
+            {/* 4 + 5. "Your quote" block with sticky CTA */}
             <JobActionsSection
               jobId={request.jobId}
               quoteStatus={request.status}
@@ -242,10 +246,118 @@ export function IncomingQuoteCard({
               initialNotes={request.notes}
               initialIsFinal={request.isFinal}
             />
+
+            {/* 6. Message homeowner — secondary link below the CTA */}
+            {request.ownerId && (
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => setChatOpen(!chatOpen)}
+                  className="relative inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
+                  aria-expanded={chatOpen}
+                >
+                  {chatOpen ? "Close chat" : "Message homeowner"}
+                  {!chatOpen && unread > 0 && (
+                    <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {chatOpen && request.ownerId && (
+              <div className="mt-3 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
+                <ChatPanel
+                  jobId={request.jobId}
+                  peerId={request.ownerId}
+                  peerLabel="Homeowner"
+                />
+              </div>
+            )}
           </div>
         )}
       </article>
     </li>
+  );
+}
+
+function Thumb({ photoUrl }: { photoUrl?: string }) {
+  if (photoUrl) {
+    return (
+      <img
+        src={photoUrl}
+        alt=""
+        className="h-16 w-16 shrink-0 rounded-xl border border-border object-cover"
+        loading="lazy"
+        decoding="async"
+      />
+    );
+  }
+  return (
+    <div
+      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-muted to-secondary text-muted-foreground"
+      aria-hidden
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <circle cx="9" cy="10" r="1.5" />
+        <path d="m21 15-4.5-4.5L7 20" />
+      </svg>
+    </div>
+  );
+}
+
+function ExpandedPhoto({
+  jobId,
+  photoUrl,
+  hasPhoto,
+}: {
+  jobId: Id<"jobs">;
+  photoUrl?: string;
+  hasPhoto?: boolean;
+}) {
+  // Prefer the URL already delivered with the list; fall back to a lazy query
+  // only when the list did not include one but a photo exists.
+  const fallback = useQuery(
+    api.quoteRequests.getJobPhotoForSupplier,
+    !photoUrl && hasPhoto ? { jobId } : "skip",
+  );
+
+  const url = photoUrl ?? (fallback?.hasPhoto ? fallback.url : undefined);
+
+  if (photoUrl === undefined && hasPhoto && fallback === undefined) {
+    return <div className="h-40 animate-pulse rounded-xl bg-muted" aria-hidden />;
+  }
+
+  if (!hasPhoto && !url) return null;
+
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt="Photo of the issue from the homeowner"
+        className="max-h-56 w-full rounded-xl border border-border object-cover sm:max-h-64"
+        loading="lazy"
+        decoding="async"
+      />
+    );
+  }
+
+  return (
+    <p className="rounded-xl border border-dashed border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+      The homeowner attached a photo, but it could not be loaded. Ask them to
+      re-submit the request with the image, or message them for details.
+    </p>
   );
 }
 
@@ -420,6 +532,15 @@ function JobActionsSection({
     }
   }
 
+  const priceNum = Number(priceLKR);
+  const priceEcho =
+    Number.isFinite(priceNum) && priceNum > 0
+      ? ` · LKR ${priceNum.toLocaleString("en-LK")}`
+      : "";
+  const ctaLabel = submitting
+    ? t.sending
+    : `${quoteStatus === "quoted" ? t.updateQuote : t.submitQuote}${priceEcho}`;
+
   return (
     <form
       onSubmit={(e) => {
@@ -428,10 +549,19 @@ function JobActionsSection({
       className="mt-5 rounded-xl bg-muted/50 p-4 ring-1 ring-border sm:p-5"
     >
       <div className="mb-4">
-        <h4 className="text-sm font-semibold text-foreground">{t.sendQuote}</h4>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          {t.sendQuoteHint}
-        </p>
+        <h4 className="text-sm font-semibold text-foreground">
+          {t.yourQuoteHeader}
+        </h4>
+        {quoteStatus === "quoted" ? (
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {t.quoteSubmittedTitle} ·{" "}
+            {initialIsFinal ? t.quoteSubmittedFinal : t.quoteSubmittedDraft}
+          </p>
+        ) : (
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {t.sendQuoteHint}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -511,17 +641,16 @@ function JobActionsSection({
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className={`${ffBtnPrimary} mt-4 sm:max-w-xs`}
-      >
-        {submitting
-          ? t.sending
-          : quoteStatus === "quoted"
-            ? t.updateQuote
-            : t.submitQuote}
-      </button>
+      {/* Sticky CTA — stays visible while the expanded card scrolls */}
+      <div className="sticky bottom-2 z-10 mt-4">
+        <button
+          type="submit"
+          disabled={submitting}
+          className={`${ffBtnPrimary} shadow-lg`}
+        >
+          {ctaLabel}
+        </button>
+      </div>
     </form>
   );
 }
