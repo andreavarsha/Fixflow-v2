@@ -55,7 +55,7 @@ function translateAddressLabel(label: string, lang: string): string {
 
     // Primary demo zones
     "Kadawatha": { si: "කඩවත", ta: "கடவத்தை" },
-    "Kadana": { si: "කඩවත", ta: "கடவத்தை" },
+    "Kandana": { si: "කඳාන", ta: "கந்தானை" },
     "Rajagiriya": { si: "රාජගිරිය", ta: "இராஜகிரிய" },
     "Nawala": { si: "නාවල", ta: "நாவல" },
 
@@ -191,7 +191,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
   const getZoneName = (zoneId: string, defaultName: string) => {
     if (language === "si") {
       switch (zoneId) {
-        case "kadana": return "කඩවත";
+        case "kadana": return "කඳාන";
         case "rajagiriya": return "රාජගිරිය";
         case "nawala": return "නාවල";
         default: return defaultName;
@@ -199,7 +199,7 @@ export function JobLocationPicker({ value, onChange }: JobLocationPickerProps) {
     }
     if (language === "ta") {
       switch (zoneId) {
-        case "kadana": return "கடவத்தை";
+        case "kadana": return "கந்தானை";
         case "rajagiriya": return "இராஜகிரிய";
         case "nawala": return "நாவல";
         default: return defaultName;

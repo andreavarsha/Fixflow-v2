@@ -250,7 +250,7 @@ function ClassificationResult({
   const zoneLabel = job.zoneId
     ? language === "si"
       ? job.zoneId === "kadana"
-        ? "කඩවත"
+        ? "කඳාන"
         : job.zoneId === "rajagiriya"
           ? "රාජගිරිය"
           : job.zoneId === "nawala"
@@ -258,7 +258,7 @@ function ClassificationResult({
             : zoneName
       : language === "ta"
         ? job.zoneId === "kadana"
-          ? "கடவத்தை"
+          ? "கந்தானை"
           : job.zoneId === "rajagiriya"
             ? "இராஜகிரிய"
             : job.zoneId === "nawala"

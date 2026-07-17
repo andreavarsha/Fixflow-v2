@@ -48,7 +48,7 @@ export function SupplierDiscovery({
   const zoneLabel = zoneId
     ? language === "si"
       ? zoneId === "kadana"
-        ? "කඩවත"
+        ? "කඳාන"
         : zoneId === "rajagiriya"
           ? "රාජගිරිය"
           : zoneId === "nawala"
@@ -56,7 +56,7 @@ export function SupplierDiscovery({
             : zoneName
       : language === "ta"
         ? zoneId === "kadana"
-          ? "கடவத்தை"
+          ? "கந்தானை"
           : zoneId === "rajagiriya"
             ? "இராஜகிரிய"
             : zoneId === "nawala"
