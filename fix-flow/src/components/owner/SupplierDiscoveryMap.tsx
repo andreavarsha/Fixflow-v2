@@ -11,6 +11,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { formatResponseMinutes } from "../../lib/supplierDashboardUi";
+import { useLanguage } from "../../lib/LanguageContext";
+import { getCategoryLabel } from "../../pages/owner/Dashboard";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -73,13 +75,13 @@ function FitBounds({
   return null;
 }
 
-function quoteBadge(s: MapSupplier): string | null {
+function quoteBadge(s: MapSupplier, t: (key: any) => string): string | null {
   if (s.quoteStatus === "quoted" && s.priceLKR !== undefined) {
-    return `Quoted LKR ${s.priceLKR.toLocaleString("en-LK")}${s.isFinal ? " · Final" : " · Negotiable"}`;
+    return `${t("quotedStatusPrefix")} LKR ${s.priceLKR.toLocaleString("en-LK")}${s.isFinal ? ` · ${t("supplierQuoteFinal")}` : ` · ${t("supplierQuoteNegotiable")}`}`;
   }
-  if (s.quoteStatus === "pending") return "Awaiting quote";
-  if (s.quoteStatus === "accepted") return "Accepted";
-  if (s.quoteStatus === "rejected") return "Not selected";
+  if (s.quoteStatus === "pending") return t("supplierAwaitingQuote");
+  if (s.quoteStatus === "accepted") return s.quoteStatus ? t("supplierAccepted") : null;
+  if (s.quoteStatus === "rejected") return s.quoteStatus ? t("supplierNotSelectedText") : null;
   return null;
 }
 
@@ -92,6 +94,8 @@ export function SupplierDiscoveryMap({
   heightClassName = "h-64 sm:h-80",
   compact,
 }: SupplierDiscoveryMapProps) {
+  const { t, language } = useLanguage();
+
   return (
     <div
       className={`w-full overflow-hidden rounded-xl border border-border ${heightClassName}`}
@@ -109,18 +113,22 @@ export function SupplierDiscoveryMap({
         <FitBounds jobLat={jobLat} jobLng={jobLng} suppliers={suppliers} />
         <CircleMarker
           center={[jobLat, jobLng]}
-          radius={10}
+          radius={8}
           pathOptions={{
-            color: "#111827",
-            fillColor: "#111827",
-            fillOpacity: 0.85,
+            color: "rgb(20, 184, 166)",
+            fillColor: "rgb(20, 184, 166)",
+            fillOpacity: 0.4,
           }}
         >
-          <Popup>Your job</Popup>
+          <Popup>
+            <span className="text-xs font-semibold text-gray-900">
+              {t("locJobLocation")}
+            </span>
+          </Popup>
         </CircleMarker>
         {suppliers.map((s) => {
           const isSelected = selected.includes(s._id);
-          const badge = quoteBadge(s);
+          const badge = quoteBadge(s, t);
           return (
             <Marker
               key={s._id}
@@ -135,22 +143,24 @@ export function SupplierDiscoveryMap({
                   <p className="font-semibold text-gray-900">
                     {s.name ?? "Supplier"}
                   </p>
-                  <p className="text-gray-600">{s.category}</p>
+                  <p className="text-gray-600">
+                    {s.category ? getCategoryLabel(s.category, language) : ""}
+                  </p>
                   <p className="mt-1 text-gray-700">
                     {s.rating !== undefined
                       ? `★ ${s.rating.toFixed(1)}`
-                      : "No rating yet"}
+                      : t("supplierNoRating")}
                     {s.reviewCount !== undefined
-                      ? ` · ${s.reviewCount} reviews`
+                      ? ` · ${t("reviewsCount").replace("{count}", String(s.reviewCount))}`
                       : ""}
                   </p>
                   <p className="text-gray-500">
-                    {s.distanceKm.toFixed(1)} km away
+                    {s.distanceKm.toFixed(1)} {t("kmAway")}
                     {s.completedJobs !== undefined
-                      ? ` · ${s.completedJobs} job${s.completedJobs === 1 ? "" : "s"} done`
-                      : " · New"}
+                      ? ` · ${t("jobsDone").replace("{count}", String(s.completedJobs))}`
+                      : ` · ${t("supplierNew")}`}
                     {s.avgResponseMinutes !== undefined
-                      ? ` · ${formatResponseMinutes(s.avgResponseMinutes)} response`
+                      ? ` · ${formatResponseMinutes(s.avgResponseMinutes)} ${t("supplierResponse")}`
                       : ""}
                   </p>
                   {badge && (
@@ -161,7 +171,7 @@ export function SupplierDiscoveryMap({
                     className="mt-2 w-full rounded-md bg-primary px-2 py-1.5 text-xs font-medium text-primary-foreground"
                     onClick={() => onToggle(s._id)}
                   >
-                    {isSelected ? "Deselect" : "Select for quote"}
+                    {isSelected ? t("supplierDeselectBtn") : t("supplierSelectBtn")}
                   </button>
                 </div>
               </Popup>

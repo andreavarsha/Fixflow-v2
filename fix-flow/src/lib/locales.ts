@@ -252,6 +252,31 @@ export const LOCALES = {
     waitlistAlreadyTitle: "You're already on the list",
     waitlistSuccessDesc: "We'll reach out when Better Call expands to your area. Thanks for the interest. It helps us show investors where demand is.",
     waitlistAdjustPinBtn: "Adjust pin and try again",
+
+    // Invite Toast
+    inviteSuccessTitle: "{count} supplier{count === 1 ? '' : 's'} invited",
+    inviteSuccessDesc: "You'll see quotes here live. No need to refresh.",
+    inviteContinueBtn: "Continue",
+
+    // Supplier Card & Map Popups
+    kmAway: "km away",
+    supplierNew: "New",
+    jobsDone: "{count} job{count === 1 ? '' : 's'} done",
+    supplierResponse: "response",
+    supplierQuoteFinal: "Final",
+    supplierQuoteNegotiable: "Negotiable",
+    supplierUnavailable: "Unavailable",
+    supplierAvailable: "Available",
+    supplierTapDeselect: "Tap to deselect",
+    supplierTapSelect: "Tap to select",
+    supplierNoRating: "No rating yet",
+    reviewsCount: "{count} reviews",
+    supplierDeselectBtn: "Deselect",
+    supplierSelectBtn: "Select for quote",
+    quotedStatusPrefix: "Quoted",
+    supplierAwaitingQuote: "Awaiting quote",
+    supplierAccepted: "Accepted",
+    supplierNotSelectedText: "Not selected",
   },
   si: {
     // Common
@@ -504,6 +529,31 @@ export const LOCALES = {
     waitlistAlreadyTitle: "ඔබ දැනටමත් ලේඛනයට එක්වී ඇත",
     waitlistSuccessDesc: "Better Call සේවාව ඔබගේ ප්‍රදේශයට ව්‍යාප්ත වූ වහාම අප ඔබව සම්බන්ධ කර ගන්නෙමු. ඔබ දැක්වූ උනන්දුවට ස්තූතියි. එය අපට ආයෝජකයින්ට ඉල්ලුම පෙන්වීමට උපකාරී වේ.",
     waitlistAdjustPinBtn: "පින් එක සකස් කර නැවත උත්සාහ කරන්න",
+
+    // Invite Toast
+    inviteSuccessTitle: "වෘත්තිකයන් {count} දෙනෙකුට ආරාධනා කරන ලදී",
+    inviteSuccessDesc: "ඔබට ලැබෙන මිල ගණන් සජීවීව මෙහි දැකගත හැක. පිටුව යාවත්කාලීන කිරීමට අවශ්‍ය නොවේ.",
+    inviteContinueBtn: "ඉදිරියට යන්න",
+
+    // Supplier Card & Map Popups
+    kmAway: "කි.මී. දුරින්",
+    supplierNew: "නව",
+    jobsDone: "වැඩ {count}ක් නිම කර ඇත",
+    supplierResponse: "ප්‍රතිචාර කාලය",
+    supplierQuoteFinal: "නියමිත මිල",
+    supplierQuoteNegotiable: "වෙනස් කළ හැකි මිල",
+    supplierUnavailable: "නොපවතී",
+    supplierAvailable: "පවතී",
+    supplierTapDeselect: "තේරීම ඉවත් කිරීමට තට්ටු කරන්න",
+    supplierTapSelect: "තෝරා ගැනීමට තට්ටු කරන්න",
+    supplierNoRating: "තවමත් ශ්‍රේණිගත කිරීම් නොමැත",
+    reviewsCount: "සමාලෝචන {count}ක්",
+    supplierDeselectBtn: "තේරීම ඉවත් කරන්න",
+    supplierSelectBtn: "මිල ගණන් සඳහා තෝරන්න",
+    quotedStatusPrefix: "මිල ගණන් ලබා දී ඇත",
+    supplierAwaitingQuote: "මිල ගණන් අපේක්ෂාවෙන්",
+    supplierAccepted: "පිළිගන්නා ලදී",
+    supplierNotSelectedText: "තෝරා නොගත්",
   },
   ta: {
     // Common
@@ -756,5 +806,30 @@ export const LOCALES = {
     waitlistAlreadyTitle: "நீங்கள் ஏற்கனவே பட்டியலில் உள்ளீர்கள்",
     waitlistSuccessDesc: "Better Call உங்கள் பகுதிக்கு விரிவடையும் போது நாங்கள் உங்களைத் தொடர்புகொள்வோம். உங்கள் ஆர்வத்திற்கு நன்றி.",
     waitlistAdjustPinBtn: "பின்னைச் சரிசெய்து மீண்டும் முயற்சிக்கவும்",
+
+    // Invite Toast
+    inviteSuccessTitle: "{count} தொழிலாளர்கள் அழைக்கப்பட்டுள்ளனர்",
+    inviteSuccessDesc: "மதிப்பீடுகளை நீங்கள் இங்கு நேரலையாகப் பார்க்கலாம். பக்கத்தைப் புதுப்பிக்கத் தேவையில்லை.",
+    inviteContinueBtn: "தொடரவும்",
+
+    // Supplier Card & Map Popups
+    kmAway: "கி.மீ. தூரத்தில்",
+    supplierNew: "புதிய",
+    jobsDone: "{count} வேலைகள் முடிக்கப்பட்டுள்ளன",
+    supplierResponse: "பதிற் நேரம்",
+    supplierQuoteFinal: "இறுதி விலை",
+    supplierQuoteNegotiable: "பேசக்கூடிய விலை",
+    supplierUnavailable: "இல்லை",
+    supplierAvailable: "உள்ளார்",
+    supplierTapDeselect: "நீக்க தட்டவும்",
+    supplierTapSelect: "தேர்ந்தெடுக்க தட்டவும்",
+    supplierNoRating: "மதிப்பீடு இல்லை",
+    reviewsCount: "{count} மதிப்புரைகள்",
+    supplierDeselectBtn: "நீக்குக",
+    supplierSelectBtn: "மதிப்பீட்டிற்குத் தேர்ந்தெடுக்கவும்",
+    quotedStatusPrefix: "மதிப்பீடு அளிக்கப்பட்டுள்ளது",
+    supplierAwaitingQuote: "மதிப்பீட்டிற்காகக் காத்திருக்கிறது",
+    supplierAccepted: "ஏற்றுக்கொள்ளப்பட்டது",
+    supplierNotSelectedText: "தேர்வு செய்யப்படவில்லை",
   },
 } as const;

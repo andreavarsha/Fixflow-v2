@@ -1,4 +1,5 @@
 import { IconCheckBadge } from "../icons";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type InviteToastProps = {
   count: number;
@@ -6,6 +7,8 @@ type InviteToastProps = {
 };
 
 export function InviteToast({ count, onDismiss }: InviteToastProps) {
+  const { t } = useLanguage();
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
@@ -22,17 +25,17 @@ export function InviteToast({ count, onDismiss }: InviteToastProps) {
           id="invite-toast-title"
           className="mt-4 text-xl font-bold text-foreground"
         >
-          {count} supplier{count === 1 ? "" : "s"} invited
+          {t("inviteSuccessTitle").replace("{count}", String(count))}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          You&apos;ll see quotes here live. No need to refresh.
+          {t("inviteSuccessDesc")}
         </p>
         <button
           type="button"
           onClick={onDismiss}
           className="mt-6 text-sm font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
         >
-          Continue
+          {t("inviteContinueBtn")}
         </button>
       </div>
     </div>

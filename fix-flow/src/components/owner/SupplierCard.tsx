@@ -2,6 +2,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { IconStar } from "../icons";
 import { initials } from "../../lib/initials";
 import { formatResponseMinutes } from "../../lib/supplierDashboardUi";
+import { useLanguage } from "../../lib/LanguageContext";
+import { getCategoryLabel } from "../../pages/owner/Dashboard";
 
 export type NearbySupplierCard = {
   _id: Id<"users">;
@@ -34,6 +36,7 @@ export function SupplierCard({
   selectionDisabled,
   onToggle,
 }: SupplierCardProps) {
+  const { t, language } = useLanguage();
   const unavailable = supplier.available === false;
   const disabled = selectionDisabled || unavailable;
   const isNew = supplier.completedJobs === undefined;
@@ -65,11 +68,13 @@ export function SupplierCard({
             <p className="truncate text-sm font-semibold text-foreground">
               {supplier.name ?? "Supplier"}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{supplier.category}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {supplier.category ? getCategoryLabel(supplier.category, language) : ""}
+            </p>
           </div>
         </div>
         <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
-          {supplier.distanceKm.toFixed(1)} km away
+          {supplier.distanceKm.toFixed(1)} {t("kmAway")}
         </span>
       </div>
 
@@ -78,21 +83,23 @@ export function SupplierCard({
           <span className="text-xs text-muted-foreground">
             <IconStar size={12} filled className="mr-0.5 inline-block align-[-1px] text-amber-500" />
             {supplier.rating.toFixed(1)}
-            {supplier.reviewCount !== undefined ? ` (${supplier.reviewCount})` : ""}
+            {supplier.reviewCount !== undefined
+              ? ` (${supplier.reviewCount})`
+              : ""}
           </span>
         )}
         {isNew ? (
           <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-foreground">
-            New
+            {t("supplierNew")}
           </span>
         ) : (
           <span className="text-xs text-muted-foreground">
-            {supplier.completedJobs} job{supplier.completedJobs === 1 ? "" : "s"} done
+            {t("jobsDone").replace("{count}", String(supplier.completedJobs))}
           </span>
         )}
         {supplier.avgResponseMinutes !== undefined && (
           <span className="text-xs text-muted-foreground">
-            {formatResponseMinutes(supplier.avgResponseMinutes)} response
+            {formatResponseMinutes(supplier.avgResponseMinutes)} {t("supplierResponse")}
           </span>
         )}
       </div>
@@ -101,7 +108,7 @@ export function SupplierCard({
         {supplier.quoteStatus === "quoted" && supplier.priceLKR !== undefined && (
           <span className="rounded-full bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
             LKR {supplier.priceLKR.toLocaleString("en-LK")}
-            {supplier.isFinal ? " · Final" : " · Negotiable"}
+            {supplier.isFinal ? ` · ${t("supplierQuoteFinal")}` : ` · ${t("supplierQuoteNegotiable")}`}
           </span>
         )}
         <span
@@ -111,11 +118,11 @@ export function SupplierCard({
               : "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
           }`}
         >
-          {unavailable ? "Unavailable" : "Available"}
+          {unavailable ? t("supplierUnavailable") : t("supplierAvailable")}
         </span>
         {!unavailable && (selected || !selectionDisabled) && (
           <span className="text-xs font-medium text-muted-foreground">
-            Tap to {selected ? "deselect" : "select"}
+            {selected ? t("supplierTapDeselect") : t("supplierTapSelect")}
           </span>
         )}
       </div>
