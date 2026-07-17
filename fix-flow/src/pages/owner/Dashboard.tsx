@@ -14,6 +14,7 @@ import { OwnerActivity } from "../../components/owner/OwnerActivity";
 import { OwnerAnalyzing } from "../../components/owner/OwnerAnalyzing";
 import { InviteToast } from "../../components/owner/InviteToast";
 import { OwnerStepHint } from "../../components/layout/OwnerStepHint";
+import { useLanguage } from "../../lib/LanguageContext";
 import {
   ffBtnGhost,
   ffBtnPrimary,
@@ -147,6 +148,22 @@ export default function OwnerDashboard() {
   );
 }
 
+export function getCategoryLabel(category: string, lang: string): string {
+  const translations: Record<string, { si: string; ta: string }> = {
+    Plumbing: { si: "නල පද්ධති", ta: "குழாய் வேலை" },
+    Electrical: { si: "විදුලි පද්ධති", ta: "மின்சார வேலை" },
+    Carpentry: { si: "වඩු වැඩ", ta: "தச்சு வேலை" },
+    Roofing: { si: "වහලවල්", ta: "கூரை வேலை" },
+    "General Maintenance": { si: "පොදු නඩත්තුව", ta: "பொது பராமரிப்பு" },
+  };
+
+  const key = category as keyof typeof translations;
+  if (translations[key]) {
+    return lang === "en" ? category : translations[key][lang === "si" ? "si" : "ta"];
+  }
+  return category;
+}
+
 function ClassificationResult({
   jobId,
   jobView,
@@ -160,6 +177,7 @@ function ClassificationResult({
   onClose: () => void;
   onInvited: (count: number) => void;
 }) {
+  const { t, language } = useLanguage();
   const job = useQuery(api.jobs.getJob, { jobId });
   const nearbySuppliers = useQuery(api.suppliers.getSuppliersNearJob, { jobId });
   const updateSummary = useMutation(api.jobs.updateSummary);
@@ -195,15 +213,15 @@ function ClassificationResult({
   }, [job]);
 
   if (job === undefined) {
-    return <p className="text-sm text-muted-foreground">Loading your job…</p>;
+    return <p className="text-sm text-muted-foreground">{t("loadingJob")}</p>;
   }
 
   if (job === null) {
     return (
       <div>
-        <p className="text-sm text-destructive">We couldn&apos;t load this job.</p>
+        <p className="text-sm text-destructive">{t("cantLoadJob")}</p>
         <button type="button" onClick={onClose} className={`${ffBtnGhost} mt-4`}>
-          Back
+          {t("cancel")}
         </button>
       </div>
     );
@@ -229,6 +247,25 @@ function ClassificationResult({
 
   const summary = job.aiSummary ?? "";
   const zoneName = zoneByIdName(job.zoneId);
+  const zoneLabel = job.zoneId
+    ? language === "si"
+      ? job.zoneId === "kadana"
+        ? "කඩවත"
+        : job.zoneId === "rajagiriya"
+          ? "රාජගිරිය"
+          : job.zoneId === "nawala"
+            ? "නාවල"
+            : zoneName
+      : language === "ta"
+        ? job.zoneId === "kadana"
+          ? "கடவத்தை"
+          : job.zoneId === "rajagiriya"
+            ? "இராஜகிரிய"
+            : job.zoneId === "nawala"
+              ? "நாவல"
+              : zoneName
+        : zoneName
+    : "";
   const hasJobLocation = job.lat != null && job.lng != null;
 
   async function handleSaveSummary() {
@@ -308,12 +345,12 @@ function ClassificationResult({
           onClick={() => setJobView("detail")}
           className={`${ffBtnGhost} mb-4 text-left`}
         >
-          ← Edit details
+          ← {t("editDetails")}
         </button>
         <header className="mb-6">
-          <h1 className={ffScreenTitle}>Find nearby suppliers</h1>
+          <h1 className={ffScreenTitle}>{t("findNearbySuppliers")}</h1>
           <p className={ffScreenSubtitle}>
-            Distances are from your job pin. Pick up to three.
+            {t("distancesFromPin")}
           </p>
         </header>
         {hasJobLocation ? (
@@ -330,16 +367,16 @@ function ClassificationResult({
           />
         ) : (
           <div className={`${ffCard} text-sm text-muted-foreground`}>
-            <p className="font-medium text-foreground">Location is missing</p>
+            <p className="font-medium text-foreground">{t("locationIsMissing")}</p>
             <p className="mt-2 leading-relaxed">
-              This job needs a location before we can find nearby suppliers.
+              {t("locationIsMissingDesc")}
             </p>
             <button
               type="button"
               onClick={() => setJobView("detail")}
               className={`${ffBtnSecondary} mt-4`}
             >
-              Back to job details
+              {t("backToJobDetails")}
             </button>
           </div>
         )}
@@ -363,7 +400,7 @@ function ClassificationResult({
           >
             ←
           </span>
-          Activity
+          {t("activityTitle")}
         </button>
         {!jobLocked && (
           <button
@@ -376,7 +413,7 @@ function ClassificationResult({
             }}
             className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-white/10"
           >
-            Edit details
+            {t("editDetails")}
           </button>
         )}
       </div>
@@ -393,15 +430,15 @@ function ClassificationResult({
 
       <header className="mb-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-          Issue logged
+          {t("issueLogged")}
         </p>
         <h1 className={ffScreenTitle}>
-          {job.category ?? "Your repair request"}
+          {job.category ? getCategoryLabel(job.category, language) : t("repairRequestFallback")}
         </h1>
         <p className={ffScreenSubtitle}>
           {jobLocked
-            ? "Status updates appear below. Edits are locked after work starts."
-            : "Review the details, then find nearby professionals."}
+            ? t("statusEditsLocked")
+            : t("reviewDetailsFindPros")}
         </p>
       </header>
 
@@ -424,7 +461,7 @@ function ClassificationResult({
           />
         ) : (
           <div className="flex h-36 items-center justify-center bg-muted/50 text-sm text-muted-foreground">
-            No photo attached
+            {t("noPhotoAttached")}
           </div>
         )}
 
@@ -432,17 +469,17 @@ function ClassificationResult({
           <div className="flex flex-wrap gap-2">
             {job.category && (
               <span className="rounded-full bg-highlight/25 px-3 py-1 text-sm font-semibold text-highlight-foreground ring-1 ring-highlight/40">
-                {job.category}
+                {getCategoryLabel(job.category, language)}
               </span>
             )}
             <span
               className={`rounded-full px-3 py-1 text-sm font-semibold ${urgencyStyle[urgency]}`}
             >
-              {urgency} urgency
+              {t((urgency.toLowerCase() + "Urgency") as any)}
             </span>
-            {zoneName && (
+            {zoneLabel && (
               <span className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground ring-1 ring-border">
-                {zoneName}
+                {zoneLabel}
               </span>
             )}
           </div>
@@ -450,12 +487,12 @@ function ClassificationResult({
           <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Professionals requested
+                {t("professionalsRequested")}
               </p>
               <p className="mt-0.5 text-lg font-bold text-foreground">
                 {invitedCount === 0
-                  ? "None yet"
-                  : `${invitedCount} invited`}
+                  ? t("noneYet")
+                  : `${invitedCount} ${t("invitedCountText")}`}
               </p>
             </div>
             {invitedCount > 0 && (
@@ -464,7 +501,7 @@ function ClassificationResult({
                 onClick={() => setJobView("quotes")}
                 className="text-sm font-semibold text-primary hover:underline"
               >
-                View quotes
+                {t("viewQuotes")}
               </button>
             )}
           </div>
@@ -483,8 +520,7 @@ function ClassificationResult({
 
           {job.classificationFailed && (
             <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/50">
-              We couldn&apos;t reach the AI classifier. Please check the category
-              below before finding suppliers.
+              {t("cantReachAi")}
             </p>
           )}
 
@@ -495,19 +531,19 @@ function ClassificationResult({
               className="text-sm font-semibold text-primary hover:underline"
               aria-expanded={showDetails}
             >
-              {showDetails ? "Hide details" : "See details"}
+              {showDetails ? t("hideDetails") : t("seeDetails")}
             </button>
             {showDetails && (
               <div className="mt-3 space-y-3 rounded-xl border border-border bg-muted/20 p-4">
                 <div>
-                  <p className={ffLabel}>Your description</p>
+                  <p className={ffLabel}>{t("yourDescription")}</p>
                   <p className="text-sm leading-relaxed text-foreground/90">
                     {job.description}
                   </p>
                 </div>
                 {summary && (
                   <div>
-                    <p className={ffLabel}>AI summary</p>
+                    <p className={ffLabel}>{t("aiSummary")}</p>
                     {editingSummary && !jobLocked ? (
                       <div className="mt-2 flex flex-col gap-3">
                         <textarea
@@ -526,7 +562,7 @@ function ClassificationResult({
                             disabled={saving || !summaryDraft.trim()}
                             className={`${ffBtnPrimary} ${ffBtnInRow}`}
                           >
-                            {saving ? "Saving…" : "Save summary"}
+                            {saving ? t("saving") : t("saveSummary")}
                           </button>
                           <button
                             type="button"
@@ -536,7 +572,7 @@ function ClassificationResult({
                             }}
                             className={`${ffBtnSecondary} ${ffBtnInRow}`}
                           >
-                            Cancel
+                            {t("cancel")}
                           </button>
                         </div>
                       </div>
@@ -554,7 +590,7 @@ function ClassificationResult({
                             }}
                             className={`${ffBtnGhost} shrink-0 sm:w-auto`}
                           >
-                            Edit text
+                            {t("editText")}
                           </button>
                         )}
                       </div>
@@ -573,14 +609,14 @@ function ClassificationResult({
                   onClick={() => setShowCategoryEdit(true)}
                   className={`${ffBtnGhost} w-fit text-sm`}
                 >
-                  Adjust category & urgency
+                  {t("adjustCategoryUrgency")}
                 </button>
               ) : (
                 <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     <div className="min-w-[200px] flex-1">
                       <label htmlFor="job-category" className={ffLabel}>
-                        Trade category
+                        {t("tradeCategory")}
                       </label>
                       <select
                         id="job-category"
@@ -592,14 +628,14 @@ function ClassificationResult({
                       >
                         {JOB_CATEGORIES.map((c) => (
                           <option key={c} value={c}>
-                            {c}
+                            {getCategoryLabel(c, language)}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div className="min-w-[140px] sm:w-40">
                       <label htmlFor="job-urgency" className={ffLabel}>
-                        Urgency
+                        {t("labelUrgency")}
                       </label>
                       <select
                         id="job-urgency"
@@ -611,7 +647,7 @@ function ClassificationResult({
                       >
                         {JOB_URGENCIES.map((u) => (
                           <option key={u} value={u}>
-                            {u}
+                            {t((u.toLowerCase() + "Urgency") as any)}
                           </option>
                         ))}
                       </select>
@@ -627,7 +663,7 @@ function ClassificationResult({
                       disabled={savingCategory}
                       className={`${ffBtnPrimary} ${ffBtnInRow}`}
                     >
-                      {savingCategory ? "Saving…" : "Save"}
+                      {savingCategory ? t("saving") : t("save")}
                     </button>
                     <button
                       type="button"
@@ -637,7 +673,7 @@ function ClassificationResult({
                       }}
                       className={`${ffBtnSecondary} ${ffBtnInRow}`}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                   </div>
                 </div>
@@ -653,14 +689,14 @@ function ClassificationResult({
                 disabled={!job.category}
                 className={ffBtnPrimary}
               >
-                Find nearby suppliers
+                {t("findNearbySuppliers")}
               </button>
               <button
                 type="button"
                 onClick={() => setJobView("quotes")}
                 className={`${ffBtnGhost} mt-3`}
               >
-                Open quote inbox →
+                {t("openQuoteInbox")}
               </button>
             </div>
           )}
@@ -673,7 +709,7 @@ function ClassificationResult({
               onClick={() => setJobView("quotes")}
               className={`${ffBtnSecondary} mt-1`}
             >
-              View quotes
+              {t("viewQuotes")}
             </button>
           )}
         </div>

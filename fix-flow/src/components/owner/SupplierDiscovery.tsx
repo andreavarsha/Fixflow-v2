@@ -4,6 +4,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { SupplierCard } from "./SupplierCard";
 import { SupplierDiscoveryMap } from "./SupplierDiscoveryMap";
+import { useLanguage } from "../../lib/LanguageContext";
+import { getCategoryLabel } from "../../pages/owner/Dashboard";
 import {
   ffBtnPrimary,
   ffBtnSecondary,
@@ -34,6 +36,7 @@ export function SupplierDiscovery({
   onBack,
   onQuotesSent,
 }: SupplierDiscoveryProps) {
+  const { t, language } = useLanguage();
   const suppliers = useQuery(api.suppliers.getSuppliersNearJob, { jobId });
   const selectSuppliers = useMutation(api.suppliers.selectSuppliers);
   const [selected, setSelected] = useState<Id<"users">[]>([]);
@@ -42,6 +45,25 @@ export function SupplierDiscovery({
   const [success, setSuccess] = useState(false);
 
   const zoneName = zoneByIdName(zoneId);
+  const zoneLabel = zoneId
+    ? language === "si"
+      ? zoneId === "kadana"
+        ? "කඩවත"
+        : zoneId === "rajagiriya"
+          ? "රාජගිරිය"
+          : zoneId === "nawala"
+            ? "නාවල"
+            : zoneName
+      : language === "ta"
+        ? zoneId === "kadana"
+          ? "கடவத்தை"
+          : zoneId === "rajagiriya"
+            ? "இராஜகிரிய"
+            : zoneId === "nawala"
+              ? "நாவல"
+              : zoneName
+        : zoneName
+    : "";
 
   function toggleSupplier(id: Id<"users">) {
     setError("");
@@ -50,7 +72,7 @@ export function SupplierDiscovery({
       return;
     }
     if (selected.length >= MAX_SELECT) {
-      setError(`You can choose up to ${MAX_SELECT} suppliers. Tap one to deselect.`);
+      setError(t("chooseUpToSuppliers").replace("{max}", String(MAX_SELECT)));
       return;
     }
     setSelected([...selected, id]);
@@ -58,7 +80,7 @@ export function SupplierDiscovery({
 
   async function handleRequestQuotes() {
     if (selected.length === 0) {
-      setError("Select at least one supplier to continue.");
+      setError(t("selectAtLeastOne"));
       return;
     }
     setError("");
@@ -82,12 +104,12 @@ export function SupplierDiscovery({
     <div className="flex flex-col gap-5">
       <div className={ffCard}>
         <h2 className="text-base font-semibold text-foreground">
-          Nearby suppliers{zoneName ? ` · ${zoneName}` : ""}
+          {t("nearbySuppliersText")}{zoneLabel ? ` · ${zoneLabel}` : ""}
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Showing <strong>{category}</strong> pros near your job pin
-          (distance from the pin). Tap a pin or card to select, up to{" "}
-          <strong>{MAX_SELECT}</strong>. Quotes update live on the map.
+          {t("discoveryHintText")
+            .replace("{category}", getCategoryLabel(category, language))
+            .replace("{max}", String(MAX_SELECT))}
         </p>
       </div>
 
@@ -103,22 +125,21 @@ export function SupplierDiscovery({
         className="flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-foreground shadow-md"
         aria-live="polite"
       >
-        <span className="text-sm font-medium">Selected</span>
+        <span className="text-sm font-medium">{t("discoverySelected")}</span>
         <span className="text-lg font-bold tabular-nums">
           {selected.length}/{MAX_SELECT}
         </span>
       </div>
 
       {suppliers === undefined && (
-        <p className="text-center text-sm text-muted-foreground">Finding suppliers…</p>
+        <p className="text-center text-sm text-muted-foreground">{t("findingSuppliers")}</p>
       )}
 
       {suppliers !== undefined && suppliers.length === 0 && (
         <div className={`${ffCard} text-sm text-muted-foreground`}>
-          <p className="font-medium text-foreground">No one nearby right now</p>
+          <p className="font-medium text-foreground">{t("noSuppliersNearbyTitle")}</p>
           <p className="mt-2 leading-relaxed">
-            No approved {category} suppliers are available near this pin. Try
-            another category from the job summary, or re-run the demo seed.
+            {t("noSuppliersNearbyDesc").replace("{category}", getCategoryLabel(category, language))}
           </p>
         </div>
       )}
@@ -153,7 +174,7 @@ export function SupplierDiscovery({
       <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur-sm md:static md:flex-row md:items-center md:justify-between md:border-0 md:bg-transparent md:p-0 md:shadow-none">
         <div className="flex flex-col gap-3 md:ml-auto md:flex-row md:justify-end">
           <button type="button" onClick={onBack} className={`${ffBtnSecondary} ${ffBtnInRow}`}>
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -164,8 +185,8 @@ export function SupplierDiscovery({
             className={`${ffBtnPrimary} ${ffBtnInRow}`}
           >
             {submitting
-              ? "Sending…"
-              : `Request quotes (${selected.length})`}
+              ? t("submitting")
+              : t("requestQuotesBtn").replace("{count}", String(selected.length))}
           </button>
         </div>
       </div>

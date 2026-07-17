@@ -45,18 +45,38 @@ function translateAddressLabel(label: string, lang: string): string {
   if (lang === "en") return label;
 
   const dictionary: Record<string, { si: string; ta: string }> = {
-    // Cities/Zones
+    // Country / Provinces / Districts
+    "Sri Lanka": { si: "ශ්‍රී ලංකාව", ta: "இலங்கை" },
+    "Western Province": { si: "බස්නාහිර පළාත", ta: "மேல் மாகாணம்" },
+    "Colombo District": { si: "කොළඹ දිස්ත්‍රික්කය", ta: "கொழும்பு மாவட்டம்" },
+    "Gampaha District": { si: "ගම්පහ දිස්ත්‍රික්කය", ta: "கம்பஹா மாவட்டம்" },
+    "Colombo": { si: "කොළඹ", ta: "கொழும்பு" },
+    "Gampaha": { si: "ගම්පහ", ta: "கம்பஹா" },
+
+    // Primary demo zones
     "Kadawatha": { si: "කඩවත", ta: "கடவத்தை" },
     "Kadana": { si: "කඩවත", ta: "கடவத்தை" },
     "Rajagiriya": { si: "රාජගිරිය", ta: "இராஜகிரிய" },
     "Nawala": { si: "නාවල", ta: "நாவல" },
-    // Districts
-    "Colombo District": { si: "කොළඹ දිස්ත්‍රික්කය", ta: "கொழும்பு மாவட்டம்" },
-    "Gampaha District": { si: "ගම්පහ දිස්ත්‍රික්කය", ta: "கம்பஹா மாவட்டம்" },
-    // Provinces
-    "Western Province": { si: "බස්නාහිර පළාත", ta: "மேல் மாகாணம்" },
-    // Country
-    "Sri Lanka": { si: "ශ්‍රී ලංකාව", ta: "இலங்கை" },
+
+    // Surrounding administrative divisions / sub-areas
+    "Sri Jayewardenepura Kotte": { si: "ශ්‍රී ජයවර්ධනපුර කෝට්ටේ", ta: "ஸ்ரீ ஜயவர்தனபுர கோட்டே" },
+    "Sri Jayawardenepura Kotte": { si: "ශ්‍රී ජයවර්ධනපුර කෝට්ටේ", ta: "ஸ்ரீ ஜயவர்தனபுர கோட்டே" },
+    "Sri Jayewardenepura Mawatha": { si: "ශ්‍රී ජයවර්ධනපුර මාවත", ta: "ஸ்ரீ ஜயவர்தனபுர மாவத்தை" },
+    "Sri Jayawardenepura Mawatha": { si: "ශ්‍රී ජයවර්ධනපුර මාවත", ta: "ஸ்ரீ ஜயவர்தனபுர மாவத்தை" },
+    "Kolonnawa": { si: "කොලොන්නාව", ta: "கொலன்னாவை" },
+    "Welikada": { si: "වැලි කඩ", ta: "வெலிகடை" },
+    "Kotte": { si: "කෝට්ටේ", ta: "கோட்டே" },
+    "Nugegoda": { si: "නුගේගොඩ", ta: "நுகேகொடை" },
+
+    // Address terms / Suffixes
+    "Mawatha": { si: "මාවත", ta: "மாவத்தை" },
+    "Garden": { si: "වත්ත", ta: "தோட்டம்" },
+    "Gardens": { si: "වතු", ta: "தோட்டங்கள்" },
+    "Road": { si: "පාර", ta: "வீதி" },
+    "Street": { si: "වීදිය", ta: "தெரு" },
+    "Junction": { si: "හන්දිය", ta: "சந்தி" },
+    "Lane": { si: "පටුමග", ta: "சந்து" },
   };
 
   let translated = label;

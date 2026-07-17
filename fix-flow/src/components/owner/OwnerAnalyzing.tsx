@@ -1,6 +1,7 @@
 import { IconCheckBadge } from "../icons";
 import { zoneByIdName } from "../../lib/zones";
 import { ffCard, ffScreenSubtitle, ffScreenTitle } from "../../lib/fixflowUi";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type OwnerAnalyzingProps = {
   hasPhoto: boolean;
@@ -9,6 +10,7 @@ type OwnerAnalyzingProps = {
 };
 
 export function OwnerAnalyzing({ hasPhoto, zoneId, onBack }: OwnerAnalyzingProps) {
+  const { t } = useLanguage();
   const zoneName = zoneByIdName(zoneId);
 
   return (
@@ -25,7 +27,7 @@ export function OwnerAnalyzing({ hasPhoto, zoneId, onBack }: OwnerAnalyzingProps
           >
             ←
           </span>
-          New request
+          {t("analyzingBack")}
         </button>
       )}
 
@@ -34,8 +36,8 @@ export function OwnerAnalyzing({ hasPhoto, zoneId, onBack }: OwnerAnalyzingProps
           className="mb-6 h-10 w-10 animate-spin rounded-full border-2 border-border border-t-primary"
           aria-hidden
         />
-        <h1 className={ffScreenTitle}>Reading your request…</h1>
-        <p className={ffScreenSubtitle}>Usually under a few seconds</p>
+        <h1 className={ffScreenTitle}>{t("analyzingTitle")}</h1>
+        <p className={ffScreenSubtitle}>{t("analyzingSubtitle")}</p>
 
         <ul className="mt-8 w-full max-w-xs space-y-3 text-left text-sm">
           <li className="flex items-start gap-2 text-foreground">
@@ -43,7 +45,7 @@ export function OwnerAnalyzing({ hasPhoto, zoneId, onBack }: OwnerAnalyzingProps
               size={18}
               className="mt-0.5 shrink-0 text-teal-600 dark:text-teal-400"
             />
-            <span>{hasPhoto ? "Photo received" : "No photo attached"}</span>
+            <span>{hasPhoto ? t("analyzingPhotoRec") : t("analyzingNoPhoto")}</span>
           </li>
           <li className="flex items-start gap-2 text-foreground">
             <IconCheckBadge
@@ -51,7 +53,7 @@ export function OwnerAnalyzing({ hasPhoto, zoneId, onBack }: OwnerAnalyzingProps
               className="mt-0.5 shrink-0 text-teal-600 dark:text-teal-400"
             />
             <span>
-              Location confirmed
+              {t("analyzingLocationConfirmed")}
               {zoneName ? ` (${zoneName})` : ""}
             </span>
           </li>
@@ -59,7 +61,7 @@ export function OwnerAnalyzing({ hasPhoto, zoneId, onBack }: OwnerAnalyzingProps
             <span className="font-semibold" aria-hidden>
               ·
             </span>
-            <span>Classifying issue…</span>
+            <span>{t("analyzingClassifying")}</span>
           </li>
         </ul>
       </div>
