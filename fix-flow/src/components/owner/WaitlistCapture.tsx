@@ -9,6 +9,7 @@ import {
 } from "../../lib/fixflowUi";
 import { toUserFacingError } from "../../lib/userFacingError";
 import type { LatLng } from "./JobLocationPicker";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type WaitlistCaptureProps = {
   location: LatLng;
@@ -16,6 +17,7 @@ type WaitlistCaptureProps = {
 };
 
 export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
+  const { t } = useLanguage();
   const joinWaitlist = useMutation(api.waitlist.joinWaitlist);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -46,14 +48,13 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
     return (
       <div className={`${ffCard} flex flex-col gap-3`}>
         <p className="text-lg font-semibold text-foreground">
-          {already ? "You're already on the list" : "You're on the waitlist"}
+          {already ? t("waitlistAlreadyTitle") : t("waitlistSuccessTitle")}
         </p>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          We&apos;ll reach out when Better Call expands to your area. Thanks for the
-          interest. It helps us show investors where demand is.
+          {t("waitlistSuccessDesc")}
         </p>
         <button type="button" onClick={onBack} className={ffBtnPrimary}>
-          Adjust pin and try again
+          {t("waitlistAdjustPinBtn")}
         </button>
       </div>
     );
@@ -63,11 +64,10 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
     <div className={`${ffCard} flex flex-col gap-4`}>
       <div>
         <p className="text-lg font-semibold text-foreground">
-          Not in our demo zones yet
+          {t("waitlistTitle")}
         </p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Better Call is live in Kadana, Rajagiriya, and Nawala. Leave your email and
-          we&apos;ll notify you when we expand.
+          {t("waitlistDesc")}
         </p>
       </div>
       <form
@@ -78,7 +78,7 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
       >
         <div>
           <label htmlFor="waitlist-email" className={ffLabel}>
-            Email
+            {t("waitlistEmailLabel")}
           </label>
           <input
             id="waitlist-email"
@@ -100,14 +100,14 @@ export function WaitlistCapture({ location, onBack }: WaitlistCaptureProps) {
         )}
         <div className="flex flex-col gap-2 sm:flex-row">
           <button type="submit" disabled={submitting} className={ffBtnPrimary}>
-            {submitting ? "Saving…" : "Join waitlist"}
+            {submitting ? t("submitting") : t("waitlistJoinBtn")}
           </button>
           <button
             type="button"
             onClick={onBack}
             className="text-sm text-muted-foreground underline"
           >
-            Move the pin instead
+            {t("waitlistMovePinBtn")}
           </button>
         </div>
       </form>

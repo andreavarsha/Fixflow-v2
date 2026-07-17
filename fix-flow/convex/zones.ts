@@ -15,10 +15,10 @@ export type DemoZone = {
 export const DEMO_ZONES: DemoZone[] = [
   {
     id: "kadana",
-    name: "Kadana",
-    lat: 7.0167,
-    lng: 79.9833,
-    radiusKm: 2.5,
+    name: "Kadawatha",
+    lat: 7.0021,
+    lng: 79.9512,
+    radiusKm: 3.5,
   },
   {
     id: "rajagiriya",

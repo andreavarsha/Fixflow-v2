@@ -178,10 +178,10 @@ export const LOCALES = {
     locUseMyLocation: "Use my current location",
     locLocating: "Locating…",
     locInstructions: "Type an address and tap Find, use GPS, pick a demo area, or tap the map to drop a pin. Drag the pin to fine-tune.",
-    locSetLocationHint: "Set a job location to continue. Better Call is live in Kadana, Rajagiriya, and Nawala.",
+    locSetLocationHint: "Set a job location to continue. Better Call is live in Kadawatha, Rajagiriya, and Nawala.",
     locInZonePrefix: "You're in ",
     locInZoneSuffix: ". Better Call is live here.",
-    locOutsideZone: "This pin is outside our demo zones (Kadana, Rajagiriya, Nawala). You can join the waitlist after trying to submit.",
+    locOutsideZone: "This pin is outside our demo zones (Kadawatha, Rajagiriya, Nawala). You can join the waitlist after trying to submit.",
     locDragPopup: "Drag me to the job site",
     locGeoNotSupported: "Geolocation is not supported in this browser.",
     locGeoError: "Couldn't read your location. Enter an address or drag the pin instead.",
@@ -241,6 +241,17 @@ export const LOCALES = {
     noSuppliersNearbyDesc: "No approved {category} suppliers are available near this pin. Try another category from the job summary, or re-run the demo seed.",
     discoveryHintText: "Showing {category} pros near your job pin (distance from the pin). Tap a pin or card to select, up to {max}. Quotes update live on the map.",
     requestQuotesBtn: "Request quotes ({count})",
+
+    // Waitlist Capture
+    waitlistTitle: "Not in our demo zones yet",
+    waitlistDesc: "Better Call is live in Kadawatha, Rajagiriya, and Nawala. Leave your email and we'll notify you when we expand.",
+    waitlistEmailLabel: "Email",
+    waitlistJoinBtn: "Join waitlist",
+    waitlistMovePinBtn: "Move the pin instead",
+    waitlistSuccessTitle: "You're on the waitlist",
+    waitlistAlreadyTitle: "You're already on the list",
+    waitlistSuccessDesc: "We'll reach out when Better Call expands to your area. Thanks for the interest. It helps us show investors where demand is.",
+    waitlistAdjustPinBtn: "Adjust pin and try again",
   },
   si: {
     // Common
@@ -482,6 +493,17 @@ export const LOCALES = {
     noSuppliersNearbyDesc: "මෙම පින් එක අසල අනුමත {category} සැපයුම්කරුවන් නොමැත. වෙනත් ප්‍රවර්ගයක් උත්සාහ කරන්න.",
     discoveryHintText: "ඔබගේ ස්ථානයට අසල සිටින {category} වෘත්තිකයන් පෙන්වයි. තෝරා ගැනීමට තට්ටු කරන්න (උපරිම {max}).",
     requestQuotesBtn: "මිල ගණන් ඉල්ලන්න ({count})",
+
+    // Waitlist Capture
+    waitlistTitle: "තවමත් අපගේ ආදර්ශ කලාපවලට ඇතුළත් වී නොමැත",
+    waitlistDesc: "Better Call සේවාව කඩවත, රාජගිරිය සහ නාවල යන ප්‍රදේශවල ක්‍රියාත්මක වේ. ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න, අප සේවාව ව්‍යාප්ත කළ පසු ඔබට දන්වන්නෙමු.",
+    waitlistEmailLabel: "විද්‍යුත් ලිපිනය",
+    waitlistJoinBtn: "පොරොත්තු ලේඛනයට එක්වන්න",
+    waitlistMovePinBtn: "වෙනත් ස්ථානයක් තෝරන්න",
+    waitlistSuccessTitle: "ඔබ පොරොත්තු ලේඛනයට එක් කරන ලදී",
+    waitlistAlreadyTitle: "ඔබ දැනටමත් ලේඛනයට එක්වී ඇත",
+    waitlistSuccessDesc: "Better Call සේවාව ඔබගේ ප්‍රදේශයට ව්‍යාප්ත වූ වහාම අප ඔබව සම්බන්ධ කර ගන්නෙමු. ඔබ දැක්වූ උනන්දුවට ස්තූතියි. එය අපට ආයෝජකයින්ට ඉල්ලුම පෙන්වීමට උපකාරී වේ.",
+    waitlistAdjustPinBtn: "පින් එක සකස් කර නැවත උත්සාහ කරන්න",
   },
   ta: {
     // Common
@@ -723,5 +745,16 @@ export const LOCALES = {
     noSuppliersNearbyDesc: "இந்த பின்னிற்கு அருகில் அங்கீகரிக்கப்பட்ட {category} தொழிலாளர்கள் யாரும் இல்லை. வேறு வகையை முயலவும்.",
     discoveryHintText: "உங்கள் பின்னிற்கு அருகிலுள்ள {category} வல்லுனர்களைக் காட்டுகிறது. தேர்ந்தெடுக்க தட்டவும் (அதிகபட்சம் {max}).",
     requestQuotesBtn: "மதிப்பீடுகளைக் கோரவும் ({count})",
+
+    // Waitlist Capture
+    waitlistTitle: "இன்னும் எங்கள் டெமோ மண்டலங்களில் இல்லை",
+    waitlistDesc: "Better Call சேவை கடவத்தை, இராஜகிரிய மற்றும் நாவல ஆகிய இடங்களில் செயலில் உள்ளது. உங்கள் மின்னஞ்சலை உள்ளிடவும், நாங்கள் விரிவாக்கம் செய்யும்போது உங்களுக்கு அறிவிப்போம்.",
+    waitlistEmailLabel: "மின்னஞ்சல்",
+    waitlistJoinBtn: "காத்திருப்புப் பட்டியலில் சேரவும்",
+    waitlistMovePinBtn: "அதற்கு பதிலாக பின்னை நகர்த்தவும்",
+    waitlistSuccessTitle: "நீங்கள் காத்திருப்புப் பட்டியலில் உள்ளீர்கள்",
+    waitlistAlreadyTitle: "நீங்கள் ஏற்கனவே பட்டியலில் உள்ளீர்கள்",
+    waitlistSuccessDesc: "Better Call உங்கள் பகுதிக்கு விரிவடையும் போது நாங்கள் உங்களைத் தொடர்புகொள்வோம். உங்கள் ஆர்வத்திற்கு நன்றி.",
+    waitlistAdjustPinBtn: "பின்னைச் சரிசெய்து மீண்டும் முயற்சிக்கவும்",
   },
 } as const;
