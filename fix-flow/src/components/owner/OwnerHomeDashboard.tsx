@@ -120,7 +120,7 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
   function goToStep2() {
     setError("");
     if (!location) {
-      setError("Set the job location on the map before continuing.");
+      setError(t("errorSetLocation"));
       return;
     }
     const zone = resolveZone(location.lat, location.lng);
@@ -139,11 +139,11 @@ export function OwnerHomeDashboard({ onJobCreated }: OwnerHomeDashboardProps) {
       : "";
     const finalDescription = trimmed || fallback;
     if (!finalDescription) {
-      setError("Pick an issue type or describe the problem.");
+      setError(t("errorPickIssue"));
       return;
     }
     if (!location) {
-      setError("Set the job location on the map before continuing.");
+      setError(t("errorSetLocation"));
       setStep(1);
       return;
     }

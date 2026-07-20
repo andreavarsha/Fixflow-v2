@@ -7,6 +7,7 @@ import { downloadJobInvoice } from "./JobInvoice";
 import { ffBtnPrimary, ffBtnSecondary, ffCard, ffInput, ffLabel } from "../../lib/fixflowUi";
 import { toUserFacingError } from "../../lib/userFacingError";
 import { zoneByIdName } from "../../lib/zones";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type AcceptedQuote = {
   priceLKR?: number;
@@ -40,12 +41,15 @@ function RatingPrompt({
   const [skipped, setSkipped] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const { t } = useLanguage();
+
+  const displayName = supplierName ?? "—";
 
   if (existing || done || skipped) {
     if (existing || done) {
       return (
         <p className="mt-3 text-sm text-teal-800 dark:text-teal-300">
-          Thanks for rating {supplierName ?? "your tradesperson"}.
+          {t("thankYouRating").replace("{name}", displayName)}
         </p>
       );
     }
@@ -80,10 +84,10 @@ function RatingPrompt({
       className="mt-4 border-t border-teal-200/60 pt-4 dark:border-teal-900/50"
     >
       <p className="text-sm font-semibold text-foreground">
-        Rate {supplierName ?? "your tradesperson"}
+        {t("rateTraderTitle").replace("{name}", displayName)}
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Optional. Helps other homeowners.
+        {t("ratingOptionalHint")}
       </p>
       <div
         className="mt-3 flex gap-1"
@@ -100,29 +104,22 @@ function RatingPrompt({
             aria-label={`${n} star${n === 1 ? "" : "s"}`}
             onClick={() => setRating(n)}
             onMouseEnter={() => setHover(n)}
-            className="rounded-lg p-1.5 transition hover:bg-accent"
+            className="rounded-md p-0.5 text-amber-400 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            <IconStar
-              size={28}
-              filled={n <= display}
-              className={
-                n <= display ? "text-amber-500" : "text-muted-foreground/40"
-              }
-            />
+            <IconStar size={22} filled={n <= display} />
           </button>
         ))}
       </div>
-      <label htmlFor={`review-${jobId}`} className={`${ffLabel} mt-3`}>
-        Comment (optional)
+      <label className={`${ffLabel} mt-3`} htmlFor="rating-comment">
+        Comment <span className="font-normal text-muted-foreground">(optional)</span>
       </label>
       <textarea
-        id={`review-${jobId}`}
+        id="rating-comment"
+        rows={3}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        rows={2}
-        maxLength={500}
         className={`${ffInput} mt-1 resize-none`}
-        placeholder="How was the work?"
+        placeholder={t("ratingOptionalHint")}
       />
       {error && (
         <p
@@ -134,14 +131,14 @@ function RatingPrompt({
       )}
       <div className="mt-3 flex flex-wrap gap-3">
         <button type="submit" disabled={submitting} className={ffBtnPrimary}>
-          {submitting ? "Saving…" : "Submit rating"}
+          {submitting ? t("savingRating") : t("submitRatingBtn")}
         </button>
         <button
           type="button"
           onClick={() => setSkipped(true)}
           className="text-sm text-muted-foreground underline"
         >
-          Skip for now
+          {t("skipForNow")}
         </button>
       </div>
     </form>
@@ -160,6 +157,9 @@ export function OwnerJobPaymentPanel({
   const confirmPayment = useMutation(api.jobs.ownerConfirmPayment);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  const { t } = useLanguage();
+
+  const supplierName = acceptedQuote?.supplierName ?? "—";
 
   if (status === "in_progress") {
     return (
@@ -168,12 +168,10 @@ export function OwnerJobPaymentPanel({
         role="status"
       >
         <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
-          Work in progress
+          {t("workInProgress")}
         </p>
         <p className="mt-1 text-sm leading-relaxed text-blue-800 dark:text-blue-300">
-          {acceptedQuote?.supplierName ?? "Your tradesperson"} is working on this
-          repair. You&apos;ll be prompted to pay here once they mark the job
-          complete.
+          {t("workInProgressDesc").replace("{name}", supplierName)}
         </p>
       </div>
     );
@@ -186,19 +184,19 @@ export function OwnerJobPaymentPanel({
         role="status"
       >
         <p className="text-sm font-semibold text-teal-900 dark:text-teal-200">
-          Payment complete
+          {t("paymentComplete")}
         </p>
         <p className="mt-1 text-sm leading-relaxed text-teal-800 dark:text-teal-300">
-          Thank you. This job is closed.
+          {t("paymentCompleteDesc")}
           {acceptedQuote?.priceLKR !== undefined && (
             <>
               {" "}
-              Paid{" "}
+              {t("paidTo")}{" "}
               <span className="font-semibold">
                 LKR {acceptedQuote.priceLKR.toLocaleString("en-LK")}
               </span>
               {acceptedQuote.supplierName
-                ? ` to ${acceptedQuote.supplierName}`
+                ? ` ${t("paidToSuffix").replace("{name}", acceptedQuote.supplierName)}`
                 : ""}
               .
             </>
@@ -220,7 +218,7 @@ export function OwnerJobPaymentPanel({
             })
           }
         >
-          Download invoice
+          {t("downloadInvoice")}
         </button>
         <RatingPrompt
           jobId={jobId}
@@ -259,11 +257,10 @@ export function OwnerJobPaymentPanel({
         id="pay-heading"
         className="text-lg font-semibold text-foreground sm:text-xl"
       >
-        Ready to pay
+        {t("readyToPay")}
       </p>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        {acceptedQuote?.supplierName ?? "Your tradesperson"} marked this job
-        complete. Confirm payment to close the job.
+        {t("readyToPayDesc").replace("{name}", supplierName)}
       </p>
 
       {price && (
@@ -271,14 +268,14 @@ export function OwnerJobPaymentPanel({
           LKR {price}
           {acceptedQuote?.duration && (
             <span className="mt-1 block text-sm font-normal text-muted-foreground">
-              Agreed timeline: {acceptedQuote.duration}
+              {t("agreedTimeline")} {acceptedQuote.duration}
             </span>
           )}
         </p>
       )}
 
       <p className="mt-3 text-xs text-muted-foreground">
-        Demo only. This records payment in Better Call; no card is charged.
+        {t("demoOnlyNote")}
       </p>
 
       {error && (
@@ -296,7 +293,7 @@ export function OwnerJobPaymentPanel({
         disabled={paying}
         className={`${ffBtnPrimary} mt-5 sm:max-w-xs`}
       >
-        {paying ? "Processing…" : "Confirm payment"}
+        {paying ? t("processingPayment") : t("confirmPaymentBtn")}
       </button>
     </div>
   );

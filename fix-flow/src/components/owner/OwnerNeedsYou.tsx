@@ -8,6 +8,7 @@ import {
   ownerJobTitle,
 } from "../../lib/ownerJobMeta";
 import { ffBtnGhost, ffBtnSecondary, ffCard, ffScreenSubtitle, ffScreenTitle } from "../../lib/fixflowUi";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type OwnerNeedsYouProps = {
   onCompareQuotes: (jobId: Id<"jobs">) => void;
@@ -23,9 +24,10 @@ export function OwnerNeedsYou({
   onGoReport,
 }: OwnerNeedsYouProps) {
   const jobs = useQuery(api.jobs.listMyJobs);
+  const { t } = useLanguage();
 
   if (jobs === undefined) {
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">{t("loadingQuotes")}</p>;
   }
 
   const actionable = jobs
@@ -35,15 +37,16 @@ export function OwnerNeedsYou({
         needsYouPriority(a.workflowStatus) - needsYouPriority(b.workflowStatus),
     );
 
+  const subtitle =
+    actionable.length === 0
+      ? t("allCaughtUp")
+      : t("thingsWaiting").replace("{n}", String(actionable.length));
+
   return (
     <div className="mx-auto w-full max-w-xl lg:max-w-2xl">
       <header className="mb-6 pr-12 sm:pr-14">
-        <h1 className={ffScreenTitle}>Needs your input</h1>
-        <p className={ffScreenSubtitle}>
-          {actionable.length === 0
-            ? "You're all caught up"
-            : `${actionable.length} thing${actionable.length === 1 ? "" : "s"} waiting on you`}
-        </p>
+        <h1 className={ffScreenTitle}>{t("needsYourInput")}</h1>
+        <p className={ffScreenSubtitle}>{subtitle}</p>
       </header>
 
       {actionable.length === 0 ? (
@@ -64,16 +67,16 @@ export function OwnerNeedsYou({
               <path d="m8.5 12.5 2.5 2.5 4.5-5" />
             </svg>
           </div>
-          <p className="mt-3 font-medium text-foreground">You&apos;re all caught up</p>
+          <p className="mt-3 font-medium text-foreground">{t("allCaughtUp")}</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            New quotes and payment requests will show up here.
+            {t("newQuotesHint")}
           </p>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <button type="button" onClick={onGoReport} className={ffBtnSecondary}>
-              Report an issue
+              {t("reportAnIssue")}
             </button>
             <button type="button" onClick={onGoActivity} className={ffBtnGhost}>
-              View activity →
+              {t("viewActivityBtn")}
             </button>
           </div>
         </div>
@@ -87,7 +90,7 @@ export function OwnerNeedsYou({
                 className="rounded-2xl border border-border bg-card p-5 shadow-sm ring-1 ring-primary/15"
               >
                 <span className="inline-flex rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-                  {isPay ? "Payment due" : "Quotes ready"}
+                  {isPay ? t("paymentDueBadge") : t("quotesReadyBadge")}
                 </span>
                 <h2 className="mt-3 text-lg font-semibold text-foreground">
                   {ownerJobTitle(job)}
@@ -106,7 +109,7 @@ export function OwnerNeedsYou({
                   }
                   className={`${ffBtnSecondary} mt-5 border-foreground`}
                 >
-                  {isPay ? "Confirm payment" : "Compare & accept"}
+                  {isPay ? t("confirmPaymentBtn") : t("compareAcceptBtn")}
                 </button>
               </li>
             );
@@ -120,7 +123,7 @@ export function OwnerNeedsYou({
           onClick={onGoActivity}
           className={`${ffBtnGhost} mt-6 text-sm`}
         >
-          Everything else lives in Activity →
+          {t("everythingElse")}
         </button>
       )}
     </div>

@@ -16,6 +16,7 @@ import {
 import { formatResponseMinutes } from "../../lib/supplierDashboardUi";
 import { initials } from "../../lib/initials";
 import { toUserFacingError } from "../../lib/userFacingError";
+import { useLanguage } from "../../lib/LanguageContext";
 
 type LiveQuotesDashboardProps = {
   jobId: Id<"jobs">;
@@ -58,6 +59,7 @@ export function LiveQuotesDashboard({
   );
   const [acceptError, setAcceptError] = useState("");
   const [chatOpenFor, setChatOpenFor] = useState<Id<"users"> | null>(null);
+  const { t } = useLanguage();
 
   const jobOpen = job?.status === "open";
   const canPickMoreSuppliers = jobOpen && Boolean(job?.category);
@@ -90,6 +92,14 @@ export function LiveQuotesDashboard({
         )._id
       : undefined;
 
+  /** Localize job status badge */
+  function getJobStatusText(status: string) {
+    if (status === "in_progress") return t("jobStatusInProgress");
+    if (status === "awaiting_payment") return t("jobStatusAwaitingPayment");
+    if (status === "completed") return t("jobStatusClosed");
+    return status;
+  }
+
   return (
     <div>
       <OwnerStepHint
@@ -100,7 +110,7 @@ export function LiveQuotesDashboard({
 
       <div className="-mt-1 mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
         <button type="button" onClick={onBack} className={`${ffBtnGhost} text-left`}>
-          ← Job details
+          {t("jobDetails")}
         </button>
         {canPickMoreSuppliers && (
           <button
@@ -108,17 +118,16 @@ export function LiveQuotesDashboard({
             onClick={onGoToSuppliers}
             className={`${ffBtnGhost} text-left`}
           >
-            Choose suppliers →
+            {t("chooseSuppliersFwd")}
           </button>
         )}
       </div>
 
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:items-center">
         <div className="min-w-0 flex-1">
-          <h1 className={ffScreenTitle}>Quote inbox</h1>
+          <h1 className={ffScreenTitle}>{t("quoteInboxTitle")}</h1>
           <p className={ffScreenSubtitle}>
-            Compare offers side by side. Distance is from your job pin. Accept
-            when ready. Chat if you need to negotiate.
+            {t("quoteInboxSubtitle")}
           </p>
         </div>
         <div
@@ -151,16 +160,15 @@ export function LiveQuotesDashboard({
       )}
 
       {quotes === undefined && (
-        <p className="text-sm text-muted-foreground">Loading quotes…</p>
+        <p className="text-sm text-muted-foreground">{t("loadingQuotes")}</p>
       )}
 
       {quotes !== undefined && quotes.length === 0 && (
         <div className={`${ffCard} flex flex-col gap-4 text-sm text-muted-foreground`}>
           <div>
-            <p className="font-medium text-foreground">No requests sent yet</p>
+            <p className="font-medium text-foreground">{t("noRequestsSentTitle")}</p>
             <p className="mt-2 leading-relaxed">
-              Choose up to three suppliers first. After they submit prices,
-              you&apos;ll compare them here.
+              {t("noRequestsSentDesc")}
             </p>
           </div>
           {canPickMoreSuppliers && (
@@ -169,7 +177,7 @@ export function LiveQuotesDashboard({
               onClick={onGoToSuppliers}
               className={`${ffBtnPrimary} self-start`}
             >
-              Choose suppliers
+              {t("chooseSuppliers")}
             </button>
           )}
         </div>
@@ -187,14 +195,8 @@ export function LiveQuotesDashboard({
       {job && !jobOpen && (
         <div className={`${ffCard} mb-4 text-sm text-foreground/80`}>
           <p>
-            <span className="font-medium text-foreground">Job status:</span>{" "}
-            {job.status === "in_progress"
-              ? "Quote accepted. The tradesperson is working on site."
-              : job.status === "awaiting_payment"
-                ? "Work marked complete. Confirm payment on the job page."
-                : job.status === "completed"
-                  ? "Paid and closed."
-                  : job.status}
+            <span className="font-medium text-foreground">{t("jobStatusLabel")}</span>{" "}
+            {getJobStatusText(job.status)}
           </p>
         </div>
       )}
@@ -225,14 +227,14 @@ export function LiveQuotesDashboard({
             <div className="mt-4 rounded-2xl border border-border bg-muted/40 px-4 py-4 sm:px-6">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-sm font-medium text-foreground">
-                  Chat with {chatPeer.supplierName ?? "tradesperson"}
+                  <ChatWithLabel name={chatPeer.supplierName} />
                 </p>
                 <button
                   type="button"
                   onClick={() => setChatOpenFor(null)}
                   className={`${ffBtnGhost} w-auto text-sm`}
                 >
-                  Close
+                  <CloseChatBtn />
                 </button>
               </div>
               <ChatPanel
@@ -246,6 +248,16 @@ export function LiveQuotesDashboard({
       )}
     </div>
   );
+}
+
+/** Small helper components to access t() inside non-hook context */
+function ChatWithLabel({ name }: { name?: string }) {
+  const { t } = useLanguage();
+  return <>{t("chatWithLabel").replace("{name}", name ?? "—")}</>;
+}
+function CloseChatBtn() {
+  const { t } = useLanguage();
+  return <>{t("closeChatBtn")}</>;
 }
 
 function QuoteCompareCard({
@@ -274,19 +286,20 @@ function QuoteCompareCard({
   const unread = unreadCount ?? 0;
   const canAccept = jobOpen && q.status === "quoted";
   const hasQuote = q.status === "quoted" || q.status === "accepted";
+  const { t } = useLanguage();
 
   const statusBadge =
     q.status === "accepted" ? (
       <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
-        Hired
+        {t("quoteHired")}
       </span>
     ) : q.status === "rejected" ? (
       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
-        Not selected
+        {t("quoteNotSelected")}
       </span>
     ) : q.status === "pending" ? (
       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
-        Awaiting
+        {t("quoteAwaiting")}
       </span>
     ) : null;
 
@@ -309,7 +322,7 @@ function QuoteCompareCard({
             {initials(q.supplierName, undefined)}
           </span>
           <p className="truncate text-sm font-semibold text-foreground">
-            {q.supplierName ?? "Supplier"}
+            {q.supplierName ?? "—"}
           </p>
         </div>
         {statusBadge}
@@ -321,36 +334,36 @@ function QuoteCompareCard({
             LKR {q.priceLKR.toLocaleString("en-LK")}
             {isBestPrice && (
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                Best price
+                {t("bestPrice")}
               </span>
             )}
           </p>
         ) : (
-          <p className="text-sm text-muted-foreground">Waiting for a price…</p>
+          <p className="text-sm text-muted-foreground">{t("waitingForPrice")}</p>
         )}
         {hasQuote &&
           (q.isFinal ? (
             <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
-              Final
+              {t("quoteFinal")}
             </span>
           ) : (
             <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900 dark:bg-amber-950/60 dark:text-amber-300">
-              Negotiable
+              {t("quoteNegotiable")}
             </span>
           ))}
       </div>
 
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs text-foreground/80">
         <div>
-          <dt className="text-muted-foreground">Duration</dt>
+          <dt className="text-muted-foreground">{t("durationLabel")}</dt>
           <dd>{hasQuote ? (q.duration ?? "-") : "-"}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Distance</dt>
-          <dd>{q.distanceKm !== undefined ? `${q.distanceKm.toFixed(1)} km` : "-"}</dd>
+          <dt className="text-muted-foreground">{t("distanceLabel")}</dt>
+          <dd>{q.distanceKm !== undefined ? `${q.distanceKm.toFixed(1)} ${t("kmAway")}` : "-"}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Rating</dt>
+          <dt className="text-muted-foreground">{t("ratingLabel")}</dt>
           <dd>
             {q.supplierRating !== undefined ? (
               <>
@@ -365,12 +378,12 @@ function QuoteCompareCard({
                   : ""}
               </>
             ) : (
-              "New"
+              t("supplierNew")
             )}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Response</dt>
+          <dt className="text-muted-foreground">{t("responseLabel")}</dt>
           <dd>
             {q.avgResponseMinutes !== undefined
               ? formatResponseMinutes(q.avgResponseMinutes)
@@ -378,7 +391,7 @@ function QuoteCompareCard({
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Jobs completed</dt>
+          <dt className="text-muted-foreground">{t("jobsCompletedLabel")}</dt>
           <dd>{q.completedJobs !== undefined ? q.completedJobs : "0"}</dd>
         </div>
       </dl>
@@ -397,7 +410,7 @@ function QuoteCompareCard({
             disabled={acceptingId !== null}
             className={`${ffBtnPrimary} min-h-[40px] px-3 py-2 text-xs sm:flex-1`}
           >
-            {acceptingId === q._id ? "Accepting…" : "Accept"}
+            {acceptingId === q._id ? t("accepting") : t("acceptBtn")}
           </button>
         )}
         <button
@@ -406,7 +419,7 @@ function QuoteCompareCard({
           className={`${ffBtnGhost} relative min-h-[40px] px-2 py-1.5 text-xs ${canAccept ? "sm:w-auto" : "sm:flex-1"}`}
           aria-expanded={chatOpen}
         >
-          {chatOpen ? "Hide chat" : "Message"}
+          {chatOpen ? t("hideChatBtn") : t("messageBtn")}
           {!chatOpen && unread > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
               {unread > 9 ? "9+" : unread}
